@@ -1,0 +1,149 @@
+{
+  "name": "Advanced Home Assistant Custom Integration Development",
+  "image": "mcr.microsoft.com/devcontainers/python:3.13",
+  "postCreateCommand": "bash .devcontainer/setup-shell.sh && bash .devcontainer/setup-git.sh && script/setup/setup",
+  "postAttachCommand": "bash .devcontainer/post-attach.sh",
+  "containerEnv": {
+    // Home Assistant version to install in the devcontainer
+    "HA_VERSION": "2025.11.3",
+    // Install HACS in the Home Assistant installation
+    "HA_INSTALL_HACS": "1",
+    // Enable asyncio debug mode for easier debugging of async code
+    "PYTHONASYNCIODEBUG": "1",
+    // Ensure Python output is sent straight to terminal (e.g. for logging)
+    "PYTHONUNBUFFERED": "1",
+    // Optionally update apt package lists after container creation
+    "APT_UPDATE": "0"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers-extra/features/apt-packages:1": {
+      "packages": ["ffmpeg", "libturbojpeg0", "libpcap-dev"]
+    }
+  },
+  "forwardPorts": [8123],
+  "portsAttributes": {
+    "8123": {
+      "label": "Home Assistant",
+      "onAutoForward": "notify"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "charliermarsh.ruff",
+        "davidanson.vscode-markdownlint",
+        "EditorConfig.EditorConfig",
+        "esbenp.prettier-vscode",
+        "GitHub.copilot",
+        "github.vscode-pull-request-github",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-vscode-remote.remote-containers",
+        "redhat.vscode-yaml"
+      ],
+      // Please keep this file in sync with settings in .vscode/settings.default.jsonc
+      "settings": {
+        "editor.tabSize": 4,
+        "editor.formatOnPaste": false,
+        "editor.formatOnSave": true,
+        "editor.formatOnType": false,
+        "files.eol": "\n",
+        "files.trimTrailingWhitespace": true,
+        "files.associations": {
+          "**/translations/*.json": "jsontranslation"
+        },
+        "markdown.validate.enabled": false,
+        "markdown.validate.fileLinks.enabled": "ignore",
+        "markdown.validate.fragmentLinks.enabled": "ignore",
+        "python.analysis.typeCheckingMode": "basic",
+        "python.analysis.autoImportCompletions": true,
+        "python.analysis.diagnosticMode": "workspace",
+        "python.analysis.diagnosticSeverityOverrides": {
+          "reportUnusedImport": "none",
+          "reportUnusedVariable": "none",
+          "reportUnusedCoroutine": "none",
+          "reportMissingTypeStubs": "none"
+        },
+        "python.analysis.include": ["custom_components/ha_integration_domain"],
+        "python.analysis.exclude": [
+          "**/__pycache__/**",
+          "**/.git/**",
+          "**/.pytest_cache/**",
+          "**/.venv/**",
+          "**/config/**",
+          "**/docs/**",
+          "**/node_modules/**",
+          "**/venv/**"
+        ],
+        "python.analysis.extraPaths": ["/home/vscode/.local/ha-venv/lib/python3.13/site-packages"],
+        "python.defaultInterpreterPath": "/home/vscode/.local/ha-venv/bin/python",
+        "python.linting.pylintEnabled": false,
+        "python.terminal.activateEnvironment": true,
+        "python.terminal.activateEnvInCurrentTerminal": true,
+        "python.testing.pytestArgs": ["--no-cov"],
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/usr/bin/zsh"
+          }
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "yaml.customTags": [
+          "!secret scalar",
+          "!include scalar",
+          "!include_dir_list scalar",
+          "!include_dir_merge_list scalar",
+          "!include_dir_named scalar",
+          "!include_dir_merge_named scalar",
+          "!input scalar"
+        ],
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit",
+            "source.organizeImports.ruff": "explicit"
+          }
+        },
+        "[yaml]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[jsonc]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[jsontranslation]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": false
+        },
+        "json.schemas": [
+          {
+            "fileMatch": ["custom_components/*/manifest.json"],
+            "url": "${containerWorkspaceFolder}/schemas/json/manifest_schema.json"
+          },
+          {
+            "fileMatch": ["custom_components/*/translations/*.json"],
+            "url": "${containerWorkspaceFolder}/schemas/json/translation_schema.json"
+          },
+          {
+            "fileMatch": ["hacs.json"],
+            "url": "${containerWorkspaceFolder}/schemas/json/hacs_schema.json"
+          }
+        ]
+      }
+    }
+  },
+  "mounts": [
+    // Mount host gitconfig for local development (ignored in Codespaces)
+    // In Codespaces, GitHub automatically configures Git with your account
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/vscode/.gitconfig.host,type=bind,consistency=cached,readonly"
+  ],
+  "remoteUser": "vscode"
+}

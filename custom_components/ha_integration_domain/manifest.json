@@ -1,0 +1,12 @@
+{
+  "domain": "ha_integration_domain",
+  "name": "Integration blueprint",
+  "codeowners": [
+    "@jpawlowski"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/jpawlowski/hacs.integration_blueprint",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/jpawlowski/hacs.integration_blueprint/issues",
+  "version": "0.1.0"
+}

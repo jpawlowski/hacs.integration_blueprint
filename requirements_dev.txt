@@ -1,0 +1,23 @@
+# Additional development tools beyond Home Assistant's requirements_test.txt
+#
+# Note: The following are already provided by HA's requirements_test.txt:
+#   - pytest and pytest plugins (pytest-asyncio, pytest-aiohttp, pytest-cov, etc.)
+#   - ruff (linting and formatting) via requirements_test_pre_commit.txt
+#   - mypy-dev (type checking - we use pyright instead)
+#   - codespell (spell checking) via requirements_test_pre_commit.txt
+#   - pre-commit (hook framework)
+#   - pylint (linting)
+#
+# Install with: uv pip install -r requirements_dev.txt
+
+# Type Checking
+# HA Core uses mypy, but we prefer pyright for better IDE integration and speed
+pyright==1.1.407
+
+# Better logging for development scripts
+colorlog==6.10.1
+
+# Performance optimizations (optional but recommended for faster development)
+# These speed up Home Assistant's startup and runtime
+zlib_ng==1.0.0
+isal==1.8.0

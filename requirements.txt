@@ -1,0 +1,11 @@
+# Runtime dependencies for the integration
+# These are installed by Home Assistant when the integration is loaded
+# See custom_components/ha_integration_domain/manifest.json for the authoritative list
+
+# Add your integration's runtime dependencies here
+# Example:
+# aiohttp>=3.8.0
+# async-timeout>=4.0.0
+
+# Note: Home Assistant core dependencies are already available
+# Only list additional packages your integration needs

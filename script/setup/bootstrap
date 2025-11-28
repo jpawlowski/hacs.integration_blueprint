@@ -1,0 +1,103 @@
+#!/bin/bash
+
+# script/bootstrap: Install/update all dependencies required to run the project
+#
+# Bootstraps the development environment by installing system packages,
+# setting up uv package manager, creating virtual environment, and installing
+# Python dependencies including Home Assistant core and development tools.
+#
+# Usage:
+#   ./script/setup/bootstrap
+#
+# Examples:
+#   ./script/setup/bootstrap
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/../.."
+
+# shellcheck source=script/.lib/output.sh
+source "$SCRIPT_DIR/../.lib/output.sh"
+
+if [[ ${APT_UPDATE:-"0"} == "1" ]]; then
+    log_header "Updating system packages"
+    sudo apt-get update
+    sudo apt-get upgrade -y
+fi
+
+log_header "Checking for uv"
+if ! command -v uv >/dev/null 2>&1; then
+    log_info "UV not found, installing..."
+    pipx install uv
+fi
+
+log_header "Checking for Python virtual environment"
+if [[ ! -d $HOME/.local/ha-venv ]]; then
+    log_info "Creating virtual environment"
+    uv venv "$HOME/.local/ha-venv"       # must be created inside container to allow using hardlinks during package installation
+fi
+
+# shellcheck source=/dev/null
+source "$HOME/.local/ha-venv/bin/activate"
+
+set +e
+if [[ -f $HOME/.bashrc ]]; then
+    if ! grep -q "source $HOME/.local/ha-venv/bin/activate" "$HOME/.bashrc" 2>/dev/null; then
+        log_step "Configuring Bash to auto-activate virtual environment"
+        echo "source $HOME/.local/ha-venv/bin/activate" >> "$HOME/.bashrc" || log_warning "Failed to update .bashrc"
+    fi
+fi
+if [[ -f $HOME/.zshrc ]]; then
+    if ! grep -q "source $HOME/.local/ha-venv/bin/activate" "$HOME/.zshrc"; then
+        log_step "Configuring ZSH to auto-activate virtual environment"
+        echo "source $HOME/.local/ha-venv/bin/activate" >> "$HOME/.zshrc" || log_warning "Failed to update .zshrc"
+    fi
+fi
+set -e
+
+log_header "Installing development dependencies"
+uv pip install --requirement requirements_dev.txt
+
+log_header "Installing test dependencies"
+uv pip install --requirement requirements_test.txt
+
+log_header "Installing runtime dependencies"
+if [[ -s requirements.txt ]] && grep -qv '^#' requirements.txt | grep -q '[^[:space:]]'; then
+    uv pip install --requirement requirements.txt
+else
+    log_info "No runtime dependencies defined (this is normal for blueprints)"
+fi
+
+HA_VERSION=${HA_VERSION:-"2025.7.0"}
+HA_CORE_BASE_URL="https://raw.githubusercontent.com/home-assistant/core/${HA_VERSION}"
+
+log_header "Installing Home Assistant ${HA_VERSION} runtime dependencies"
+mkdir -p "/tmp/homeassistant"
+curl -fsSL "${HA_CORE_BASE_URL}/homeassistant/package_constraints.txt" -o "/tmp/homeassistant/package_constraints.txt"  # constraints for requirements files
+curl -fsSL "${HA_CORE_BASE_URL}/requirements.txt" -o "/tmp/requirements.txt"  # required by requirements_all.txt
+curl -fsSL "${HA_CORE_BASE_URL}/requirements_all.txt" -o "/tmp/requirements_all.txt"
+uv pip install --requirement "/tmp/requirements_all.txt"
+
+log_header "Installing Home Assistant ${HA_VERSION} test dependencies"
+curl -fsSL "${HA_CORE_BASE_URL}/requirements_test_pre_commit.txt" -o "/tmp/requirements_test_pre_commit.txt"  # required by requirements_test.txt
+curl -fsSL "${HA_CORE_BASE_URL}/requirements_test.txt" -o "/tmp/requirements_test.txt"
+uv pip install --requirement "/tmp/requirements_test.txt"
+
+log_header "Installing Home Assistant ${HA_VERSION} core"
+uv pip install "homeassistant==${HA_VERSION}"
+
+set +e
+rm -rf /tmp/requirements*.txt /tmp/homeassistant/ || log_warning "Failed to clean up temporary files"
+set -e
+
+if [ -d ".git" ]; then
+    log_header "Installing pre-commit hooks"
+    set +e
+    pre-commit install || log_warning "Failed to install pre-commit hooks"
+    set -e
+else
+    log_info "Skipping pre-commit hooks (not a Git repository)"
+fi
+
+log_success "Bootstrap completed"

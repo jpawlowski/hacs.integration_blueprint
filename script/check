@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# script/check: Run linting and type checking tools together
+#
+# Runs both type-check (Pyright) and lint-check (Ruff) in sequence.
+# Recommended before committing changes.
+#
+# Usage:
+#   ./script/check
+#
+# Examples:
+#   ./script/check
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/.."
+
+# shellcheck source=script/.lib/output.sh
+source "$SCRIPT_DIR/.lib/output.sh"
+
+"$SCRIPT_DIR/type-check"
+echo ""
+"$SCRIPT_DIR/lint-check"
+
+log_success "All checks passed"

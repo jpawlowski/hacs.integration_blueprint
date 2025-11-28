@@ -1,0 +1,41 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+#
+# This configuration uses local hooks that rely on packages
+# installed in the virtual environment (via requirements.txt),
+# avoiding separate pre-commit environments for faster execution.
+repos:
+  - repo: local
+    hooks:
+      # Run the Ruff linter with auto-fix
+      - id: ruff
+        name: ruff
+        entry: ruff check --fix --exit-non-zero-on-fix
+        language: system
+        types: [python]
+        require_serial: true
+
+      # Run the Ruff formatter
+      - id: ruff-format
+        name: ruff format
+        entry: ruff format
+        language: system
+        types: [python]
+        require_serial: true
+
+      # Spell checking
+      - id: codespell
+        name: codespell
+        entry: codespell
+        language: system
+        types_or: [python, markdown, rst]
+
+      # Type checking with Pyright (optional, can be slow)
+      # Uncomment to enable in pre-commit (recommended to use in IDE instead)
+      # - id: pyright
+      #   name: pyright
+      #   entry: pyright
+      #   language: system
+      #   types: [python]
+      #   # Run manually with: pre-commit run pyright --all-files
+      #   stages: [manual]

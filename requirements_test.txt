@@ -1,0 +1,19 @@
+# Additional testing dependencies beyond Home Assistant's requirements_test.txt
+#
+# Note: Core test dependencies are provided by HA's requirements_test.txt:
+#   - pytest
+#   - pytest-asyncio
+#   - pytest-aiohttp
+#   - pytest-cov
+#   - pytest-timeout
+#   - pytest-xdist (parallel test execution)
+#   - coverage
+#   - freezegun (time mocking)
+#   - requests-mock
+#   - respx (httpx mocking)
+#
+# Install with: uv pip install -r requirements_test.txt
+
+# Testing utilities for Home Assistant custom components
+# Provides additional fixtures and utilities specifically for custom component testing
+pytest-homeassistant-custom-component==0.13.297
