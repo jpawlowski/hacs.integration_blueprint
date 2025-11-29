@@ -442,6 +442,10 @@ check_requirements() {
     if command -v git &> /dev/null && [[ -d .git ]]; then
         print_success "Git repository detected"
 
+        # Refresh git index to avoid false positives from stale timestamps
+        # (common in dev containers and freshly mounted filesystems)
+        git update-index --refresh &> /dev/null || true
+
         # Check for uncommitted changes
         if ! git diff-index --quiet HEAD -- 2>/dev/null; then
             print_warning "You have uncommitted changes in your repository"
