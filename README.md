@@ -46,13 +46,14 @@ Develop directly in your browser without installing anything locally!
 2. Switch to the **"Codespaces"** tab
 3. Click **"Create codespace on main"**
 4. **Wait for setup** (2-3 minutes first time) - everything installs automatically
-5. **Configure your integration** - The initialization will start automatically and ask you for:
+5. **Run `./initialize.sh`** in the terminal to configure your integration
+6. **Follow the prompts** to customize:
    - **Domain**: Your integration's unique identifier (e.g., `my_awesome_device`)
    - **Title**: Display name (e.g., "My Awesome Device")
    - **Repository**: Your GitHub repo (e.g., `yourusername/your-repo`)
    - **Author**: Your name for the LICENSE
 
-6. **Review and commit** your changes in the Source Control panel (`Ctrl+Shift+G`)
+7. **Review and commit** your changes in the Source Control panel (`Ctrl+Shift+G`)
 
 **That's it!** You're developing in a fully configured environment with Home Assistant, Python 3.13, and all tools ready. No local setup needed!
 
@@ -60,7 +61,7 @@ Develop directly in your browser without installing anything locally!
 >
 > 🌐 **Port forwarding:** When you start Home Assistant (`script/develop`), port 8123 will automatically forward and you'll get a notification with the URL.
 >
-> 🧹 **Auto-cleanup:** After initialization, the setup script removes itself and the initialization helper from your devcontainer configuration.
+> 🧹 **Auto-cleanup:** After initialization completes, the setup script removes itself automatically.
 >
 > 📖 **More details:** See [Codespaces Development Guide](docs/development/CODESPACES.md) for tips, troubleshooting, and differences from local development.
 
@@ -85,21 +86,23 @@ You'll need these installed locally:
    - Enter your repository URL
    - Wait for the container to build (2-3 minutes first time)
 
-3. **Configure your integration** - The initialization will start automatically and ask you for:
+3. **Run `./initialize.sh`** in the terminal to configure your integration
+
+4. **Follow the prompts** to customize:
    - **Domain**: Your integration's unique identifier (e.g., `my_awesome_device`)
    - **Title**: Display name (e.g., "My Awesome Device")
    - **Repository**: Your GitHub repo (e.g., `yourusername/your-repo`)
    - **Author**: Your name for the LICENSE
 
-4. **Review and commit** changes in Source Control (`Ctrl+Shift+G`)
+5. **Review and commit** changes in Source Control (`Ctrl+Shift+G`)
 
-5. **Start developing**:
+6. **Start developing**:
 
    ```bash
    script/develop  # Home Assistant runs at http://localhost:8123
    ```
 
-> **Note:** Both Codespaces and local DevContainer provide the exact same automated experience - the initialization runs automatically on first attach. The only difference is where the container runs (GitHub's cloud vs. your machine).
+> **Note:** Both Codespaces and local DevContainer provide the exact same experience. After the container is ready, run `./initialize.sh` to customize your integration. The only difference is where the container runs (GitHub's cloud vs. your machine).
 
 Then customize the API client in [`api/client.py`](custom_components/ha_integration_domain/api/client.py) to connect to your actual device or service.
 

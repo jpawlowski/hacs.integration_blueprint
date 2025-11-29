@@ -6,8 +6,9 @@ Integration blueprint is fully compatible with GitHub Codespaces for cloud-based
 
 1. Click "Code" → "Codespaces" → "Create codespace on main"
 2. Wait 2-3 minutes for automated setup
-3. Run `./initialize.sh` when the terminal is ready
-4. Start developing!
+3. **Run `./initialize.sh`** in the terminal to configure your integration
+4. Follow the prompts to customize your integration
+5. Start developing!
 
 ## What Works Automatically
 
