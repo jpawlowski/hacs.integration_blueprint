@@ -31,15 +31,18 @@ When testing the integration, you'll need to run Home Assistant locally using `.
 
 ```bash
 # Kill any existing instance first, then start fresh
-pkill -f "hass --config" || true && ./script/develop
+pkill -f "hass --config" || true && pkill -f "debugpy.*5678" || true && ./script/develop
 ```
 
 This ensures:
 
 - Any existing instance (yours or developer's) is stopped
+- The debugpy debugger process on port 5678 is terminated
 - Fresh start with known state
 - No ambiguity about what's running
 - `|| true` prevents error if nothing was running
+
+**Why kill debugpy?** The `./script/develop` script starts Home Assistant with debugpy listening on port 5678. If you only kill the `hass` process but not debugpy, the port remains blocked and prevents clean restarts.
 
 **When to restart Home Assistant:**
 

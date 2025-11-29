@@ -26,6 +26,16 @@ if [[ -z ${VIRTUAL_ENV:-} ]]; then
     source "$HOME/.local/ha-venv/bin/activate"
 fi
 
+# Kill any existing Home Assistant and debugpy processes
+log_header "Cleaning up existing processes"
+if pkill -f "hass --config.*${PWD}/config"; then
+    log_info "Stopped existing Home Assistant process"
+fi
+if pkill -f "debugpy.*5678"; then
+    log_info "Stopped existing debugpy process (port 5678)"
+fi
+sleep 1  # Give processes time to terminate
+
 # Clean up critical issues (accidental package installations)
 # Uses minimal mode to avoid deleting useful caches
 "$SCRIPT_DIR/clean" --minimal
