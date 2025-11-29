@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=../schemas/yaml/configuration_schema.yaml
 # Development-friendly Home Assistant configuration
 #
 # We don't use default_config to avoid HA OS-specific integrations like go2rtc

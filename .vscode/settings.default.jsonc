@@ -74,9 +74,5 @@
       "fileMatch": ["hacs.json"],
       "url": "./schemas/json/hacs_schema.json"
     }
-  ],
-  "yaml.schemas": {
-    "${containerWorkspaceFolder}/schemas/yaml/services_schema.yaml": "custom_components/*/services.yaml",
-    "${containerWorkspaceFolder}/schemas/yaml/configuration_schema.yaml": "config/configuration.yaml"
-  }
+  ]
 }
