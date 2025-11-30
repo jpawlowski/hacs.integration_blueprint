@@ -52,12 +52,10 @@ jobs:
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: |
-            ${{ github.workspace }}/.local/ha-venv
+            .local/ha-venv
           key: ha-venv-${{ runner.os }}-py313-ha${{ env.HA_VERSION }}-${{ hashFiles('**/requirements*.txt') }}
           restore-keys: |
             ha-venv-${{ runner.os }}-py313-ha${{ env.HA_VERSION }}-
 
       - name: Install dependencies
         run: script/setup/bootstrap
-        env:
-          HOME: ${{ github.workspace }}

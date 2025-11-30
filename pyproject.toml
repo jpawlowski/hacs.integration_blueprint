@@ -25,7 +25,9 @@ exclude = [
     "**/.venv",
     "**/config",
 ]
-venvPath = "/home/vscode/.local"
+# venvPath is relative to workspace root. A symlink is created by script/setup/bootstrap
+# This works in VSCode (uses .local/ha-venv) and GitHub Actions (uses active venv)
+venvPath = ".local"
 venv = "ha-venv"
 typeCheckingMode = "basic"
 reportUnusedImport = "none"

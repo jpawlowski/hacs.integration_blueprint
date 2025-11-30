@@ -52,15 +52,14 @@ fi
 synced=0
 while IFS= read -r -d '' dir; do
     component=$(basename "$dir")
-    target="$SCRIPT_DIR/../../custom_components/$component"
 
     # Skip if already exists and is not a symlink
-    if [[ -e "$target" && ! -L "$target" ]]; then
+    if [[ -e "custom_components/$component" && ! -L "custom_components/$component" ]]; then
         continue
     fi
 
-    # Create or update symlink
-    ln -sf "../config/custom_components/$component" "$target"
+    # Create or update symlink using -rf for relative paths
+    ln -srf "$dir" "custom_components/$component"
     log_result 0 "Linked: $component"
     synced=$((synced + 1))
 done < <(find "$SCRIPT_DIR/../../config/custom_components" -maxdepth 1 -mindepth 1 -type d -print0)
