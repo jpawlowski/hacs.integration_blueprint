@@ -74,9 +74,174 @@ async def test_example(hass, config_entry, coordinator):
 **Standard fixtures:**
 
 - `hass` - Mock Home Assistant instance
-- `config_entry` - Mock ConfigEntry
+- `config_entry` - Mock ConfigEntry (use `MockConfigEntry` from `pytest-homeassistant-custom-component`)
 - `coordinator` - IntegrationBlueprintDataUpdateCoordinator
 - `mock_api_client` - Mocked API client
+
+**Example conftest.py fixture:**
+
+```python
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.ha_integration_domain.const import DOMAIN
+
+@pytest.fixture
+def config_entry():
+    """Return a mock config entry."""
+    return MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_USERNAME: "test_user",
+            CONF_PASSWORD: "test_password",
+        },
+        entry_id="test_entry_id",
+        unique_id="test_unique_id",
+    )
+```
+
+## Mockingt Testing
+
+**Modern Home Assistant pattern using [Syrupy](https://github.com/tophat/syrupy):**
+
+Snapshot tests capture large outputs (entity states, registry entries, diagnostics) and compare them against stored references. Useful for ensuring outputs remain consistent.
+
+**When to use:**
+
+- Entity state structure verification
+- Device/Entity registry entry validation
+- Config flow results
+- Diagnostic dump outputs
+
+**Example - Entity state snapshot:**
+
+```python
+from syrupy.assertion import SnapshotAssertion
+
+async def test_sensor_state_snapshot(
+    hass: HomeAssistant,
+    snapshot: SnapshotAssertion,
+) -> None:
+    """Test sensor state matches snapshot."""
+    # Setup integration
+    await async_setup_component(hass, DOMAIN, config)
+    await hass.async_block_till_done()
+
+    # Get state and compare to snapshot
+    state = hass.states.get("sensor.air_quality")
+    assert state == snapshot
+```
+
+**Creating/updating snapshots:**
+
+```bash
+script/test tests/sensor/test_air_quality.py --snapshot-update
+```
+
+**Important:**
+
+- Snapshot files (`.ambr`) are human-readable and must be committed
+- Don't replace functional tests with snapshots
+- Use for large outputs, not simple value checks
+- Assert specific changes in functional tests (e.g., `state == "unavailable"`)
+
+## Core Interface Testing
+
+**Home Assistant guideline: Test through core interfaces, not integration internals.**
+
+**Use core interfaces:**
+
+```python
+# ✅ Correct - Test via core state machine
+async def test_sensor_value(hass):
+    """Test sensor provides correct value."""
+    await async_setup_component(hass, DOMAIN, config)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.temperature")
+    assert state.state == "21.5"
+    assert state.attributes["unit_of_measurement"] == "°C"
+
+# ✅ Correct - Test via service registry
+async def test_turn_on_service(hass):
+    """Test turn_on service."""
+    await hass.services.async_call(
+        "switch",
+        "turn_on",
+        {"entity_id": "switch.example"},
+        blocking=True,
+    )
+    state = hass.states.get("switch.example")
+    assert state.state == "on"
+```
+
+**Don't test integration internals directly:**
+
+```python
+# ❌ Wrong - Direct entity access
+async def test_sensor_wrong(hass):
+    entity = MyEntity()  # Don't instantiate entities directly
+    assert entity.state == "21.5"  # Don't access entity properties directly
+```
+
+**Why:** Testing through core interfaces makes tests more robust to internal refactoring.
+
+## Registry Testing
+
+**Test device and entity registry entries:**
+
+```python
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
+
+async def test_device_registry(hass, config_entry):
+    """Test device is registered correctly."""
+    device_registry = dr.async_get(hass)
+
+    device = device_registry.async_get_device(
+        identifiers={(DOMAIN, config_entry.entry_id)}
+    )
+
+    assert device is not None
+    assert device.manufacturer == "Expected Manufacturer"
+    assert device.model == "Expected Model"
+    assert device.name == "Expected Name"
+
+async def test_entity_registry(hass):
+    """Test entity is registered correctly."""
+    entity_registry = er.async_get(hass)
+
+    entry = entity_registry.async_get("sensor.air_quality")
+
+    assert entry is not None
+    assert entry.unique_id == "expected_unique_id"
+    assert entry.original_name == "Air Quality"
+    assert entry.disabled is False
+```
+
+**Test config entry state:**
+
+```python
+from homeassistant.config_entries import ConfigEntryState
+
+async def test_config_entry_setup(hass, config_entry):
+    """Test config entry setup succeeds."""
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert config_entry.state == ConfigEntryState.LOADED
+
+async def test_config_entry_unload(hass, config_entry):
+    """Test config entry unloads correctly."""
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    result = await hass.config_entries.async_unload(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert result is True
+    assert config_entry.state == ConfigEntryState.NOT_LOADED
+```
 
 ## Mocking
 
@@ -248,6 +413,10 @@ script/test -m unit            # Only unit tests
 - Use descriptive test names
 - Keep tests focused (one thing per test)
 - Use fixtures for common setup
+- Test through core interfaces (`hass.states`, `hass.services`)
+- Use snapshot tests for large outputs (entity states, registry entries)
+- Test device and entity registry entries
+- Verify config entry state transitions
 - **Consult [pytest docs](https://docs.pytest.org/)** when exploring advanced patterns
 - **Check [Home Assistant testing docs](https://developers.home-assistant.io/docs/development_testing)** for HA-specific patterns
 
@@ -256,8 +425,10 @@ script/test -m unit            # Only unit tests
 - Make actual network requests
 - Use `time.sleep()` (use `async_fire_time_changed` instead)
 - Test Home Assistant internals (trust the framework)
+- Access entity objects directly in tests (use `hass.states.get()`)
 - Create overly complex test scenarios
 - Skip testing error conditions
+- Replace functional tests with snapshots (snapshots complement, don't replace)
 - Assume testing patterns without verifying current best practices
 
 ## Research When Needed
