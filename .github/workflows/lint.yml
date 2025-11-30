@@ -10,10 +10,17 @@ on:
 
 permissions: {}
 
+# IMPORTANT: Keep HA_VERSION synchronized across all workflow files:
+# - copilot-setup-steps.yml
+# - lint.yml
+# - validate.yml (if added in the future)
+
 jobs:
   ruff:
     name: "Ruff"
     runs-on: "ubuntu-latest"
+    env:
+      HA_VERSION: "2025.11.3"
     steps:
       - name: Checkout the repository
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
@@ -29,7 +36,7 @@ jobs:
           version: "0.9.3"
 
       - name: Install requirements
-        run: HA_VERSION=2025.11.3 script/setup/bootstrap
+        run: script/setup/bootstrap
 
       - name: Lint check
         run: script/lint-check
