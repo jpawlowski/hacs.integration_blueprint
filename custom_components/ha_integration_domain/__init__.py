@@ -92,7 +92,7 @@ async def async_setup_entry(
     1. User enters username/password in config flow (config_flow.py)
     2. Credentials stored in entry.data[CONF_USERNAME/CONF_PASSWORD]
     3. API Client initialized with credentials (api/client.py)
-    4. Coordinator fetches data using authenticated client (coordinator.py)
+    4. Coordinator fetches data using authenticated client (coordinator/base.py)
     5. Entities access data via self.coordinator.data (sensor/, binary_sensor/, etc.)
 
     This pattern ensures credentials from setup flow are used throughout

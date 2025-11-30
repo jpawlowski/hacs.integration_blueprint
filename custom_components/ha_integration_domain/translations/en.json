@@ -125,5 +125,31 @@
         "name": "Air Purifier"
       }
     }
+  },
+  "issues": {
+    "deprecated_api_endpoint": {
+      "title": "Deprecated API Endpoint",
+      "description": "Your device is using API version {api_version} which is deprecated. Please update to v2 for continued support and new features.",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Update API Endpoint",
+            "description": "Click Submit to update your device to use the new API endpoint (v2). This will reload the integration."
+          }
+        }
+      }
+    },
+    "missing_configuration": {
+      "title": "Missing Configuration",
+      "description": "Some configuration options are missing or invalid. Please reconfigure the integration to ensure proper operation.",
+      "fix_flow": {
+        "step": {
+          "init": {
+            "title": "Acknowledge Configuration Issue",
+            "description": "Click Submit to acknowledge this issue. You may need to reconfigure the integration if problems persist."
+          }
+        }
+      }
+    }
   }
 }
