@@ -56,7 +56,6 @@ jobs:
           key: ha-venv-${{ runner.os }}-py313-ha${{ env.HA_VERSION }}-${{ hashFiles('**/requirements*.txt') }}
           restore-keys: |
             ha-venv-${{ runner.os }}-py313-ha${{ env.HA_VERSION }}-
-            ha-venv-${{ runner.os }}-py313-
 
       - name: Install dependencies
         run: script/setup/bootstrap
