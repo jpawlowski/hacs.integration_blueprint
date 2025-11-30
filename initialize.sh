@@ -744,6 +744,61 @@ detect_github_info() {
     return 1
 }
 
+# Parse .gitignore patterns and convert to find prune paths
+parse_gitignore_to_prune_paths() {
+    local gitignore_file=".gitignore"
+    local prune_paths=()
+    local negations=()
+
+    if [[ ! -f "$gitignore_file" ]]; then
+        echo "PRUNE:"
+        return
+    fi
+
+    # Read .gitignore and extract directory patterns
+    while IFS= read -r line; do
+        # Skip empty lines and comments
+        [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+
+        # Remove leading/trailing whitespace
+        line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+        # Handle negation patterns (!)
+        if [[ "$line" =~ ^! ]]; then
+            local neg_pattern="${line#!}"
+            negations+=("$neg_pattern")
+            continue
+        fi
+
+        # Convert gitignore patterns to find paths
+        # Directory patterns (ending with /)
+        if [[ "$line" =~ /$ ]]; then
+            local dir_pattern="${line%/}"
+            # Remove leading ./ if present
+            dir_pattern="${dir_pattern#./}"
+            # Add as both root-level and nested pattern
+            prune_paths+=("./$dir_pattern")
+            prune_paths+=("*/$dir_pattern")
+        # Wildcard directory patterns (e.g., __pycache__)
+        elif [[ ! "$line" =~ \. ]] && [[ ! "$line" =~ / ]] && [[ ! "$line" =~ \* ]]; then
+            # Simple directory name without extension or path
+            prune_paths+=("./$line")
+            prune_paths+=("*/$line")
+        # Patterns with wildcards or specific paths
+        elif [[ "$line" =~ / ]]; then
+            prune_paths+=("./$line")
+        fi
+    done < "$gitignore_file"
+
+    # Output prune paths
+    echo "PRUNE:"
+    printf '%s\n' "${prune_paths[@]}"
+
+    # Output negations
+    echo "NEGATE:"
+    printf '%s\n' "${negations[@]}"
+}
+
 # Replace text in files
 replace_in_files() {
     local search=$1
@@ -753,55 +808,134 @@ replace_in_files() {
 
     print_color "$BLUE" "Replacing '$search' with '$replace'..."
 
-    # Build exclusion patterns (simpler approach)
-    local find_args=(-type f)
+    # Critical directories that must NEVER be traversed (hardcoded for safety)
+    # These are not just about gitignore, but about performance and safety
+    local critical_prune=(
+        "./.git"           # Git internal database (CRITICAL: can have thousands of objects)
+    )
 
-    # Always exclude these specific directories
-    find_args+=(-not -path "./.git/*")  # Git internal files
-    find_args+=(-not -path "./.ruff_cache/*")  # Ruff cache
-    find_args+=(-not -path "./.pytest_cache/*")  # Pytest cache
-    find_args+=(-not -path "./.mypy_cache/*")  # Mypy cache
-    find_args+=(-not -path "./__pycache__/*")  # Python cache (root)
-    find_args+=(-not -path "*/__pycache__/*")  # Python cache (everywhere)
+    # Read prune paths and negations from .gitignore
+    local gitignore_prune=()
+    local gitignore_negate=()
+    local section=""
 
-    # Exclude files that will be deleted/replaced (avoid unnecessary work)
-    find_args+=(-not -path "./README.template.md")  # Will be deleted after replacing README.md
-    find_args+=(-not -path "./.devcontainer/post-attach.sh")  # Will be deleted
+    while IFS= read -r line; do
+        if [[ "$line" == "PRUNE:" ]]; then
+            section="prune"
+        elif [[ "$line" == "NEGATE:" ]]; then
+            section="negate"
+        elif [[ -n "$line" ]]; then
+            if [[ "$section" == "prune" ]]; then
+                gitignore_prune+=("$line")
+            elif [[ "$section" == "negate" ]]; then
+                gitignore_negate+=("$line")
+            fi
+        fi
+    done < <(parse_gitignore_to_prune_paths)
 
-    # Exclude runtime/config data that shouldn't be modified
-    find_args+=(-not -path "./config/.storage/*")
-    find_args+=(-not -path "./config/.HA_VERSION")  # Home Assistant version file
-    find_args+=(-not -path "./config/*.db*")
-    find_args+=(-not -path "./config/*.log*")
-    find_args+=(-not -path "./config/deps/*")
-    find_args+=(-not -path "./config/tts/*")
-    find_args+=(-not -path "./config/blueprints/*")
-    find_args+=(-not -path "./config/custom_components/hacs/*")  # Don't modify HACS files
+    # Combine critical and gitignore prune paths
+    local all_prune_paths=("${critical_prune[@]}" "${gitignore_prune[@]}")
 
-    # Exclude lock files and build artifacts
-    find_args+=(-not -name "*.lock")
-    find_args+=(-not -name "*.pyc")
-    find_args+=(-not -name "*.pyo")
-    find_args+=(-not -name "*.db")
-    find_args+=(-not -name "*.db-journal")
-    find_args+=(-not -name "*.log")
-    find_args+=(-not -name "*.log.*")
-    find_args+=(-not -name ".HA_VERSION")
+    # Build prune arguments: -path "./.git" -o -path "./.local" -o ...
+    local prune_args=()
+    for path in "${all_prune_paths[@]}"; do
+        if [[ ${#prune_args[@]} -gt 0 ]]; then
+            prune_args+=(-o)
+        fi
+        prune_args+=(-path "$path")
+    done
 
-    # Exclude this script itself
-    find_args+=(-not -name "$script_name")
+    # Minimal file exclusions (only this script itself)
+    local exclude_files=(
+        "$script_name"     # This script itself
+    )
 
-    # Find and process files
+    # Find all files, excluding pruned directories
+    # No file type filtering - we trust that gitignore handles unwanted files
+    # and there are no binaries in the repo at initialization time
     local files_found=()
     while IFS= read -r -d '' file; do
-        # Skip binary files and check if file is readable text
-        if file "$file" 2>/dev/null | grep -qE "text|JSON|ASCII|Unicode|script|empty"; then
+        # Skip this script itself
+        local skip=false
+        local filename=$(basename "$file")
+        for pattern in "${exclude_files[@]}"; do
+            if [[ "$filename" == $pattern ]]; then
+                skip=true
+                break
+            fi
+        done
+
+        if ! $skip; then
             files_found+=("$file")
         fi
-    done < <(find . "${find_args[@]}" -print0 2>/dev/null)
+    done < <(
+        find . \( "${prune_args[@]}" \) -prune -o -type f -print0 2>/dev/null
+    )
+
+    # Add explicitly negated files from gitignore (files that should be included despite wildcards)
+    # Example: config/* excludes everything, but !config/configuration.yaml brings it back
+    # Example: custom_components/* excludes all, but !custom_components/ha_integration_domain/ brings it back
+    for negate in "${gitignore_negate[@]}"; do
+        local negate_path="./${negate#./}"
+
+        # Handle directory patterns (ending with /)
+        if [[ "$negate" =~ /$ ]]; then
+            # Find all files in this negated directory
+            if [[ -d "$negate_path" ]]; then
+                while IFS= read -r -d '' file; do
+                    local already_added=false
+                    for existing in "${files_found[@]}"; do
+                        if [[ "$existing" == "$file" ]]; then
+                            already_added=true
+                            break
+                        fi
+                    done
+                    if ! $already_added; then
+                        files_found+=("$file")
+                    fi
+                done < <(find "$negate_path" -type f -print0 2>/dev/null)
+            fi
+        # Handle wildcard patterns (e.g., *.code-snippets)
+        elif [[ "$negate" =~ \* ]]; then
+            # Extract directory and pattern
+            local dir_part=$(dirname "$negate_path")
+            local file_pattern=$(basename "$negate_path")
+            if [[ -d "$dir_part" ]]; then
+                while IFS= read -r -d '' file; do
+                    local already_added=false
+                    for existing in "${files_found[@]}"; do
+                        if [[ "$existing" == "$file" ]]; then
+                            already_added=true
+                            break
+                        fi
+                    done
+                    if ! $already_added; then
+                        files_found+=("$file")
+                    fi
+                done < <(find "$dir_part" -maxdepth 1 -type f -name "$file_pattern" -print0 2>/dev/null)
+            fi
+        # Handle single file
+        elif [[ -f "$negate_path" ]]; then
+            local already_added=false
+            for existing in "${files_found[@]}"; do
+                if [[ "$existing" == "$negate_path" ]]; then
+                    already_added=true
+                    break
+                fi
+            done
+            if ! $already_added; then
+                files_found+=("$negate_path")
+            fi
+        fi
+    done
 
     # Replace in each file
     for file in "${files_found[@]}"; do
+        # Safety check: Skip binary files (with only ~90 files, this is now fast enough)
+        if ! file "$file" 2>/dev/null | grep -qE "text|JSON|ASCII|Unicode|UTF-8|script|empty"; then
+            continue
+        fi
+
         # Use grep with file existence check to avoid errors
         if [[ -f "$file" ]] && grep -q "$search" "$file" 2>/dev/null; then
             local count=$(grep -o "$search" "$file" 2>/dev/null | wc -l | tr -d ' ')
