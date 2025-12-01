@@ -52,6 +52,8 @@ This project uses:
 
 Run `script/check` to lint and type-check your code before submitting, or `script/lint` to auto-format and fix linting issues.
 
+**Local validation:** Run `script/hassfest` to validate your integration against Home Assistant's quality standards using the official validation tools. This checks manifest.json, translations, services.yaml, and integration structure locally before pushing to GitHub.
+
 ## GitHub Copilot Support
 
 This project includes [prompt files](./.github/prompts/) to help you work more efficiently with GitHub Copilot. These reusable templates provide context and requirements for common tasks:

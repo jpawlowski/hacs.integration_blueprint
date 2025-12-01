@@ -25,4 +25,10 @@ echo ""
 echo ""
 "$SCRIPT_DIR/spell-check"
 
+# Run hassfest validation if it has been set up (only in local environment, not CI)
+if [ -z "${CI:-}" ] && [ -z "${GITHUB_ACTIONS:-}" ] && [ -d "$SCRIPT_DIR/../.local/ha-core" ]; then
+    echo ""
+    "$SCRIPT_DIR/hassfest"
+fi
+
 log_success "All checks passed"
