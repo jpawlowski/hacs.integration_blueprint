@@ -21,6 +21,19 @@ Translation files define user-facing text for config flows, options, entities, a
 
 **Language codes:** BCP47 format (e.g., `en`, `de`, `fr-CA`)
 
+## JSON Formatting
+
+**CRITICAL:** Translation files are JSON - use **double quotes only**, never single quotes:
+
+- ✅ `"title": "My Integration"`
+- ❌ `'title': 'My Integration'` (invalid JSON)
+
+**Other JSON rules:**
+
+- 2 spaces for indentation
+- No trailing commas
+- No comments
+
 ## Critical Instructions
 
 ### Translation Placeholders
@@ -29,6 +42,14 @@ Translation files define user-facing text for config flows, options, entities, a
 
 - Never translate placeholder names (e.g., `{host}` stays `{host}`, not `{hôte}`)
 - Placeholder names must match code exactly
+
+**CRITICAL: No single quotes around placeholders** - Home Assistant validation will fail:
+
+- ✅ `"message": "Service {service} is unavailable"`
+- ✅ `"message": "Service \"{service}\" is unavailable"` (escaped double quotes)
+- ❌ `"message": "Service '{service}' is unavailable"` (single quotes = validation error)
+
+**Why:** Single quotes around placeholders are not translatable and cause hassfest errors.
 
 **Key references:** Use `[%key:...]` syntax to reuse translations
 
