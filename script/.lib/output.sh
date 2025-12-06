@@ -85,3 +85,54 @@ require_command() {
         exit 1
     fi
 }
+
+# Print section header with box (simple style)
+print_header() {
+    local text="$1"
+    # Center text by calculating padding
+    local text_length=${#text}
+    local total_width=78
+    local padding=$(( (total_width - text_length) / 2 ))
+    local left_pad=$(printf "%${padding}s" "")
+
+    echo ""
+    printf "%b┬──────────────────────────────────────────────────────────────────────────────┬%b\n" "$BLUE" "$NC"
+    printf "%b${left_pad}${text}%b\n" "$BLUE" "$NC"
+    printf "%b┴──────────────────────────────────────────────────────────────────────────────┴%b\n" "$BLUE" "$NC"
+}
+
+# Print welcome header with double-line box
+print_welcome_header() {
+    local text="$1"
+    # Character count for centering
+    local text_length=${#text}
+    local padding_left=$(( (78 - text_length) / 2 ))
+    local padding_right=$(( 78 - text_length - padding_left ))
+    local left_spaces=$(printf "%${padding_left}s" "")
+    local right_spaces=$(printf "%${padding_right}s" "")
+
+    echo ""
+    printf "%b┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓%b\n" "$BLUE" "$NC"
+    printf "%b┃                                                                              ┃%b\n" "$BLUE" "$NC"
+    printf "%b┃${left_spaces}${text}${right_spaces}┃%b\n" "$BLUE" "$NC"
+    printf "%b┃                                                                              ┃%b\n" "$BLUE" "$NC"
+    printf "%b┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛%b\n" "$BLUE" "$NC"
+    echo ""
+}
+
+# Convenience wrappers for common message types
+print_success() {
+    log_success "$1"
+}
+
+print_error() {
+    log_error "$1"
+}
+
+print_warning() {
+    log_warning "$1"
+}
+
+print_info() {
+    log_info "$1"
+}

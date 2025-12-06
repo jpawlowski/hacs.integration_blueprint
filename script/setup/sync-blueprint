@@ -1,0 +1,892 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+# Sync blueprint files from upstream repository
+set -euo pipefail
+
+# Script directory and project root
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+readonly CONFIG_FILE="${PROJECT_ROOT}/.blueprint-sync.json"
+readonly REMOTE_NAME="blueprint-upstream"
+
+# Determine user config file (blueprint repo uses .local.json)
+get_user_config_file() {
+    if check_if_blueprint_repo; then
+        echo "${PROJECT_ROOT}/.blueprint-sync.user.local.json"
+    else
+        echo "${PROJECT_ROOT}/.blueprint-sync.user.json"
+    fi
+}
+
+# shellcheck source=script/.lib/output.sh
+source "$SCRIPT_DIR/../.lib/output.sh"
+
+# shellcheck source=script/.lib/merge.sh
+source "$SCRIPT_DIR/../.lib/merge.sh"
+
+# Default values
+DRY_RUN=false
+INTERACTIVE=false
+PROFILE="dev-tools"
+CONFLICT_STRATEGY="manual"
+AUTO_COMMIT=false
+FORCE=false
+CLEANUP_REMOTE=false
+
+# Show usage
+show_usage() {
+    cat << 'EOF'
+Usage: script/setup/sync-blueprint [OPTIONS]
+
+Sync blueprint files from upstream repository.
+
+OPTIONS:
+    --profile PROFILE       Sync profile to use (default: dev-tools)
+                           Available profiles:
+                             - sync-script         : Update sync tool itself
+                             - dev-tools           : Development scripts and workflows
+                             - ai-agents-core      : AI docs (AGENTS.md, copilot-instructions.md)
+                             - ai-agents-instructions : AI instruction files
+                             - schemas             : JSON/YAML schemas
+                             - dotfiles            : IDE configuration
+                             - all                 : All files (except sync script)
+
+                           User can add custom profiles in .blueprint-sync.user.json
+
+    --dry-run              Show what would be synced without making changes
+    --interactive          Ask before syncing each file/directory
+    --strategy STRATEGY    Conflict resolution strategy:
+                             - manual  : Stop on conflicts (default)
+                             - ours    : Keep local changes
+                             - theirs  : Accept blueprint changes
+    --auto-commit          Automatically commit changes after sync
+    --force                Force sync even with uncommitted changes
+    --cleanup-remote       Remove blueprint remote after sync (default: keep)
+    --list-profiles        List available profiles and exit
+    --help                 Show this help message
+
+WILDCARD SUPPORT:
+    Paths support wildcards for flexible file matching:
+      *         Match files in directory (e.g., "script/*")
+      **/*      Match files recursively (e.g., "script/**/*")
+      *.ext     Match by extension (e.g., "script/**/*.py")
+
+CONFIGURATION FILES:
+    .blueprint-sync.json       Base configuration (synced from blueprint)
+    .blueprint-sync.user.json  User customizations (committed to repo)
+      - user_profiles:         Add custom sync profiles
+      - profile_overrides:     Override exclusions for standard profiles
+      - last_sync:             Timestamp of last successful sync
+      - operations.smart_merge: Smart-merge structured files (JSON, YAML)
+                               Preserves specified keys from user's file
+                               while updating other content from blueprint
+
+SMART MERGE:
+    Some files are customized during initialization (e.g., devcontainer.json)
+    but should still receive updates. Smart-merge handles this automatically:
+      - .devcontainer/devcontainer.json  (preserves: name)
+      - .vscode/settings.json            (full merge)
+      - .vscode/extensions.json          (full merge)
+      - config/configuration.yaml        (preserves: homeassistant.*)
+
+EXAMPLES:
+    # Update the sync script itself first
+    script/setup/sync-blueprint --profile sync-script
+
+    # Dry-run to see what would be updated
+    script/setup/sync-blueprint --profile dev-tools --dry-run
+
+    # Interactive sync of AI agent instructions
+    script/setup/sync-blueprint --profile ai-agents-instructions --interactive
+
+    # Sync all blueprint files, accepting blueprint changes on conflicts
+    script/setup/sync-blueprint --profile all --strategy theirs
+
+    # List available sync profiles (including user profiles)
+    script/setup/sync-blueprint --list-profiles
+
+NOTES:
+    - This script requires jq to be installed
+    - Git working directory should be clean (use --force to override)
+    - Changes can be reviewed with 'git diff' before committing
+    - Use 'git restore <file>' to undo unwanted changes
+    - Blueprint remote is kept by default for future syncs
+    - Use --cleanup-remote to remove it after sync
+    - Manual cleanup: git remote remove blueprint-upstream
+
+EOF
+}
+
+# Check if this is the original blueprint repository
+check_if_blueprint_repo() {
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+        return 1  # Not a git repository
+    fi
+
+    local origin_url
+    origin_url=$(git remote get-url origin 2>/dev/null || echo "")
+
+    if [[ -z "${origin_url}" ]]; then
+        return 1  # No origin remote
+    fi
+
+    # Check if origin points to the blueprint repository
+    if [[ "${origin_url}" =~ jpawlowski.*hacs.*integration.*blueprint ]]; then
+        return 0  # This IS the blueprint repo
+    fi
+
+    return 1  # Not the blueprint repo
+}
+
+# Show warning when running on blueprint repository
+show_blueprint_repo_warning() {
+    print_header "⚠️  Blueprint Repository Detected"
+
+    log_warning "This appears to be the original jpawlowski/hacs.integration_blueprint repository!"
+    echo ""
+    log_info "Syncing from blueprint to itself doesn't make sense and could cause issues."
+    echo ""
+    log_info "If you are:"
+    print_color "${CYAN}" "  👤 A user of this template:"
+    print_color "${GREEN}" "     You should be in your own repository, not the blueprint."
+    echo ""
+    print_color "${CYAN}" "  🔧 Testing the sync script:"
+    print_color "${YELLOW}" "     Use: ./script/setup/sync-blueprint --force (to bypass this check)"
+    echo ""
+    log_error "Sync cancelled for safety."
+    echo ""
+}
+
+# Check prerequisites
+check_prerequisites() {
+    local skip_git_check="${1:-false}"
+
+    # Check if jq is installed
+    require_command jq "apt-get install jq"
+
+    # Check if config file exists
+    if [[ ! -f "${CONFIG_FILE}" ]]; then
+        log_error "Configuration file not found: ${CONFIG_FILE}"
+        log_info "Run 'initialize.sh' to create the configuration file."
+        exit 1
+    fi
+
+    # Check if we're in a git repository
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+        log_error "Not in a git repository."
+        exit 1
+    fi
+
+    # Check for uncommitted changes (unless --force or skipping git check)
+    if [[ "${skip_git_check}" != "true" ]] && [[ "${FORCE}" != "true" ]] && ! git diff-index --quiet HEAD --; then
+        log_error "Working directory has uncommitted changes."
+        log_info "Commit or stash changes first, or use --force to override."
+        exit 1
+    fi
+}
+
+# Load config from JSON
+load_config() {
+    local key="$1"
+    jq -r "${key}" "${CONFIG_FILE}"
+}
+
+# Get merged profiles (base + user profiles)
+get_merged_profiles() {
+    local base_profiles
+    local user_profiles
+    local user_config_file
+    user_config_file=$(get_user_config_file)
+
+    base_profiles=$(jq -r '.profiles' "${CONFIG_FILE}")
+
+    # If user config exists, merge user_profiles
+    if [[ -f "${user_config_file}" ]] && jq -e '.user_profiles' "${user_config_file}" &> /dev/null; then
+        user_profiles=$(jq -r '.user_profiles' "${user_config_file}")
+        # Merge: base_profiles + user_profiles
+        jq -n --argjson base "${base_profiles}" --argjson user "${user_profiles}" '$base + $user'
+    else
+        echo "${base_profiles}"
+    fi
+}
+
+# Get profile paths with overrides applied
+get_profile_with_overrides() {
+    local profile="$1"
+    local merged_profiles
+    local user_config_file
+    user_config_file=$(get_user_config_file)
+
+    merged_profiles=$(get_merged_profiles)
+
+    # Check if profile exists
+    if ! echo "${merged_profiles}" | jq -e ".[\"${profile}\"]" &> /dev/null; then
+        return 1
+    fi
+
+    local profile_data
+    profile_data=$(echo "${merged_profiles}" | jq ".[\"${profile}\"]")
+
+    # Apply user overrides if they exist
+    if [[ -f "${user_config_file}" ]] && jq -e ".profile_overrides[\"${profile}\"]" "${user_config_file}" &> /dev/null; then
+        local overrides
+        overrides=$(jq ".profile_overrides[\"${profile}\"]" "${user_config_file}")
+
+        # Merge profile_data with overrides (overrides take precedence)
+        profile_data=$(jq -n --argjson base "${profile_data}" --argjson override "${overrides}" '$base * $override')
+    fi
+
+    echo "${profile_data}"
+}
+
+# List available profiles
+list_profiles() {
+    print_header "Available Sync Profiles"
+
+    local merged_profiles
+    local user_config_file
+    user_config_file=$(get_user_config_file)
+
+    merged_profiles=$(get_merged_profiles)
+
+    local profiles
+    profiles=$(echo "${merged_profiles}" | jq -r 'keys[]')
+
+    while IFS= read -r profile; do
+        local description
+        description=$(echo "${merged_profiles}" | jq -r ".[\"${profile}\"].description // \"No description\"")
+
+        # Check if it's a user profile
+        local is_user_profile=false
+        if [[ -f "${user_config_file}" ]] && jq -e ".user_profiles[\"${profile}\"]" "${user_config_file}" &> /dev/null; then
+            is_user_profile=true
+        fi
+
+        if [[ "${is_user_profile}" == "true" ]]; then
+            echo -e "${CYAN}${profile}${NC} ${YELLOW}(user)${NC}"
+        else
+            echo -e "${GREEN}${profile}${NC}"
+        fi
+        echo "  ${description}"
+        echo ""
+    done <<< "${profiles}"
+}
+
+# Setup blueprint remote
+setup_remote() {
+    local repo
+    local branch
+    repo=$(load_config '.blueprint_repo')
+    branch=$(load_config '.blueprint_branch')
+
+    log_info "Setting up blueprint remote..."
+
+    # Check if remote exists
+    if git remote get-url "${REMOTE_NAME}" &> /dev/null; then
+        log_success "Remote '${REMOTE_NAME}' already exists"
+    else
+        git remote add "${REMOTE_NAME}" "https://github.com/${repo}.git"
+        log_success "Added remote '${REMOTE_NAME}'"
+    fi
+
+    # Fetch latest changes
+    log_info "Fetching latest changes from blueprint..."
+    git fetch "${REMOTE_NAME}" "${branch}" --quiet
+    log_success "Fetched latest changes"
+}
+
+# Cleanup blueprint remote (only if requested)
+cleanup_remote() {
+    if [[ "${CLEANUP_REMOTE}" != "true" ]]; then
+        return
+    fi
+
+    if git remote get-url "${REMOTE_NAME}" &> /dev/null; then
+        if [[ "${DRY_RUN}" != "true" ]]; then
+            log_info "Cleaning up blueprint remote..."
+            git remote remove "${REMOTE_NAME}"
+            log_success "Removed remote '${REMOTE_NAME}'"
+        else
+            log_info "[DRY-RUN] Would remove remote '${REMOTE_NAME}'"
+        fi
+    fi
+}
+
+# Get paths for profile
+get_profile_paths() {
+    local profile="$1"
+
+    # Get profile with overrides applied
+    local profile_data
+    if ! profile_data=$(get_profile_with_overrides "${profile}"); then
+        log_error "Profile '${profile}' not found in configuration."
+        log_info "Available profiles:"
+        get_merged_profiles | jq -r 'keys[]' | sed 's/^/  - /'
+        exit 1
+    fi
+
+    echo "${profile_data}" | jq -r '.paths[]'
+}
+
+# Get excluded paths for profile
+get_excluded_paths() {
+    local profile="$1"
+
+    # Get profile with overrides applied
+    local profile_data
+    if ! profile_data=$(get_profile_with_overrides "${profile}"); then
+        return 0
+    fi
+
+    echo "${profile_data}" | jq -r '.exclude[]' 2>/dev/null || true
+}
+
+# Check if path is excluded
+is_excluded() {
+    local path="$1"
+    local excluded_paths="$2"
+
+    while IFS= read -r excluded; do
+        [[ -z "${excluded}" ]] && continue
+        if [[ "${path}" == "${excluded}"* ]]; then
+            return 0
+        fi
+    done <<< "${excluded_paths}"
+
+    return 1
+}
+
+# Expand wildcard patterns in paths
+# Supports: **/* (recursive), */ (single level), *.ext (extension)
+expand_wildcards() {
+    local path="$1"
+    local branch
+    branch=$(load_config '.blueprint_branch')
+
+    # If no wildcards, return as-is
+    if [[ ! "${path}" =~ \* ]]; then
+        echo "${path}"
+        return 0
+    fi
+
+    # Convert glob pattern to git ls-tree compatible pattern
+    # **/* -> list all files recursively
+    # *    -> list files in current directory level
+    # *.sh -> filter by extension
+
+    local base_path="${path%%\**}"
+    local pattern="${path##*\*}"
+
+    # Remove trailing slash from base path
+    base_path="${base_path%/}"
+
+    # Check if it's a recursive pattern (**)
+    if [[ "${path}" =~ \*\* ]]; then
+        # Recursive: list all files under base_path
+        git ls-tree -r --name-only "${REMOTE_NAME}/${branch}:${base_path}" 2>/dev/null |
+            while IFS= read -r file; do
+                local full_path="${base_path:+${base_path}/}${file}"
+                # Apply pattern filter if specified (e.g., *.sh)
+                if [[ -n "${pattern}" && "${pattern}" != "/" ]]; then
+                    if [[ "${file}" == *${pattern} || "${file}" == ${pattern#/} ]]; then
+                        echo "${full_path}"
+                    fi
+                else
+                    echo "${full_path}"
+                fi
+            done
+    else
+        # Single level: list files in directory
+        git ls-tree --name-only "${REMOTE_NAME}/${branch}:${base_path}" 2>/dev/null |
+            while IFS= read -r file; do
+                local full_path="${base_path:+${base_path}/}${file}"
+                # Apply pattern filter
+                if [[ -n "${pattern}" ]]; then
+                    if [[ "${file}" == ${pattern#/} || "${file}" == *${pattern} ]]; then
+                        echo "${full_path}"
+                    fi
+                else
+                    echo "${full_path}"
+                fi
+            done
+    fi
+}
+
+# Sync a single path
+sync_path() {
+    local path="$1"
+    local branch
+    branch=$(load_config '.blueprint_branch')
+
+    # Remove trailing slash for consistency
+    path="${path%/}"
+
+    # Check if path exists in blueprint
+    if ! git cat-file -e "${REMOTE_NAME}/${branch}:${path}" 2>/dev/null; then
+        log_warning "Path not found in blueprint: ${path}"
+        return 1
+    fi
+
+    if [[ "${DRY_RUN}" == "true" ]]; then
+        log_info "[DRY-RUN] Would sync: ${path}"
+        return 0
+    fi
+
+    if [[ "${INTERACTIVE}" == "true" ]]; then
+        echo -n "Sync ${path}? [y/N] "
+        read -r response
+        if [[ ! "${response}" =~ ^[Yy]$ ]]; then
+            log_info "Skipped: ${path}"
+            return 0
+        fi
+    fi
+
+    # Ensure parent directory exists
+    local parent_dir
+    parent_dir="$(dirname "${path}")"
+    if [[ "${parent_dir}" != "." && ! -d "${parent_dir}" ]]; then
+        mkdir -p "${parent_dir}"
+    fi
+
+    # Determine if it's a directory or file
+    if git cat-file -t "${REMOTE_NAME}/${branch}:${path}" 2>/dev/null | grep -q "tree"; then
+        # It's a directory - checkout all files in it
+        git checkout "${REMOTE_NAME}/${branch}" -- "${path}/" 2>/dev/null || {
+            log_warning "Could not sync directory: ${path}"
+            return 1
+        }
+    else
+        # It's a file
+        git checkout "${REMOTE_NAME}/${branch}" -- "${path}" 2>/dev/null || {
+            log_warning "Could not sync file: ${path}"
+            return 1
+        }
+    fi
+
+    log_success "Synced: ${path}"
+    return 0
+}
+
+# Delete a path (from operations)
+delete_path() {
+    local path="$1"
+
+    # Remove trailing slash
+    path="${path%/}"
+
+    if [[ ! -e "${path}" ]]; then
+        log_info "Already deleted: ${path}"
+        return 0
+    fi
+
+    if [[ "${DRY_RUN}" == "true" ]]; then
+        log_info "[DRY-RUN] Would delete: ${path}"
+        return 0
+    fi
+
+    if [[ "${INTERACTIVE}" == "true" ]]; then
+        echo -n "Delete ${path}? [y/N] "
+        read -r response
+        if [[ ! "${response}" =~ ^[Yy]$ ]]; then
+            log_info "Skipped deletion: ${path}"
+            return 0
+        fi
+    fi
+
+    rm -rf "${path}"
+    log_success "Deleted: ${path}"
+    return 0
+}
+
+# Move a path (from operations)
+move_path() {
+    local from="$1"
+    local to="$2"
+
+    if [[ ! -e "${from}" ]]; then
+        log_warning "Source not found for move: ${from}"
+        return 1
+    fi
+
+    if [[ "${DRY_RUN}" == "true" ]]; then
+        log_info "[DRY-RUN] Would move: ${from} -> ${to}"
+        return 0
+    fi
+
+    if [[ "${INTERACTIVE}" == "true" ]]; then
+        echo -n "Move ${from} -> ${to}? [y/N] "
+        read -r response
+        if [[ ! "${response}" =~ ^[Yy]$ ]]; then
+            log_info "Skipped move: ${from}"
+            return 0
+        fi
+    fi
+
+    # Ensure target directory exists
+    local target_dir
+    target_dir="$(dirname "${to}")"
+    if [[ "${target_dir}" != "." && ! -d "${target_dir}" ]]; then
+        mkdir -p "${target_dir}"
+    fi
+
+    mv "${from}" "${to}"
+    log_success "Moved: ${from} -> ${to}"
+    return 0
+}
+
+# Smart merge a file (from operations)
+smart_merge_file() {
+    local file="$1"
+    shift
+    local keep_keys=("$@")
+    local branch
+    branch=$(load_config '.blueprint_branch')
+
+    # Check if file exists in blueprint
+    if ! git cat-file -e "${REMOTE_NAME}/${branch}:${file}" 2>/dev/null; then
+        log_warning "File not found in blueprint: ${file}"
+        return 1
+    fi
+
+    if [[ "${DRY_RUN}" == "true" ]]; then
+        log_info "[DRY-RUN] Would smart-merge: ${file} (preserving ${#keep_keys[@]} keys)"
+        return 0
+    fi
+
+    if [[ "${INTERACTIVE}" == "true" ]]; then
+        echo -n "Smart-merge ${file}? [y/N] "
+        read -r response
+        if [[ ! "${response}" =~ ^[Yy]$ ]]; then
+            log_info "Skipped smart-merge: ${file}"
+            return 0
+        fi
+    fi
+
+    # Extract file from blueprint to temp file
+    local temp_source
+    temp_source=$(mktemp)
+    git show "${REMOTE_NAME}/${branch}:${file}" > "${temp_source}" 2>/dev/null || {
+        log_error "Could not extract file from blueprint: ${file}"
+        rm -f "${temp_source}"
+        return 1
+    }
+
+    # If target file doesn't exist, just copy from blueprint
+    if [[ ! -f "${file}" ]]; then
+        mv "${temp_source}" "${file}"
+        log_success "Smart-merged (new file): ${file}"
+        return 0
+    fi
+
+    # Perform smart merge
+    local temp_merged
+    temp_merged=$(mktemp)
+
+    if smart_merge "${temp_source}" "${file}" "${keep_keys[@]}" > "${temp_merged}" 2>/dev/null; then
+        mv "${temp_merged}" "${file}"
+        rm -f "${temp_source}"
+        log_success "Smart-merged: ${file} (preserved ${#keep_keys[@]} keys)"
+        return 0
+    else
+        log_error "Smart-merge failed for: ${file}"
+        rm -f "${temp_source}" "${temp_merged}"
+        return 1
+    fi
+}
+
+# Main sync function
+perform_sync() {
+    local profile="$1"
+    local paths
+    local excluded_paths
+    local synced=0
+    local failed=0
+    local deleted=0
+    local moved=0
+
+    print_header "Syncing Profile: ${profile}"
+
+    # Get profile description
+    local description
+    local profile_data
+    profile_data=$(get_profile_with_overrides "${profile}")
+    description=$(echo "${profile_data}" | jq -r '.description // ""')
+    [[ -n "${description}" ]] && log_info "${description}"
+    echo ""
+
+    # Get paths and exclusions
+    paths=$(get_profile_paths "${profile}")
+    excluded_paths=$(get_excluded_paths "${profile}")
+
+    # Also exclude smart_merge files from normal sync
+    local smart_merge_files=""
+    if jq -e '.operations.smart_merge' "${CONFIG_FILE}" &> /dev/null; then
+        smart_merge_files=$(jq -r '.operations.smart_merge[].file' "${CONFIG_FILE}" 2>/dev/null || true)
+        if [[ -n "${smart_merge_files}" ]]; then
+            excluded_paths=$(printf "%s\n%s" "${excluded_paths}" "${smart_merge_files}")
+        fi
+    fi
+
+    # Process operations first (delete, move, smart_merge)
+    if jq -e '.operations' "${CONFIG_FILE}" &> /dev/null; then
+        log_info "Processing operations..."
+
+        # Handle smart merges FIRST (before normal sync)
+        if jq -e '.operations.smart_merge' "${CONFIG_FILE}" &> /dev/null; then
+            local merge_count=0
+            while IFS= read -r merge_op; do
+                [[ -z "${merge_op}" ]] && continue
+                local file
+                local keep_keys_json
+                file=$(echo "${merge_op}" | jq -r '.file')
+                keep_keys_json=$(echo "${merge_op}" | jq -r '.keep_keys[]' 2>/dev/null || true)
+
+                # Convert JSON array to bash array
+                local keep_keys=()
+                while IFS= read -r key; do
+                    [[ -n "${key}" ]] && keep_keys+=("${key}")
+                done <<< "${keep_keys_json}"
+
+                if smart_merge_file "${file}" "${keep_keys[@]}"; then
+                    ((merge_count++))
+                fi
+            done < <(jq -c '.operations.smart_merge[]' "${CONFIG_FILE}" 2>/dev/null)
+
+            [[ ${merge_count} -gt 0 ]] && log_success "Smart-merged ${merge_count} file(s)"
+        fi
+
+        # Handle deletions
+        if jq -e '.operations.delete' "${CONFIG_FILE}" &> /dev/null; then
+            while IFS= read -r path; do
+                [[ -z "${path}" ]] && continue
+                if delete_path "${path}"; then
+                    ((deleted++))
+                fi
+            done < <(jq -r '.operations.delete[]' "${CONFIG_FILE}" 2>/dev/null)
+        fi
+
+        # Handle moves
+        if jq -e '.operations.move' "${CONFIG_FILE}" &> /dev/null; then
+            while IFS= read -r move_op; do
+                [[ -z "${move_op}" ]] && continue
+                local from
+                local to
+                from=$(echo "${move_op}" | jq -r '.from')
+                to=$(echo "${move_op}" | jq -r '.to')
+                if move_path "${from}" "${to}"; then
+                    ((moved++))
+                fi
+            done < <(jq -c '.operations.move[]' "${CONFIG_FILE}" 2>/dev/null)
+        fi
+
+        echo ""
+    fi
+
+    # Show what will be synced
+    if [[ "${DRY_RUN}" == "true" ]]; then
+        log_info "Paths to sync:"
+        while IFS= read -r path; do
+            if is_excluded "${path}" "${excluded_paths}"; then
+                echo "  - ${path} ${YELLOW}(excluded)${NC}"
+            else
+                # Show if it contains wildcards
+                if [[ "${path}" =~ \* ]]; then
+                    echo "  - ${path} ${BLUE}(wildcard)${NC}"
+                else
+                    echo "  - ${path}"
+                fi
+            fi
+        done <<< "${paths}"
+        echo ""
+    fi
+
+    # Sync each path (with wildcard expansion)
+    while IFS= read -r path; do
+        [[ -z "${path}" ]] && continue
+
+        # Check if excluded
+        if is_excluded "${path}" "${excluded_paths}"; then
+            [[ "${DRY_RUN}" == "true" ]] && log_info "[DRY-RUN] Excluded: ${path}"
+            continue
+        fi
+
+        # Expand wildcards if present
+        if [[ "${path}" =~ \* ]]; then
+            local expanded_paths
+            expanded_paths=$(expand_wildcards "${path}")
+
+            if [[ -z "${expanded_paths}" ]]; then
+                log_warning "No files matched wildcard: ${path}"
+                continue
+            fi
+
+            # Sync each expanded path
+            while IFS= read -r expanded_path; do
+                [[ -z "${expanded_path}" ]] && continue
+
+                # Check if expanded path is excluded
+                if is_excluded "${expanded_path}" "${excluded_paths}"; then
+                    [[ "${DRY_RUN}" == "true" ]] && log_info "[DRY-RUN] Excluded: ${expanded_path}"
+                    continue
+                fi
+
+                if sync_path "${expanded_path}"; then
+                    ((synced++))
+                else
+                    ((failed++))
+                fi
+            done <<< "${expanded_paths}"
+        else
+            # No wildcard, sync directly
+            if sync_path "${path}"; then
+                ((synced++))
+            else
+                ((failed++))
+            fi
+        fi
+    done <<< "${paths}"
+
+    # Summary
+    echo ""
+    print_header "Sync Summary"
+    echo "Profile: ${profile}"
+    [[ ${deleted} -gt 0 ]] && echo "Deleted: ${deleted}"
+    [[ ${moved} -gt 0 ]] && echo "Moved: ${moved}"
+    echo "Synced: ${synced}"
+    [[ ${failed} -gt 0 ]] && echo "Failed: ${failed}"
+
+    # Update last sync timestamp in user config
+    local user_config
+    user_config=$(get_user_config_file)
+
+    if [[ "${DRY_RUN}" != "true" ]] && [[ ${synced} -gt 0 || ${deleted} -gt 0 || ${moved} -gt 0 ]]; then
+        local timestamp
+        timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+        if [[ -f "${user_config}" ]]; then
+            jq ".last_sync = \"${timestamp}\"" "${user_config}" > "${user_config}.tmp"
+            mv "${user_config}.tmp" "${user_config}"
+        else
+            echo "{\"last_sync\": \"${timestamp}\", \"user_profiles\": {}, \"profile_overrides\": {}}" | jq '.' > "${user_config}"
+        fi
+
+        local config_basename
+        config_basename=$(basename "${user_config}")
+        log_success "Updated last sync timestamp in ${config_basename}"
+    fi
+}
+
+# Auto-commit changes
+auto_commit_changes() {
+    if [[ "${AUTO_COMMIT}" != "true" ]]; then
+        return
+    fi
+
+    if git diff --quiet && git diff --cached --quiet; then
+        log_info "No changes to commit"
+        return
+    fi
+
+    log_info "Auto-committing changes..."
+    git add -A
+    git commit -m "chore: sync blueprint files (profile: ${PROFILE})" -m "Synced from blueprint repository" --no-verify
+    log_success "Changes committed"
+}
+
+# Parse command line arguments
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --profile)
+                PROFILE="$2"
+                shift 2
+                ;;
+            --dry-run)
+                DRY_RUN=true
+                shift
+                ;;
+            --interactive)
+                INTERACTIVE=true
+                shift
+                ;;
+            --strategy)
+                CONFLICT_STRATEGY="$2"
+                shift 2
+                ;;
+            --auto-commit)
+                AUTO_COMMIT=true
+                shift
+                ;;
+            --force)
+                FORCE=true
+                shift
+                ;;
+            --cleanup-remote)
+                CLEANUP_REMOTE=true
+                shift
+                ;;
+            --list-profiles)
+                LIST_PROFILES=true
+                shift
+                ;;
+            --help|-h)
+                show_usage
+                exit 0
+                ;;
+            *)
+                log_error "Unknown option: $1"
+                show_usage
+                exit 1
+                ;;
+        esac
+    done
+}
+
+# Main
+main() {
+    parse_args "$@"
+
+    cd "${PROJECT_ROOT}"
+
+    # Handle --list-profiles early (doesn't need clean working directory)
+    if [[ "${LIST_PROFILES:-false}" == "true" ]]; then
+        check_prerequisites true
+        list_profiles
+        exit 0
+    fi
+
+    # Check if this is the blueprint repository itself (unless --force)
+    if [[ "${FORCE}" != "true" ]] && check_if_blueprint_repo; then
+        show_blueprint_repo_warning
+        exit 1
+    fi
+
+    print_header "Blueprint Sync Tool"
+
+    check_prerequisites
+    setup_remote
+    perform_sync "${PROFILE}"
+    cleanup_remote
+
+    echo ""
+
+    if [[ "${DRY_RUN}" != "true" ]]; then
+        log_info "Review changes with: ${GREEN}git diff${NC}"
+        log_info "Undo changes with: ${GREEN}git restore <file>${NC}"
+        log_info "Commit changes with: ${GREEN}git add -A && git commit -m 'chore: sync blueprint files'${NC}"
+
+        if [[ "${CLEANUP_REMOTE}" != "true" ]] && git remote get-url "${REMOTE_NAME}" &> /dev/null; then
+            echo ""
+            log_info "Blueprint remote '${REMOTE_NAME}' is still configured for future syncs."
+            log_info "To remove it: ${GREEN}git remote remove ${REMOTE_NAME}${NC}"
+            log_info "Or next time: ${GREEN}./script/setup/sync-blueprint --cleanup-remote${NC}"
+        fi
+
+        auto_commit_changes
+        echo ""
+    fi
+
+    log_success "Sync complete!"
+}
+
+main "$@"

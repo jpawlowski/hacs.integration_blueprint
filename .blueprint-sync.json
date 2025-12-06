@@ -1,0 +1,108 @@
+{
+  "blueprint_repo": "jpawlowski/hacs.integration_blueprint",
+  "blueprint_branch": "main",
+  "profiles": {
+    "dev-tools": {
+      "description": "Development scripts, workflows, and build configuration",
+      "paths": [
+        "script/check",
+        "script/clean",
+        "script/develop",
+        "script/hassfest",
+        "script/help",
+        "script/lint",
+        "script/lint-check",
+        "script/spell",
+        "script/spell-check",
+        "script/test",
+        "script/type-check",
+        "script/setup/bootstrap",
+        "script/setup/reset",
+        "script/setup/setup",
+        "script/setup/sync-hacs",
+        ".github/workflows/",
+        "pyproject.toml",
+        "requirements_dev.txt",
+        "requirements_test.txt"
+      ],
+      "exclude": ["script/setup/sync-blueprint"]
+    },
+    "sync-script": {
+      "description": "Blueprint sync script and configuration (update the sync tool itself)",
+      "paths": ["script/setup/sync-blueprint", "script/.lib/", ".blueprint-sync.json"],
+      "exclude": []
+    },
+    "ai-agents-core": {
+      "description": "AI agent core documentation (AGENTS.md, copilot-instructions.md)",
+      "paths": ["AGENTS.md", ".github/copilot-instructions.md"],
+      "exclude": []
+    },
+    "ai-agents-instructions": {
+      "description": "AI agent instruction files (usually not customized)",
+      "paths": [".github/instructions/", ".github/prompts/"],
+      "exclude": []
+    },
+    "schemas": {
+      "description": "JSON and YAML schema files",
+      "paths": ["schemas/json/", "schemas/yaml/"],
+      "exclude": []
+    },
+    "dotfiles": {
+      "description": "IDE and tool configuration files",
+      "paths": [".vscode/", ".editorconfig", ".gitattributes", ".pre-commit-config.yaml"],
+      "exclude": []
+    },
+    "all": {
+      "description": "All blueprint-maintained files (except sync script - use 'sync-script' profile)",
+      "paths": [
+        "script/",
+        ".github/workflows/",
+        ".github/instructions/",
+        ".github/prompts/",
+        ".github/copilot-instructions.md",
+        "schemas/",
+        ".vscode/",
+        ".editorconfig",
+        ".gitattributes",
+        ".pre-commit-config.yaml",
+        "pyproject.toml",
+        "requirements_dev.txt",
+        "requirements_test.txt",
+        "AGENTS.md"
+      ],
+      "exclude": ["script/setup/sync-blueprint", "script/.lib/"]
+    }
+  },
+  "operations": {
+    "smart_merge": [
+      {
+        "file": ".vscode/settings.json",
+        "keep_keys": []
+      },
+      {
+        "file": ".vscode/extensions.json",
+        "keep_keys": []
+      },
+      {
+        "file": ".devcontainer/devcontainer.json",
+        "keep_keys": ["name"]
+      },
+      {
+        "file": "config/configuration.yaml",
+        "keep_keys": [
+          "homeassistant.name",
+          "homeassistant.latitude",
+          "homeassistant.longitude",
+          "homeassistant.elevation",
+          "homeassistant.unit_system",
+          "homeassistant.time_zone",
+          "homeassistant.currency"
+        ]
+      }
+    ],
+    "delete": [],
+    "move": []
+  },
+  "conflict_strategy": "manual",
+  "auto_commit": false
+}

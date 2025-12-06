@@ -17,6 +17,11 @@
 set -e
 set -o pipefail
 
+# Load output library
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=script/.lib/output.sh
+source "$SCRIPT_DIR/script/.lib/output.sh"
+
 # Configuration from parameters
 DRY_RUN=false
 UNATTENDED=false
@@ -117,75 +122,20 @@ if $UNATTENDED && ! $FORCE && ! $DRY_RUN; then
     exit 1
 fi
 
-# Color codes for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-MAGENTA='\033[0;35m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
-
 # Statistics tracking
 declare -A file_stats
 total_replacements=0
 
-# Print colored output
+# Print colored output (for compatibility with existing code)
 print_color() {
     local color=$1
     shift
     echo -e "${color}$@${NC}" >&2
 }
 
-print_header() {
-    local text="$1"
-    # Center text by calculating padding
-    local text_length=${#text}
-    local total_width=78
-    local padding=$(( (total_width - text_length) / 2 ))
-    local left_pad=$(printf "%${padding}s" "")
-
-    echo ""
-    print_color "$BLUE" "┬──────────────────────────────────────────────────────────────────────────────┬"
-    print_color "$BLUE" "${left_pad}${text}"
-    print_color "$BLUE" "┴──────────────────────────────────────────────────────────────────────────────┴"
-}
-
-print_welcome_header() {
-    local text="$1"
-    # Character count for centering (not display width, simple approach)
-    local text_length=${#text}
-    local padding_left=$(( (78 - text_length) / 2 ))
-    local padding_right=$(( 78 - text_length - padding_left ))
-    local left_spaces=$(printf "%${padding_left}s" "")
-    local right_spaces=$(printf "%${padding_right}s" "")
-
-    echo ""
-    print_color "$BLUE" "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
-    print_color "$BLUE" "┃                                                                              ┃"
-    print_color "$BLUE" "┃${left_spaces}${text}${right_spaces}┃"
-    print_color "$BLUE" "┃                                                                              ┃"
-    print_color "$BLUE" "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
-    echo ""
-}
-print_success() {
-    print_color "$GREEN" "✓ $1"
-}
-
-print_warning() {
-    print_color "$YELLOW" "⚠ $1"
-}
-
-print_error() {
-    print_color "$RED" "✗ $1"
-}
-
+# Dry-run specific output
 print_dryrun() {
-    print_color "$MAGENTA" "🔮 [DRY-RUN] $1"
-}
-
-print_info() {
-    print_color "$CYAN" "ℹ $1"
+    printf "%b🔮 [DRY-RUN] %s%b\n" "$MAGENTA" "$1" "$NC"
 }
 
 # Check if this is the original blueprint repository (jpawlowski's)
@@ -876,9 +826,10 @@ replace_in_files() {
         prune_args+=(-path "$path")
     done
 
-    # Minimal file exclusions (only this script itself)
+    # Minimal file exclusions (only this script itself and blueprint sync config)
     local exclude_files=(
-        "$script_name"     # This script itself
+        "$script_name"              # This script itself
+        ".blueprint-sync.json"      # Blueprint sync configuration (must not be modified)
     )
 
     # Find all files, excluding pruned directories

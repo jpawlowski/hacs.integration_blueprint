@@ -18,6 +18,9 @@ uv.lock
 # AI agent temporary scratch files and planning notes
 .ai-scratch/
 
+# Blueprint sync user configuration (local development only)
+.blueprint-sync.user.local.json
+
 # Created by https://www.toptal.com/developers/gitignore/api/linux,macos,windows,virtualenv,pythonvanilla,visualstudiocode,homeassistant
 # Edit at https://www.toptal.com/developers/gitignore?templates=linux,macos,windows,virtualenv,pythonvanilla,visualstudiocode,homeassistant
 
