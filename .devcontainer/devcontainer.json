@@ -1,5 +1,5 @@
 {
-  "name": "HA ha_integration_domain Dev Container",
+  "name": "HA ha_integration_domain",
   "image": "mcr.microsoft.com/devcontainers/python:3.13",
   "postCreateCommand": "bash .devcontainer/setup-shell.sh && bash .devcontainer/setup-git.sh && script/setup/setup",
   "postAttachCommand": "bash .devcontainer/post-attach.sh",
