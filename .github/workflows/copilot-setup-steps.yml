@@ -29,8 +29,6 @@ permissions:
 jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest
-    env:
-      HA_VERSION: "2025.11.3"
 
     steps:
       - name: Checkout repository
@@ -53,9 +51,9 @@ jobs:
         with:
           path: |
             .local/ha-venv
-          key: ha-venv-${{ runner.os }}-py313-ha${{ env.HA_VERSION }}-${{ hashFiles('**/requirements*.txt') }}
+          key: ha-venv-${{ runner.os }}-py313-ha${{ steps.ha_version.outputs.HA_VERSION }}-${{ hashFiles('**/requirements*.txt') }}
           restore-keys: |
-            ha-venv-${{ runner.os }}-py313-ha${{ env.HA_VERSION }}-
+            ha-venv-${{ runner.os }}-py313-ha${{ steps.ha_version.outputs.HA_VERSION }}-
 
       - name: Install dependencies
         run: script/setup/bootstrap

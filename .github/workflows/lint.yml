@@ -19,8 +19,6 @@ jobs:
   ruff:
     name: "Ruff"
     runs-on: "ubuntu-latest"
-    env:
-      HA_VERSION: "2025.11.3"
     steps:
       - name: Checkout the repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -42,9 +40,9 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/.local/ha-venv
-          key: ha-venv-${{ runner.os }}-py313-ha${{ env.HA_VERSION }}-${{ hashFiles('**/requirements*.txt') }}
+          key: ha-venv-${{ runner.os }}-py313-ha${{ steps.ha_version.outputs.HA_VERSION }}-${{ hashFiles('**/requirements*.txt') }}
           restore-keys: |
-            ha-venv-${{ runner.os }}-py313-ha${{ env.HA_VERSION }}-
+            ha-venv-${{ runner.os }}-py313-ha${{ steps.ha_version.outputs.HA_VERSION }}-
             ha-venv-${{ runner.os }}-py313-
 
       - name: Install requirements

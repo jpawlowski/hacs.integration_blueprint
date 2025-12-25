@@ -5,9 +5,9 @@
   "postAttachCommand": "bash .devcontainer/post-attach.sh",
   "containerEnv": {
     // Home Assistant version to install in the devcontainer.
-    // Uncomment and set a specific version if needed (e.g., "2025.11.3").
+    // Uncomment and set a specific version if needed (e.g., "2025.12.3").
     // If not set, defaults to version from hacs.json.
-    // "HA_VERSION": "2025.11.3",
+    // "HA_VERSION": "2025.12.3",
     // Install HACS in the Home Assistant installation
     "HA_INSTALL_HACS": "1",
     // Enable asyncio debug mode for easier debugging of async code
