@@ -12,7 +12,7 @@
 
 # Type Checking
 # HA Core uses mypy, but we prefer pyright for better IDE integration and speed
-pyright==1.1.407
+pyright==1.1.408
 
 # Better logging for development scripts
 colorlog==6.10.1
