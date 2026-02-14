@@ -58,6 +58,12 @@ fi
 if [[ ! -d "$VENV_PATH" ]]; then
     log_info "Creating virtual environment at $VENV_PATH"
     uv venv "$VENV_PATH"
+elif [[ ! -x "$VENV_PATH/bin/python3" ]]; then
+    # Venv exists but python3 is broken (broken symlink or missing)
+    log_warning "Existing venv has broken Python interpreter - recreating"
+    rm -rf "$VENV_PATH"
+    log_info "Creating virtual environment at $VENV_PATH"
+    uv venv "$VENV_PATH"
 fi
 
 # Create symlinks for IDE compatibility and tool expectations
