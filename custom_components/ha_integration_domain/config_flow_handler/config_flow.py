@@ -114,6 +114,9 @@ class IntegrationBlueprintConfigFlowHandler(config_entries.ConfigFlow, domain=DO
             step_id="user",
             data_schema=get_user_schema(user_input),
             errors=errors,
+            description_placeholders={
+                "documentation_url": "https://github.com/jpawlowski/hacs.integration_blueprint",
+            },
         )
 
     async def async_step_reconfigure(
