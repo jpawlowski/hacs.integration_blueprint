@@ -1072,6 +1072,24 @@ remove_post_attach_script() {
     fi
 }
 
+# Remove blueprint-specific files that should not be in user projects
+remove_blueprint_specific_files() {
+    if $DRY_RUN; then
+        print_dryrun "Would remove .github/FUNDING.yml"
+    else
+        print_color "$BLUE" "Removing blueprint-specific files..."
+
+        # Remove GitHub Sponsors funding file (specific to blueprint maintainer)
+        if [[ -f ".github/FUNDING.yml" ]]; then
+            rm -f .github/FUNDING.yml
+            print_success "Removed .github/FUNDING.yml"
+        fi
+
+        # Note: Users can create their own FUNDING.yml later if they want
+        # after setting up their own GitHub Sponsors account
+    fi
+}
+
 # Display statistics
 show_statistics() {
     local header_text="Customization Complete - Statistics"
@@ -1396,6 +1414,9 @@ main() {
 
     # Remove post-attach script and devcontainer.json entry
     remove_post_attach_script
+
+    # Remove blueprint-specific files (GitHub sponsors, etc.)
+    remove_blueprint_specific_files
 
     # Rename directory (do this before replacements to avoid double work)
     rename_directory "custom_components/ha_integration_domain" "custom_components/$domain"
