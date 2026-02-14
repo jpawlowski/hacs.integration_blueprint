@@ -21,9 +21,20 @@ This is a Home Assistant custom integration that was generated from a blueprint 
 
 **Local Home Assistant instance:**
 
-Test the integration using `./script/develop`. Important:
+**Always use the project's scripts** — do NOT craft your own `hass`, `pip`, `pytest`, or similar commands. The scripts handle environment setup, virtual environments, port management, and cleanup that raw commands miss. Agents that bypass scripts frequently break.
 
-- **Force restart approach:** `pkill -f "hass --config" || true && pkill -f "debugpy.*5678" || true && ./script/develop`
+**Start Home Assistant:**
+
+```bash
+./script/develop
+```
+
+**Force restart (when HA is unresponsive or port conflicts):**
+
+```bash
+pkill -f "hass --config" || true && pkill -f "debugpy.*5678" || true && ./script/develop
+```
+
 - Kills any existing instance (hass + debugpy on port 5678) and starts fresh
 - Avoids state confusion and port conflicts
 
@@ -42,6 +53,12 @@ Test the integration using `./script/develop`. Important:
 **Context-specific instructions:**
 
 If you're using GitHub Copilot, path-specific instructions in `.github/instructions/*.instructions.md` provide additional guidance for specific file types (Python, YAML, JSON, etc.). This document serves as the primary reference for all agents.
+
+**Other agent entry points:**
+
+- **Claude Code:** See [`CLAUDE.md`](CLAUDE.md) (pointer to this file)
+- **Gemini:** See [`GEMINI.md`](GEMINI.md) (pointer to this file)
+- **GitHub Copilot:** See [`.github/copilot-instructions.md`](.github/copilot-instructions.md) (compact version of this file)
 
 ## Working With Developers
 
@@ -308,7 +325,7 @@ See `.github/instructions/config_flow.instructions.md` for comprehensive pattern
 - **Register in `async_setup()`** - NOT in `async_setup_entry()` (Quality Scale!)
 - Format: `<integration_domain>.<action_name>`
 
-See `.github/instructions/services.instructions.md` for service patterns.
+See `.github/instructions/service_actions.instructions.md` for service patterns.
 
 **Coordinator:**
 

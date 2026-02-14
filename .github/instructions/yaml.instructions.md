@@ -20,3 +20,19 @@ applyTo: "**/*.yaml, **/*.yml"
 - Keep files focused and readable
 - Use comments to separate logical sections
 - Group related configuration together
+
+## Schema Validation
+
+YAML schema files are available in `/schemas/yaml/`:
+
+- `configuration_schema.yaml` — Validates Home Assistant `configuration.yaml`
+- `services_schema.yaml` — Validates `services.yaml` (service action definitions)
+
+Consult the relevant schema when editing YAML files to ensure correct structure.
+
+## Home Assistant YAML Conventions
+
+- Use modern HA configuration syntax (no legacy `platform:` style)
+- Prefer `!include` for splitting large configurations
+- Use `!secret` for sensitive values (passwords, API keys, tokens)
+- Boolean values: `true`/`false` (lowercase)
