@@ -254,6 +254,30 @@ This repository uses the [Scripts to Rule Them All](https://github.com/github/sc
 
 The project includes pre-configured VS Code tasks for common operations. Press `Ctrl+Shift+B` (or `Cmd+Shift+B` on macOS) to see available tasks like "Run Home Assistant (Development Mode)", "Run Tests", "Lint", etc.
 
+### Troubleshooting
+
+#### Many "Problems" showing after first devcontainer build?
+
+When you first build and attach to the devcontainer, VS Code's Python extensions (especially Pylance) need time to fully index the workspace. You may see many false "Problems" in the Problems panel that don't actually exist.
+
+**Solution:** Reload the VS Code window
+
+1. Press `F1` (or `Ctrl+Shift+P` / `Cmd+Shift+P`)
+2. Type: `Developer: Reload Window`
+3. Press Enter
+
+After the reload, the linters and language servers will be fully initialized and the false problems will disappear.
+
+> **Why does this happen?** When the devcontainer is first built, the `postCreateCommand` installs all dependencies and sets up the Python environment, but the VS Code extensions haven't finished indexing yet when you first attach. A window reload ensures all extensions are properly initialized with the completed environment.
+>
+> **Alternative:** Close VS Code completely and re-open the devcontainer. This has the same effect but takes longer.
+>
+> **This is normal!** This is a known limitation of how VS Code initializes extensions in devcontainers. It only happens on the first attach after building - subsequent sessions work perfectly.
+
+#### Other common issues
+
+For Codespaces-specific troubleshooting, see [docs/development/CODESPACES.md](docs/development/CODESPACES.md#troubleshooting).
+
 ---
 
 ## Architecture & Code Structure

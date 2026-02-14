@@ -73,6 +73,22 @@ Each repository gets its own Codespace - work on multiple integrations simultane
 
 ## Troubleshooting
 
+### Many "Problems" showing after first Codespace build?
+
+When you first create a Codespace, VS Code's Python extensions (especially Pylance) need time to fully index the workspace. You may see many false "Problems" in the Problems panel that don't actually exist.
+
+**Solution:** Reload the VS Code window
+
+1. Press `F1` (or `Ctrl+Shift+P` / `Cmd+Shift+P`)
+2. Type: `Developer: Reload Window`
+3. Press Enter
+
+After the reload, the linters and language servers will be fully initialized and the false problems will disappear.
+
+> **Why does this happen?** When the Codespace is first created, setup runs in the background installing dependencies and configuring the Python environment. VS Code extensions start before this completes, leading to temporary false errors. A window reload ensures all extensions are properly initialized.
+>
+> **This is normal!** This only happens on first creation - subsequent connections work perfectly.
+
 ### Codespace Won't Start
 
 - Verify Codespaces is enabled for your account
