@@ -1431,7 +1431,7 @@ main() {
 
     # Replace year in LICENSE with current year
     local current_year=$(date +%Y)
-    replace_in_files "2025" "$current_year" "LICENSE year"
+    replace_in_files "(c) 2025" "(c) $current_year" "LICENSE year"
 
     # Show statistics
     local stats_prefix=""
