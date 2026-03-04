@@ -1,0 +1,105 @@
+name: Tag From Manifest Version
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "custom_components/ha_integration_domain/manifest.json"
+      - ".github/workflows/tag-from-manifest.yml"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Optional version override (without v prefix)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tag-from-manifest-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  create-tag-release:
+    name: "Create version tag/release"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Determine version change
+        id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          FILE="custom_components/ha_integration_domain/manifest.json"
+          CURRENT_VERSION="${{ github.event.inputs.version }}"
+          if [[ -z "${CURRENT_VERSION}" ]]; then
+            CURRENT_VERSION="$(jq -r '.version' "${FILE}")"
+          fi
+
+          if [[ -z "${CURRENT_VERSION}" || "${CURRENT_VERSION}" == "null" ]]; then
+            echo "Manifest version is missing"
+            exit 1
+          fi
+
+          PREVIOUS_VERSION="$(git show HEAD^:${FILE} 2>/dev/null | jq -r '.version' 2>/dev/null || true)"
+          TAG="v${CURRENT_VERSION}"
+          TAG_EXISTS="false"
+          RELEASE_EXISTS="false"
+
+          if git ls-remote --tags --refs origin "${TAG}" | grep -q .; then
+            TAG_EXISTS="true"
+          fi
+
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            RELEASE_EXISTS="true"
+          fi
+
+          CHANGED="true"
+          if [[ "${{ github.event_name }}" == "push" && "${CURRENT_VERSION}" == "${PREVIOUS_VERSION}" ]]; then
+            CHANGED="false"
+          fi
+
+          echo "changed=${CHANGED}" >> "${GITHUB_OUTPUT}"
+          echo "version=${CURRENT_VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
+          echo "create_tag=$([[ "${TAG_EXISTS}" == "false" ]] && echo true || echo false)" >> "${GITHUB_OUTPUT}"
+          echo "create_release=$([[ "${RELEASE_EXISTS}" == "false" ]] && echo true || echo false)" >> "${GITHUB_OUTPUT}"
+
+      - name: Create and push tag
+        if: steps.version.outputs.changed == 'true' && steps.version.outputs.create_tag == 'true'
+        run: |
+          set -euo pipefail
+
+          TAG="${{ steps.version.outputs.tag }}"
+          if git ls-remote --exit-code --tags --refs origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "Tag ${TAG} already exists on origin; skipping creation"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "${TAG}" "${GITHUB_SHA}"
+          git push origin "${TAG}"
+
+      - name: Create GitHub release
+        if: steps.version.outputs.changed == 'true' && steps.version.outputs.create_release == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          TAG="${{ steps.version.outputs.tag }}"
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "Release ${TAG} already exists; skipping creation"
+            exit 0
+          fi
+
+          gh release create "${TAG}" --title "${TAG}" --generate-notes
