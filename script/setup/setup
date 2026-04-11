@@ -21,6 +21,34 @@ source "$SCRIPT_DIR/../.lib/output.sh"
 
 "$SCRIPT_DIR/bootstrap"
 
+ensure_command_alias() {
+    local alias_name=$1
+    local target_name=$2
+    local bin_dir="$HOME/.local/bin"
+    local target_path
+
+    if command -v "$alias_name" >/dev/null 2>&1; then
+        return
+    fi
+
+    if ! target_path=$(command -v "$target_name" 2>/dev/null); then
+        return
+    fi
+
+    mkdir -p "$bin_dir"
+    ln -sfn "$target_path" "$bin_dir/$alias_name"
+    log_step "Linking command alias: $alias_name -> $target_name"
+}
+
+log_header "Configuring AI agent tool aliases"
+ensure_command_alias "batcat" "bat"
+ensure_command_alias "fd" "fdfind"
+ensure_command_alias "fd-find" "fdfind"
+ensure_command_alias "git-delta" "delta"
+ensure_command_alias "httpie" "http"
+ensure_command_alias "ipython" "ipython3"
+ensure_command_alias "ripgrep" "rg"
+
 if [[ -z ${VIRTUAL_ENV:-} ]]; then
     log_header "Activating virtual environment"
     # shellcheck source=/dev/null

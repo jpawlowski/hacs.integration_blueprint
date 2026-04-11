@@ -25,7 +25,22 @@
     },
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers-extra/features/apt-packages:1": {
-      "packages": ["ffmpeg", "libturbojpeg0", "libpcap-dev"]
+      "packages": [
+        "bat",
+        "eza",
+        "fd-find",
+        "ffmpeg",
+        "fzf",
+        "git-delta",
+        "httpie",
+        "hyperfine",
+        "ipython3",
+        "jq",
+        "libpcap-dev",
+        "libturbojpeg0",
+        "ripgrep",
+        "yq"
+      ]
     }
   },
   "forwardPorts": [8123],
