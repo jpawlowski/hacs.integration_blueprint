@@ -41,12 +41,13 @@ ensure_command_alias() {
 }
 
 log_header "Configuring AI agent tool aliases"
-ensure_command_alias "batcat" "bat"
+ensure_command_alias "bat" "batcat"
 ensure_command_alias "fd" "fdfind"
 ensure_command_alias "fd-find" "fdfind"
 ensure_command_alias "git-delta" "delta"
 ensure_command_alias "httpie" "http"
 ensure_command_alias "ipython" "ipython3"
+ensure_command_alias "miller" "mlr"
 ensure_command_alias "ripgrep" "rg"
 
 if [[ -z ${VIRTUAL_ENV:-} ]]; then
