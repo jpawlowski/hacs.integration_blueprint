@@ -171,6 +171,7 @@ As an AI agent, **aim for Silver or Gold Quality Scale** when generating code:
 - `.github/instructions/python.instructions.md` - Python patterns, imports, type hints
 - `.github/instructions/yaml.instructions.md` - YAML structure and HA-specific patterns
 - `.github/instructions/json.instructions.md` - JSON formatting and schema validation
+- `.github/instructions/shell.instructions.md` - Shell script style, shfmt, shellcheck
 
 **GitHub Copilot users:** These instruction files are automatically provided based on file type.
 

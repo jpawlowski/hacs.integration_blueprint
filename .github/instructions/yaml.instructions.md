@@ -55,5 +55,5 @@ Configuration: `.yamllint.yml` at the project root. Key rules:
 **Suppressing yamllint for a single line** (use sparingly):
 
 ```yaml
-some_long_key: some_very_long_value_that_exceeds_120_chars  # yamllint disable-line rule:line-length
+some_long_key: some_very_long_value_that_exceeds_120_chars # yamllint disable-line rule:line-length
 ```
