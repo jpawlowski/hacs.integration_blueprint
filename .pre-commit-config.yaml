@@ -10,28 +10,55 @@
 repos:
   - repo: local
     hooks:
-      # Run the Ruff linter with auto-fix
-      - id: ruff
-        name: ruff
-        entry: bash -c 'VENV_PATHS=("$HOME/.local/ha-venv" ".local/ha-venv"); for venv in "${VENV_PATHS[@]}"; do if [[ -f "$venv/bin/ruff" ]]; then source "$venv/bin/activate" 2>/dev/null || true; ruff check --fix --exit-non-zero-on-fix "$@"; exit $?; fi; done; echo "⚠️  Skipping ruff (venv not ready)"; exit 0' --
+      # Run the Ruff formatter first — format before lint (clean slate for linter)
+      - id: ruff-format
+        name: ruff format
+        entry: bash -c 'if command -v ruff &>/dev/null; then ruff format "$@"; exit $?; fi; for venv in "$HOME/.local/ha-venv" ".local/ha-venv"; do if [[ -f "$venv/bin/ruff" ]]; then source "$venv/bin/activate" 2>/dev/null || true; ruff format "$@"; exit $?; fi; done; echo "⚠️  Skipping ruff format (venv not ready)"; exit 0' --
         language: system
         types: [python]
         require_serial: true
         pass_filenames: true
 
-      # Run the Ruff formatter
-      - id: ruff-format
-        name: ruff format
-        entry: bash -c 'VENV_PATHS=("$HOME/.local/ha-venv" ".local/ha-venv"); for venv in "${VENV_PATHS[@]}"; do if [[ -f "$venv/bin/ruff" ]]; then source "$venv/bin/activate" 2>/dev/null || true; ruff format "$@"; exit $?; fi; done; echo "⚠️  Skipping ruff format (venv not ready)"; exit 0' --
+      # Run the Ruff linter with auto-fix after formatting
+      - id: ruff
+        name: ruff
+        entry: bash -c 'if command -v ruff &>/dev/null; then ruff check --fix --exit-non-zero-on-fix "$@"; exit $?; fi; for venv in "$HOME/.local/ha-venv" ".local/ha-venv"; do if [[ -f "$venv/bin/ruff" ]]; then source "$venv/bin/activate" 2>/dev/null || true; ruff check --fix --exit-non-zero-on-fix "$@"; exit $?; fi; done; echo "⚠️  Skipping ruff (venv not ready)"; exit 0' --
         language: system
         types: [python]
         require_serial: true
+        pass_filenames: true
+
+      # YAML linting
+      - id: yamllint
+        name: yamllint
+        entry: bash -c 'if command -v yamllint &>/dev/null; then yamllint -c .yamllint.yml "$@"; exit $?; fi; for venv in "$HOME/.local/ha-venv" ".local/ha-venv"; do if [[ -f "$venv/bin/yamllint" ]]; then source "$venv/bin/activate" 2>/dev/null || true; yamllint -c .yamllint.yml "$@"; exit $?; fi; done; echo "⚠️  Skipping yamllint (venv not ready)"; exit 0' --
+        language: system
+        types: [yaml]
+        files: ^(custom_components/ha_integration_domain/|schemas/yaml/|\.github/|\.pre-commit-config\.yaml|\.prettierrc\.yml)
+        pass_filenames: true
+
+      # Shell script linting
+      - id: shellcheck
+        name: shellcheck
+        entry: shellcheck -x
+        language: system
+        types: [shell]
+        files: ^(script/|\.devcontainer/)
+        pass_filenames: true
+
+      # Shell script formatting
+      - id: shfmt
+        name: shfmt
+        entry: shfmt -i 4 -w
+        language: system
+        types: [shell]
+        files: ^(script/|\.devcontainer/)
         pass_filenames: true
 
       # Spell checking
       - id: codespell
         name: codespell
-        entry: bash -c 'VENV_PATHS=("$HOME/.local/ha-venv" ".local/ha-venv"); for venv in "${VENV_PATHS[@]}"; do if [[ -f "$venv/bin/codespell" ]]; then source "$venv/bin/activate" 2>/dev/null || true; codespell --ignore-words-list=aiport,astroid,checkin,currenty,hass,iif,incomfort,lookin,nam,NotIn --skip="./.*,*.csv,*.json,*.ambr,uv.lock" --quiet-level=2 "$@"; exit $?; fi; done; echo "⚠️  Skipping codespell (venv not ready)"; exit 0' --
+        entry: bash -c 'if command -v codespell &>/dev/null; then codespell --ignore-words-list=aiport,astroid,checkin,currenty,hass,iif,incomfort,lookin,nam,NotIn --skip="./.*,*.csv,*.json,*.ambr,uv.lock" --quiet-level=2 "$@"; exit $?; fi; for venv in "$HOME/.local/ha-venv" ".local/ha-venv"; do if [[ -f "$venv/bin/codespell" ]]; then source "$venv/bin/activate" 2>/dev/null || true; codespell --ignore-words-list=aiport,astroid,checkin,currenty,hass,iif,incomfort,lookin,nam,NotIn --skip="./.*,*.csv,*.json,*.ambr,uv.lock" --quiet-level=2 "$@"; exit $?; fi; done; echo "⚠️  Skipping codespell (venv not ready)"; exit 0' --
         language: system
         types_or: [python, markdown, rst]
         exclude_types: [csv, json, html]
