@@ -9,6 +9,12 @@ A modern blueprint for creating Home Assistant custom integrations, based on [lu
 
 This blueprint is designed to work with **Home Assistant 2025.7+** and includes all the patterns and tooling you need to build a professional integration without reinventing the wheel.
 
+> [!IMPORTANT]
+> **Use the template — don't fork!**
+> Click the **"Use this template"** button to create your own repository.
+> Forking copies the entire commit history, which you don't need and can't easily remove.
+> A template repository gives you a **clean start with a single initial commit** — exactly what your integration deserves.
+
 ## 📋 Quick Navigation
 
 - **[Getting Started](#getting-started---creating-your-integration)** - Create your integration in minutes
@@ -35,6 +41,12 @@ Both options use the same DevContainer setup, so your code and workflow are iden
 1. Click the **"Use this template"** button at the top of this page
 2. Choose a name for your integration repository (e.g., `hass-my-awesome-device`)
 3. Click **"Create repository"**
+
+> [!WARNING]
+> **Do not use the "Fork" button.**
+> Forking is meant for contributing changes back to the original project.
+> It copies all ~800 commits of this blueprint's history into your repo — unnecessary baggage you cannot easily get rid of.
+> The **"Use this template"** button creates a fresh repository with just one commit, which is the correct starting point for your own integration.
 
 **🤖 Optional: Initialize with Copilot Coding Agent**
 
