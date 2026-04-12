@@ -157,21 +157,6 @@ script/check      # Always run before considering task complete
 - Offer to create summary for fresh session if context is strained
 - Suggest once, don't nag if declined
 
-**Commit format:** [Conventional Commits](https://www.conventionalcommits.org/)
-
-```text
-type(scope): short summary (max 72 chars)
-
-- Optional detailed points
-- Reference issues if applicable
-```
+**Commit format:** [Conventional Commits](https://www.conventionalcommits.org/) — see `.github/instructions/commit-message.instructions.md` for full conventions, types, scopes, and examples.
 
 **Always check `git diff` first** — don't rely on session memory. Include all changes in your message.
-
-**Common types:**
-
-- `feat:` — User-facing functionality (new sensor, service, config option)
-- `fix:` — Bug fixes (user-facing issues)
-- `chore:` — Dev tools, dependencies, devcontainer (NOT user-facing)
-- `refactor:` — Code restructuring (no functional change)
-- `docs:` — Documentation changes

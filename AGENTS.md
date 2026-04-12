@@ -117,11 +117,7 @@ See `.github/copilot-instructions.md` for detailed documentation strategy.
 
 When a task completes and the developer moves to a new topic, suggest committing changes. Offer a commit message based on the work done.
 
-**Commit message format:** Follow [Conventional Commits](https://www.conventionalcommits.org/) specification
-
-**Common types:** `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`
-
-See `.github/copilot-instructions.md` for commit message examples and context monitoring guidance.
+**Commit message format:** Follow [Conventional Commits](https://www.conventionalcommits.org/) — see `.github/instructions/commit-message.instructions.md` for full conventions, types, scopes, and examples.
 
 ## Custom Integration Flexibility
 

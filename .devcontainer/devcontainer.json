@@ -134,6 +134,9 @@
           "editor.defaultFormatter": "esbenp.prettier-vscode",
           "editor.formatOnSave": false
         },
+        "github.copilot.chat.commitMessageGeneration.instructions": [
+          { "file": ".github/instructions/commit-message.instructions.md" }
+        ],
         "json.schemas": [
           {
             "fileMatch": ["custom_components/*/manifest.json"],
