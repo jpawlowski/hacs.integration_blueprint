@@ -275,6 +275,12 @@ You can also extend any `script/` or `.devcontainer/` script without touching th
 
 See [docs/development/CUSTOMIZATION.md](docs/development/CUSTOMIZATION.md) for details on both topics.
 
+### Migrating an existing integration
+
+Already have a HACS integration? You can adopt this blueprint's structure and tooling without starting from scratch. The short version: copy your `custom_components/<domain>/` folder in and adapt your code incrementally.
+
+See [docs/development/MIGRATION.md](docs/development/MIGRATION.md) for an overview of strategies (clean start vs. preserving git history) and common pitfalls like namespace mismatches and repository permissions.
+
 ### Troubleshooting
 
 #### Many "Problems" showing after first devcontainer build?

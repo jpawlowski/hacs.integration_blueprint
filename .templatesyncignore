@@ -25,6 +25,12 @@ pyproject.toml
 .yamllint.yml
 .pre-commit-config.yaml
 
+# ── Runtime dependencies ──────────────────────────────────────
+# requirements.txt lists your integration's PyPI dependencies (synced with
+# manifest.json → requirements). This is user-owned content; requirements_dev.txt
+# and requirements_test.txt are blueprint-managed tooling and do get synced.
+requirements.txt
+
 # ── VS Code workspace settings ───────────────────────────────
 # launch.json and tasks.json reference your integration domain
 # in debugger arguments and task commands.

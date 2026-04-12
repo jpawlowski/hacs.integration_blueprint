@@ -1078,6 +1078,7 @@ remove_post_attach_script() {
 remove_blueprint_specific_files() {
     if $DRY_RUN; then
         print_dryrun "Would remove .github/FUNDING.yml"
+        print_dryrun "Would remove docs/development/MIGRATION.md"
     else
         print_color "$BLUE" "Removing blueprint-specific files..."
 
@@ -1089,6 +1090,12 @@ remove_blueprint_specific_files() {
 
         # Note: Users can create their own FUNDING.yml later if they want
         # after setting up their own GitHub Sponsors account
+
+        # Remove migration guide (only relevant for blueprint users setting up a new repo)
+        if [[ -f "docs/development/MIGRATION.md" ]]; then
+            rm -f "docs/development/MIGRATION.md"
+            print_success "Removed docs/development/MIGRATION.md"
+        fi
     fi
 }
 
