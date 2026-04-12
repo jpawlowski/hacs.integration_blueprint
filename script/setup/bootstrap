@@ -160,7 +160,7 @@ set -e
 
 log_header "Installing Node.js dependencies"
 if command -v npm >/dev/null 2>&1; then
-    npm install --silent
+    npm ci --silent
 else
     log_warning "npm not found — skipping Node.js dependency installation"
     log_info "Install Node.js to enable: prettier, markdownlint-cli2"
