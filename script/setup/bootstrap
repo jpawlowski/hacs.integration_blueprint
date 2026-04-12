@@ -139,6 +139,18 @@ if [[ -z "$HA_VERSION" ]]; then
     log_error "HA_VERSION not set and could not be determined from hacs.json"
     exit 1
 fi
+
+# Resolve "latest" to actual version number via PyPI
+if [[ "$HA_VERSION" == "latest" ]]; then
+    log_info "Resolving latest Home Assistant version via PyPI..."
+    HA_VERSION=$(curl -fsSL https://pypi.org/pypi/homeassistant/json | python3 -c "import sys, json; print(json.load(sys.stdin)['info']['version'])")
+    if [[ -z "$HA_VERSION" ]]; then
+        log_error "Failed to resolve latest Home Assistant version from PyPI"
+        exit 1
+    fi
+    log_info "Resolved to: ${HA_VERSION}"
+fi
+
 HA_CORE_BASE_URL="https://raw.githubusercontent.com/home-assistant/core/${HA_VERSION}"
 
 log_header "Installing Home Assistant ${HA_VERSION} runtime dependencies"

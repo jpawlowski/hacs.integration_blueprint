@@ -37,6 +37,10 @@ INTEGRATION_PATH="custom_components/ha_integration_domain"
 if [ -n "${HA_VERSION:-}" ]; then
     # Use version from environment (DevContainer)
     HA_VERSION_TAG="$HA_VERSION"
+    # Resolve "latest" to actual version number via PyPI
+    if [ "$HA_VERSION_TAG" = "latest" ]; then
+        HA_VERSION_TAG=$(curl -fsSL https://pypi.org/pypi/homeassistant/json | python3 -c "import sys, json; print(json.load(sys.stdin)['info']['version'])" 2>/dev/null || echo "dev")
+    fi
 elif command -v python3 >/dev/null 2>&1; then
     # Detect from installed homeassistant package
     HA_VERSION_TAG=$(python3 -c "from homeassistant.const import __version__; print(__version__)" 2>/dev/null || echo "dev")
