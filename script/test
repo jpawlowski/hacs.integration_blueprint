@@ -48,18 +48,18 @@ PYTEST_ARGS=()
 
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --cov)
-            COVERAGE_ARGS+=("--cov=custom_components/ha_integration_domain" "--cov-report=term-missing")
-            shift
-            ;;
-        --cov-html)
-            COVERAGE_ARGS+=("--cov=custom_components/ha_integration_domain" "--cov-report=html")
-            shift
-            ;;
-        *)
-            PYTEST_ARGS+=("$1")
-            shift
-            ;;
+    --cov)
+        COVERAGE_ARGS+=("--cov=custom_components/ha_integration_domain" "--cov-report=term-missing")
+        shift
+        ;;
+    --cov-html)
+        COVERAGE_ARGS+=("--cov=custom_components/ha_integration_domain" "--cov-report=html")
+        shift
+        ;;
+    *)
+        PYTEST_ARGS+=("$1")
+        shift
+        ;;
     esac
 done
 

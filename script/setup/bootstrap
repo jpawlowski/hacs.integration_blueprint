@@ -106,13 +106,13 @@ if [[ "$VENV_IS_EXTERNAL" == "true" ]]; then
     if [[ -f $HOME/.bashrc ]]; then
         if ! grep -q "source $VENV_PATH/bin/activate" "$HOME/.bashrc" 2>/dev/null; then
             log_step "Configuring Bash to auto-activate virtual environment"
-            echo "source $VENV_PATH/bin/activate" >> "$HOME/.bashrc" || log_warning "Failed to update .bashrc"
+            echo "source $VENV_PATH/bin/activate" >>"$HOME/.bashrc" || log_warning "Failed to update .bashrc"
         fi
     fi
     if [[ -f $HOME/.zshrc ]]; then
         if ! grep -q "source $VENV_PATH/bin/activate" "$HOME/.zshrc"; then
             log_step "Configuring ZSH to auto-activate virtual environment"
-            echo "source $VENV_PATH/bin/activate" >> "$HOME/.zshrc" || log_warning "Failed to update .zshrc"
+            echo "source $VENV_PATH/bin/activate" >>"$HOME/.zshrc" || log_warning "Failed to update .zshrc"
         fi
     fi
     set -e
@@ -141,13 +141,13 @@ HA_CORE_BASE_URL="https://raw.githubusercontent.com/home-assistant/core/${HA_VER
 
 log_header "Installing Home Assistant ${HA_VERSION} runtime dependencies"
 mkdir -p "/tmp/homeassistant"
-curl -fsSL "${HA_CORE_BASE_URL}/homeassistant/package_constraints.txt" -o "/tmp/homeassistant/package_constraints.txt"  # constraints for requirements files
-curl -fsSL "${HA_CORE_BASE_URL}/requirements.txt" -o "/tmp/requirements.txt"  # required by requirements_all.txt
+curl -fsSL "${HA_CORE_BASE_URL}/homeassistant/package_constraints.txt" -o "/tmp/homeassistant/package_constraints.txt" # constraints for requirements files
+curl -fsSL "${HA_CORE_BASE_URL}/requirements.txt" -o "/tmp/requirements.txt"                                           # required by requirements_all.txt
 curl -fsSL "${HA_CORE_BASE_URL}/requirements_all.txt" -o "/tmp/requirements_all.txt"
 uv pip install --requirement "/tmp/requirements_all.txt"
 
 log_header "Installing Home Assistant ${HA_VERSION} test dependencies"
-curl -fsSL "${HA_CORE_BASE_URL}/requirements_test_pre_commit.txt" -o "/tmp/requirements_test_pre_commit.txt"  # required by requirements_test.txt
+curl -fsSL "${HA_CORE_BASE_URL}/requirements_test_pre_commit.txt" -o "/tmp/requirements_test_pre_commit.txt" # required by requirements_test.txt
 curl -fsSL "${HA_CORE_BASE_URL}/requirements_test.txt" -o "/tmp/requirements_test.txt"
 uv pip install --requirement "/tmp/requirements_test.txt"
 

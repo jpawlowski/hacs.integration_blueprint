@@ -46,23 +46,23 @@ else
 fi
 
 # Parse arguments
-UPDATE_CORE=false  # Default to no update for speed
+UPDATE_CORE=false # Default to no update for speed
 SKIP_PLUGINS="quality_scale,requirements"
 
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --update)
-            UPDATE_CORE=true
-            shift
-            ;;
-        --skip-plugins)
-            SKIP_PLUGINS="$2"
-            shift 2
-            ;;
-        *)
-            # Pass unknown args to hassfest
-            break
-            ;;
+    --update)
+        UPDATE_CORE=true
+        shift
+        ;;
+    --skip-plugins)
+        SKIP_PLUGINS="$2"
+        shift 2
+        ;;
+    *)
+        # Pass unknown args to hassfest
+        break
+        ;;
     esac
 done
 
@@ -81,8 +81,8 @@ if [ ! -d "$HA_CORE_DIR" ]; then
     git config core.sparseCheckout true
 
     # Only checkout script/ and homeassistant/ directories (needed for hassfest)
-    echo "script/" > .git/info/sparse-checkout
-    echo "homeassistant/" >> .git/info/sparse-checkout
+    echo "script/" >.git/info/sparse-checkout
+    echo "homeassistant/" >>.git/info/sparse-checkout
 
     # Fetch the specific version (shallow clone + blobless for minimal size)
     if [ "$HA_VERSION_TAG" = "dev" ]; then
