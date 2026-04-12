@@ -178,3 +178,9 @@ script/type-check   # Pyright — no auto-fix ever
 **Commit format:** [Conventional Commits](https://www.conventionalcommits.org/) — see `.github/instructions/commit-message.instructions.md` for full conventions, types, scopes, and examples.
 
 **Always check `git diff` first** — don't rely on session memory. Include all changes in your message.
+
+**Commit rules (CRITICAL):**
+
+- **Never commit automatically** — only commit when the developer explicitly requests it
+- A previous commit request is NOT a standing permission; each commit requires a fresh explicit instruction
+- **Never ask about pushing** — the developer always handles `git push` themselves; do not offer or suggest it

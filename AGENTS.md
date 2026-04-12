@@ -117,6 +117,12 @@ See `.github/copilot-instructions.md` for detailed documentation strategy.
 
 When a task completes and the developer moves to a new topic, suggest committing changes. Offer a commit message based on the work done.
 
+**Commit rules (CRITICAL):**
+
+- **Never commit automatically** — only commit when the developer explicitly requests it
+- A previous commit request is NOT a standing permission; each commit requires a fresh explicit instruction
+- **Never ask about pushing** — the developer always handles `git push` themselves; do not offer or suggest it
+
 **Commit message format:** Follow [Conventional Commits](https://www.conventionalcommits.org/) — see `.github/instructions/commit-message.instructions.md` for full conventions, types, scopes, and examples.
 
 ## Custom Integration Flexibility
