@@ -384,20 +384,72 @@ See `.github/instructions/repairs.instructions.md` for comprehensive patterns.
 
 ## Validation Scripts
 
-**Before committing, run:**
+**Before committing, always run the full suite:**
 
 ```bash
-script/check      # Full validation (type + lint + spell)
-script/lint       # Auto-format and fix linting issues
-script/type-check # Pyright type checking only
-script/test       # Run unit tests
+script/check      # Full validation: type-check + lint-check + spell-check
+```
+
+**After editing specific file types, use the targeted script — it is faster:**
+
+| Changed files | Run this | Why faster |
+|---|---|---|
+| `*.py` only | `script/python` + `script/type-check` | Fixes + reports ruff; skips yaml, shell |
+| `*.yaml` / `*.yml` only | `script/yaml-check` | Skips Python, Shell, types |
+| `script/` or `.devcontainer/*.sh` only | `script/shell` + `script/shell-check` | Fixes shfmt, then checks shellcheck |
+| Multiple types or unsure | `script/lint` + `script/type-check` | Safe default for agents |
+
+**Recommended agent workflow — fix scripts already show what they couldn't fix:**
+
+Fix-mode scripts auto-heal files **and** print remaining unfixable errors in their output.
+No separate check-run is needed after a fix-mode script — its exit code and output tell you
+what still needs manual attention.
+
+```bash
+# Run this loop until both commands exit 0:
+script/lint         # Fixes Python + shell formatting; checks yaml + shellcheck; shows all remaining
+script/type-check   # Pyright type errors — no auto-fix ever, always a manual loop
+# Then fix remaining issues from the output above and repeat.
+```
+
+> **Note:** `script/lint-check`, `script/python-check`, and `script/check` are **check-only**
+> (read-only, no file writes). Use them in CI/CD pipelines where side effects are not desirable.
+> AI agents should always use the fix-mode scripts to benefit from auto-healing.
+
+**Fix / format scripts (apply changes automatically):**
+
+```bash
+script/lint         # Format + fix all types (Python, Shell)
+script/python       # Ruff format + ruff check --fix  (Python only)
+script/shell        # shfmt -w                        (Shell only)
+script/spell        # codespell --write-changes        (spelling)
+```
+
+**Check-only scripts (never modify files):**
+
+```bash
+script/lint-check   # Check all types without changes
+script/python-check # Ruff format --check + ruff check  (Python only)
+script/yaml-check   # yamllint                           (YAML only)
+script/shell-check  # shfmt -d + shellcheck              (Shell only)
+script/type-check   # Pyright                            (types only)
+script/spell-check  # codespell                          (spelling only)
+script/test         # pytest                             (tests only)
 ```
 
 **Configured tools:**
 
-- **Ruff** - Fast Python linter and formatter ([Rules Reference](https://docs.astral.sh/ruff/rules/))
-- **Pyright** - Type checker configured for "basic" mode ([Docs](https://microsoft.github.io/pyright/))
-- **pytest** - Test runner with async support ([Docs](https://docs.pytest.org/))
+| Tool | Scope | Fixes? |
+|---|---|---|
+| **Ruff** | Python lint + format | ✅ `script/python` |
+| **Pyright** | Python type checking | ❌ manual |
+| **yamllint** | YAML structure + style | ❌ manual |
+| **shfmt** | Shell script formatting | ✅ `script/shell` |
+| **shellcheck** | Shell script static analysis | ❌ manual |
+| **codespell** | Spelling in code + docs | ✅ `script/spell` |
+| **pytest** | Unit + integration tests | ❌ n/a |
+
+References: [Ruff rules](https://docs.astral.sh/ruff/rules/) · [Pyright docs](https://microsoft.github.io/pyright/)
 
 **Generate code that passes these checks on first run.** As an AI agent, you should produce higher quality code than manual development:
 
@@ -412,16 +464,23 @@ See `.github/instructions/python.instructions.md` for linter overrides and error
 
 - You may use `# noqa: CODE` or `# type: ignore` when genuinely necessary
 - Use sparingly and only with good reason (e.g., false positives, external library issues)
-See `.github/instructions/python.instructions.md` for linter overrides and error recovery strategies.
 
 ### Error Recovery Strategy
 
-**When validation fails (`script/check` errors):**
+**When validation fails, run `script/lint` first** — it auto-fixes Python and shell formatting,
+and its output already shows everything it could not fix automatically (yamllint, shellcheck,
+unfixable ruff errors). No separate check-run is needed on top.
 
-1. **First attempt** - Fix the specific error reported by the tool
-2. **Second attempt** - If it fails again, reconsider your approach (maybe your understanding was wrong)
-3. **Third attempt** - If still failing, ask for clarification rather than looping indefinitely
-4. **After 3 failed attempts** - Stop and explain what you tried and why it's not working
+For Pyright type errors run `script/type-check` — there is no auto-fix for type errors ever.
+
+After auto-fixes are applied, only manually edit files for errors that **remain in the output**.
+
+**Iteration strategy for remaining errors:**
+
+1. **First attempt** — Fix the specific error reported by the tool
+2. **Second attempt** — If it fails again, reconsider your approach (maybe your understanding was wrong)
+3. **Third attempt** — If still failing, ask for clarification rather than looping indefinitely
+4. **After 3 failed attempts** — Stop and explain what you tried and why it's not working
 
 **When tool operations fail:**
 

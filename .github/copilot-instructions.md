@@ -111,11 +111,29 @@ pkill -f "hass --config" || true && pkill -f "debugpy.*5678" || true && ./script
 
 **When to restart HA:** After modifying Python files, `manifest.json`, `services.yaml`, translations, or config flow changes
 
-**Validate changes:**
+**Validate changes — choose the most specific script for your changes:**
+
+| Changed files                          | Run this                              |
+| -------------------------------------- | ------------------------------------- |
+| `*.py` only                            | `script/python` + `script/type-check` |
+| `*.yaml` / `*.yml` only                | `script/yaml-check`                   |
+| `script/` or `.devcontainer/*.sh` only | `script/shell` + `script/shell-check` |
+| Multiple types or unsure               | `script/lint` + `script/type-check`   |
+
+**Recommended workflow — fix scripts output already shows what they couldn't fix:**
+
+Fix-mode scripts auto-heal files **and** print remaining errors in their output.
+No separate check-run is needed after — the exit code and output are the complete picture.
 
 ```bash
-script/check      # Always run before considering task complete
+# Repeat until both exit 0:
+script/lint         # Fixes Python + shell; checks yaml + shellcheck; shows all remaining
+script/type-check   # Pyright — no auto-fix ever
+# Fix remaining issues from output, then repeat.
 ```
+
+> `script/check`, `script/lint-check`, `script/python-check` are **check-only** (no file writes).
+> Use them in CI/CD. AI agents should always use fix-mode scripts to benefit from auto-healing.
 
 **Logs:**
 
