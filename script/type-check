@@ -23,6 +23,11 @@ activate_venv
 
 log_header "Running type checking tools"
 
+export PATH="$PWD/node_modules/.bin:$PATH"
+if ! command -v pyright >/dev/null 2>&1; then
+    die "Node.js dependencies not installed. Run: npm ci"
+fi
+
 pyright
 
 log_success "Type checking completed"

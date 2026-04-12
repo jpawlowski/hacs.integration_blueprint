@@ -40,6 +40,20 @@ ensure_command_alias() {
     log_step "Linking command alias: $alias_name -> $target_name"
 }
 
+ensure_workspace_binary_link() {
+    local binary_name=$1
+    local bin_dir="$HOME/.local/bin"
+    local target_path="$PWD/node_modules/.bin/$binary_name"
+
+    if [[ ! -x "$target_path" ]]; then
+        return
+    fi
+
+    mkdir -p "$bin_dir"
+    ln -sfn "$target_path" "$bin_dir/$binary_name"
+    log_step "Linking workspace binary: $binary_name"
+}
+
 log_header "Configuring AI agent tool aliases"
 ensure_command_alias "bat" "batcat"
 ensure_command_alias "fd" "fdfind"
@@ -49,6 +63,8 @@ ensure_command_alias "httpie" "http"
 ensure_command_alias "ipython" "ipython3"
 ensure_command_alias "miller" "mlr"
 ensure_command_alias "ripgrep" "rg"
+ensure_workspace_binary_link "copilot"
+ensure_workspace_binary_link "pyright"
 
 if [[ -z ${VIRTUAL_ENV:-} ]]; then
     log_header "Activating virtual environment"

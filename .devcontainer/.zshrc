@@ -1,3 +1,4 @@
+# shellcheck shell=bash disable=SC2139
 # Show MOTD only once per container session
 SESSION_MARKER="/tmp/.motd_shown_$(cat /proc/sys/kernel/random/boot_id 2>/dev/null || echo 'session')"
 
@@ -34,6 +35,10 @@ done
 
 # Home Assistant development aliases (work from anywhere!)
 if [ -n "$WORKSPACE_ROOT" ]; then
+    if [ -d "$WORKSPACE_ROOT/node_modules/.bin" ]; then
+        export PATH="$WORKSPACE_ROOT/node_modules/.bin:$PATH"
+    fi
+
     alias ha-develop="$WORKSPACE_ROOT/script/develop"
     alias ha-test="$WORKSPACE_ROOT/script/test"
     alias ha-lint="$WORKSPACE_ROOT/script/lint"
