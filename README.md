@@ -41,6 +41,9 @@ Both options use the same DevContainer setup, so your code and workflow are iden
 1. Click the **"Use this template"** button at the top of this page
 2. Choose a name for your integration repository (e.g., `hass-my-awesome-device`)
 3. Click **"Create repository"**
+4. In your new repository, go to **Settings > Actions > General** and enable
+   **"Allow GitHub Actions to create and approve pull requests"**
+   (required for the Release Please workflow to open release PRs automatically)
 
 > [!WARNING]
 > **Do not use the "Fork" button.**
