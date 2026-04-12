@@ -19,7 +19,7 @@ NC='\033[0m' # No Color
 print_color() {
     local color=$1
     shift
-    echo -e "${color}$@${NC}" >&2
+    echo -e "${color}$*${NC}" >&2
 }
 
 print_header() {
@@ -27,8 +27,9 @@ print_header() {
     # Center text by calculating padding
     local text_length=${#text}
     local total_width=78
-    local padding=$(( (total_width - text_length) / 2 ))
-    local left_pad=$(printf "%${padding}s" "")
+    local padding=$(((total_width - text_length) / 2))
+    local left_pad
+    left_pad=$(printf "%${padding}s" "")
 
     echo ""
     print_color "$BLUE" "┬──────────────────────────────────────────────────────────────────────────────┬"
@@ -40,10 +41,11 @@ print_welcome_header() {
     local text="$1"
     # Character count for centering (not display width, simple approach)
     local text_length=${#text}
-    local padding_left=$(( (78 - text_length) / 2 ))
-    local padding_right=$(( 78 - text_length - padding_left ))
-    local left_spaces=$(printf "%${padding_left}s" "")
-    local right_spaces=$(printf "%${padding_right}s" "")
+    local padding_left=$(((78 - text_length) / 2))
+    local padding_right=$((78 - text_length - padding_left))
+    local left_spaces right_spaces
+    left_spaces=$(printf "%${padding_left}s" "")
+    right_spaces=$(printf "%${padding_right}s" "")
 
     echo ""
     print_color "$BLUE" "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓"
@@ -58,39 +60,48 @@ print_info() {
     print_color "$CYAN" "ℹ $1"
 }
 
+print_success() {
+    print_color "$GREEN" "✓ $1"
+}
+
+print_error() {
+    print_color "$RED" "✗ $1"
+}
+
 print_warning() {
     print_color "$YELLOW" "⚠ $1"
 }
 
 # Check if this is the original blueprint repository (jpawlowski's)
 check_if_original_blueprint_repo() {
-    if git rev-parse --git-dir > /dev/null 2>&1; then
-        local remote_url=$(git remote get-url origin 2>/dev/null || echo "")
+    if git rev-parse --git-dir >/dev/null 2>&1; then
+        local remote_url
+        remote_url=$(git remote get-url origin 2>/dev/null || echo "")
         if [[ "$remote_url" =~ jpawlowski.*(hacs\.)?integration[_.-]?blueprint ]]; then
-            return 0  # This IS the original blueprint repo
+            return 0 # This IS the original blueprint repo
         fi
     fi
-    return 1  # Not the original blueprint repo
+    return 1 # Not the original blueprint repo
 }
 
 # Check if this is still a blueprint (not yet initialized)
 check_if_needs_initialization() {
     # Check 1: initialize.sh must exist
     if [[ ! -f "initialize.sh" ]]; then
-        return 1  # Already initialized (script removed)
+        return 1 # Already initialized (script removed)
     fi
 
     # Check 2: Template domain must still exist
     if ! grep -q "ha_integration_domain" custom_components/*/manifest.json 2>/dev/null; then
-        return 1  # Already initialized (domain renamed)
+        return 1 # Already initialized (domain renamed)
     fi
 
     # Check 3: Not the original blueprint repo
     if check_if_original_blueprint_repo; then
-        return 1  # Original repo, skip initialization
+        return 1 # Original repo, skip initialization
     fi
 
-    return 0  # Needs initialization
+    return 0 # Needs initialization
 }
 
 # Main logic

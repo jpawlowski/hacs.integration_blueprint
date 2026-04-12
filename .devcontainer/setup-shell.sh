@@ -29,10 +29,12 @@ add_custom_config() {
     fi
 
     # Add custom configuration
-    echo "" >> "$rc_file"
-    echo "$marker" >> "$rc_file"
-    echo "# Added by setup-shell.sh" >> "$rc_file"
-    cat "$custom_file" >> "$rc_file"
+    {
+        echo ""
+        echo "$marker"
+        echo "# Added by setup-shell.sh"
+        cat "$custom_file"
+    } >>"$rc_file"
     echo "✓ Added custom configuration to $rc_file"
 }
 
