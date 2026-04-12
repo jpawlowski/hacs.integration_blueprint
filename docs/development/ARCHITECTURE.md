@@ -283,7 +283,7 @@ excludeAgent: "code-review" # Only coding-agent uses this
 ---
 ```
 
-See [`.github/COPILOT_CODING_AGENT.md`](../../.github/COPILOT_CODING_AGENT.md) for detailed usage instructions, example prompts, and troubleshooting.
+See [`COPILOT_AGENT.md`](./COPILOT_AGENT.md) for detailed usage instructions, example prompts, and troubleshooting.
 
 ## Key Design Decisions
 

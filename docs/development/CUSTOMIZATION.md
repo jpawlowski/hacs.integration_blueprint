@@ -4,7 +4,7 @@ This document explains how to customize and extend the blueprint without modifyi
 
 ## Template Sync
 
-Repositories created from this blueprint can receive upstream improvements automatically via a weekly pull request created by the [template sync workflow](.github/workflows/template-sync.yml).
+Repositories created from this blueprint can receive upstream improvements automatically via a weekly pull request created by the [template sync workflow](../../.github/workflows/template-sync.yml).
 
 ### How it works
 

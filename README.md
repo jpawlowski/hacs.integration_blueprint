@@ -613,7 +613,7 @@ This blueprint is optimized for development with AI coding assistants like **Git
 - **`AGENTS.md`** - Primary instruction file with project overview, workflow, and validation guidelines
 - **`.github/instructions/*.instructions.md`** - 16 path-specific instruction files for different file types (Python, YAML, JSON, config flows, entities, repairs, etc.)
 - **`.github/copilot-instructions.md`** - GitHub Copilot-specific workflow guidance
-- **`.github/COPILOT_CODING_AGENT.md`** - Guide for using GitHub Copilot Coding Agent with this template
+- **`docs/development/COPILOT_AGENT.md`** - Guide for using GitHub Copilot Coding Agent with this template
 
 **Benefits:**
 
@@ -631,7 +631,7 @@ When creating a new repository from this template, you can provide initializatio
 2. In the optional prompt field, provide your integration details (domain, title, repository)
 3. The agent will run `initialize.sh` in unattended mode and create a pull request
 
-See [`.github/COPILOT_CODING_AGENT.md`](.github/COPILOT_CODING_AGENT.md) for detailed instructions and example prompts.
+See [`docs/development/COPILOT_AGENT.md`](docs/development/COPILOT_AGENT.md) for detailed instructions and example prompts.
 
 **For complete details:**
 

@@ -71,7 +71,7 @@ This project includes [prompt files](./.github/prompts/) to help you work more e
 #file:Add New Sensor.prompt.md Add a temperature sensor
 ```
 
-See the [prompts README](./.github/prompts/README.md) for details on using these templates.
+See the prompt files in `.github/prompts/` for details on using these templates.
 
 ## Code Quality
 
