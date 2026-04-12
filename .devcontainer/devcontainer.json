@@ -84,7 +84,8 @@
         "files.eol": "\n",
         "files.trimTrailingWhitespace": true,
         "files.associations": {
-          "**/translations/*.json": "jsontranslation"
+          "**/translations/*.json": "jsontranslation",
+          "**/*ignore": "ignore"
         },
         "markdown.validate.enabled": false,
         "markdown.validate.fileLinks.enabled": "ignore",
