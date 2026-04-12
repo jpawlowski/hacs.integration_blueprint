@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# script/shell-check: Check shell scripts with shellcheck and shfmt
+#
+# Runs shellcheck (static analysis) and shfmt in diff mode (check-only) against
+# all shell scripts under script/ and .devcontainer/. Neither tool can auto-fix
+# issues — run script/shell for shfmt formatting, fix shellcheck findings manually.
+# Useful for targeted validation after shell script changes.
+#
+# Usage:
+#   ./script/shell-check
+#
+# Examples:
+#   ./script/shell-check
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/.."
+
+# shellcheck source=script/.lib/output.sh
+source "$SCRIPT_DIR/.lib/output.sh"
+
+log_header "Checking shell scripts with shellcheck"
+# shellcheck disable=SC2046  # Word splitting is intentional here for file list
+shellcheck -x $(find script/ .devcontainer/ -type f \( -name "*.sh" -o ! -name "*.*" \) | sort)
+
+log_header "Checking shell script format with shfmt"
+shfmt -i 4 -d script/ .devcontainer/
+
+log_success "Shell check completed"
