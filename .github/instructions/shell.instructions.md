@@ -1,10 +1,10 @@
 ---
-applyTo: "script/**, .devcontainer/**"
+applyTo: "script/**, .devcontainer/*.sh"
 ---
 
 # Shell Script Instructions
 
-**Applies to:** All shell scripts in `script/` and `.devcontainer/`
+**Applies to:** Shell scripts in `script/` (extensionless by convention) and `**/.devcontainer/*.sh`
 
 ## Formatting Standards
 
