@@ -52,6 +52,9 @@ jobs:
             ha-venv-${{ runner.os }}-py314-ha${{ steps.ha_version.outputs.HA_VERSION }}-
             ha-venv-${{ runner.os }}-py314-
 
+      - name: Install shfmt
+        run: sudo apt-get install -y shfmt
+
       - name: Install requirements
         run: script/setup/bootstrap
 
