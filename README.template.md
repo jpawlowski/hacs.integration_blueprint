@@ -317,7 +317,7 @@ The easiest way to get started - develop directly in your browser with GitHub Co
 
 Prefer working on your machine? You'll need:
 
-- Docker Desktop
+- Docker Desktop (or compatible Docker engine)
 - VS Code with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
 
 Then:
