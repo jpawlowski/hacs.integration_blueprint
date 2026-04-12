@@ -4,17 +4,54 @@ updates:
   - package-ecosystem: "devcontainers"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "chore(deps)"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "chore(deps)"
+    # Let new action versions settle for 7 days before opening a PR (same as HA Core)
+    cooldown:
+      default-days: 7
+    groups:
+      # Bundle all minor/patch action updates into a single PR; major updates stay separate
+      github-actions:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "chore(deps)"
     ignore:
-      # Dependabot should not update Home Assistant as that should match the homeassistant key in hacs.json
+      # homeassistant is a transitive dependency pulled in by pytest-homeassistant-custom-component.
+      # Its version must stay in sync with the "homeassistant" key in hacs.json — update that manually
+      # when bumping pytest-homeassistant-custom-component (see below).
       - dependency-name: "homeassistant"
+    # Let patch releases settle 3 days, minor releases 7 days before opening a PR
+    cooldown:
+      semver-patch-days: 3
+      semver-minor-days: 7
+    groups:
+      # Bundle all minor/patch Python dep updates into a single PR; major updates stay separate.
+      # pytest-homeassistant-custom-component is intentionally excluded: it tracks HA Core releases
+      # (patch = new HA version) and always gets its own PR so the coupling to hacs.json is visible.
+      # When merging its PR, also update the "homeassistant" key in hacs.json accordingly.
+      python-dependencies:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+        exclude-patterns:
+          - "pytest-homeassistant-custom-component"
