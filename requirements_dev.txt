@@ -11,8 +11,7 @@
 # Install with: uv pip install -r requirements_dev.txt
 
 # Type Checking
-# HA Core uses mypy, but we prefer pyright for better IDE integration and speed
-pyright==1.1.408
+# HA Core uses mypy; this blueprint uses the Node.js pyright package via package.json
 
 # Better logging for development scripts
 colorlog==6.10.1

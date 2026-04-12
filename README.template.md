@@ -32,15 +32,15 @@ Uncomment and customize these badges if you want to use them:
 
 **This integration will set up the following platforms.**
 
-Platform | Description
--- | --
-`sensor` | Air quality index (AQI), PM2.5, filter life, and runtime
-`binary_sensor` | API connection status and filter replacement alert
-`switch` | Child lock and LED display controls
-`select` | Fan speed selection (Low/Medium/High/Auto)
-`number` | Target humidity setting (30-80%)
-`button` | Reset filter timer after replacement
-`fan` | Air purifier fan control with speed settings
+| Platform        | Description                                              |
+| --------------- | -------------------------------------------------------- |
+| `sensor`        | Air quality index (AQI), PM2.5, filter life, and runtime |
+| `binary_sensor` | API connection status and filter replacement alert       |
+| `switch`        | Child lock and LED display controls                      |
+| `select`        | Fan speed selection (Low/Medium/High/Auto)               |
+| `number`        | Target humidity setting (30-80%)                         |
+| `button`        | Reset filter timer after replacement                     |
+| `fan`           | Air purifier fan control with speed settings             |
 
 > **💡 Interactive Demo**: The entities are interconnected for demonstration:
 >
@@ -213,19 +213,19 @@ Use these services in automations or scripts for more control.
 
 ### During Setup
 
-Name | Required | Description
--- | -- | --
-Username | Yes | Your account username
-Password | Yes | Your account password
+| Name     | Required | Description           |
+| -------- | -------- | --------------------- |
+| Username | Yes      | Your account username |
+| Password | Yes      | Your account password |
 
 ### After Setup (Options)
 
 You can change these anytime by clicking **Configure**:
 
-Name | Default | Description
--- | -- | --
-Update Interval | 1 hour | How often to refresh data
-Enable Debugging | Off | Enable extra debug logging
+| Name             | Default | Description                |
+| ---------------- | ------- | -------------------------- |
+| Update Interval  | 1 hour  | How often to refresh data  |
+| Enable Debugging | Off     | Enable extra debug logging |
 
 ## Troubleshooting
 
@@ -345,7 +345,7 @@ Both options give you the same fully-configured development environment with Hom
 >
 > Please be aware that AI-assisted development may result in unexpected behavior or edge cases that haven't been thoroughly tested. If you encounter any issues, please [open an issue](../../issues) on GitHub.
 >
-> *Note: This section can be removed or modified if AI assistance was not used in your integration's development.*
+> _Note: This section can be removed or modified if AI assistance was not used in your integration's development._
 
 ---
 

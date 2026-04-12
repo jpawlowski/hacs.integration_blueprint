@@ -44,6 +44,7 @@ After clicking "Create repository", GitHub may offer an optional prompt field fo
 Run ./initialize.sh with: --domain <domain> --title "<Title>" --namespace "<Prefix>" --repo <owner/repo> --author "<Name>" --force
 
 Replace:
+
 - <domain>: lowercase_with_underscores
 - <Title>: Your Integration Name
 - <Prefix>: YourCamelCase (optional)
@@ -685,20 +686,20 @@ Both tools are integrated into pre-commit hooks and the dev container.
 
 While this blueprint is inspired by the original, it includes significant enhancements:
 
-| Feature | This Blueprint | Original Blueprint |
-|---------|----------------|-------------------|
-| **Home Assistant version** | 2025.7+ (latest) | Older versions (may not work with 2025.7+) |
-| **Python version** | 3.13+ | 3.12 |
-| **Timeout handling** | `asyncio.timeout` (modern) | `async_timeout` (deprecated) |
-| **Package manager** | uv (fast) | pip (standard) |
-| **Development scripts** | Comprehensive Scripts to Rule Them All | Basic scripts |
-| **Test infrastructure** | `pytest-homeassistant-custom-component` | Manual test setup needed |
-| **Type checking** | Pyright configured | Not included |
-| **Linting** | Ruff (Core-aligned config) | Ruff (basic config) |
-| **HACS integration** | Auto-installed in dev container | Manual setup |
-| **VS Code tasks** | Pre-configured tasks for common operations | Not included |
-| **Package architecture** | Organized into packages for scalability | Single-file platforms |
-| **AI agent support** | Comprehensive instructions for GitHub Copilot, Claude, etc. | Not included |
+| Feature                    | This Blueprint                                              | Original Blueprint                         |
+| -------------------------- | ----------------------------------------------------------- | ------------------------------------------ |
+| **Home Assistant version** | 2025.7+ (latest)                                            | Older versions (may not work with 2025.7+) |
+| **Python version**         | 3.13+                                                       | 3.12                                       |
+| **Timeout handling**       | `asyncio.timeout` (modern)                                  | `async_timeout` (deprecated)               |
+| **Package manager**        | uv (fast)                                                   | pip (standard)                             |
+| **Development scripts**    | Comprehensive Scripts to Rule Them All                      | Basic scripts                              |
+| **Test infrastructure**    | `pytest-homeassistant-custom-component`                     | Manual test setup needed                   |
+| **Type checking**          | Pyright configured                                          | Not included                               |
+| **Linting**                | Ruff (Core-aligned config)                                  | Ruff (basic config)                        |
+| **HACS integration**       | Auto-installed in dev container                             | Manual setup                               |
+| **VS Code tasks**          | Pre-configured tasks for common operations                  | Not included                               |
+| **Package architecture**   | Organized into packages for scalability                     | Single-file platforms                      |
+| **AI agent support**       | Comprehensive instructions for GitHub Copilot, Claude, etc. | Not included                               |
 
 Both blueprints share the same core concepts (config flow, coordinator, entity platforms), but this one is more closely aligned with how Home Assistant Core is developed today.
 

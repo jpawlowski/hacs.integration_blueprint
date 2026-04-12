@@ -93,6 +93,10 @@ Generate code that passes these checks on first run. As an AI agent, you should 
 
 **Always use the project's scripts** — do NOT craft your own `hass`, `pip`, `pytest`, or similar commands. The scripts handle environment setup, virtual environments, port management, and cleanup that raw commands miss. Agents that bypass scripts frequently break.
 
+**Devcontainer CLI tools:** The devcontainer provides common agent-facing CLI tools including `bat`, `delta`/`git-delta`, `eza`, `fd`/`fdfind`, `fzf`, `http`/`httpie`, `hyperfine`, `ipython`, `jq`, `jo`, `mlr`/`miller`, `rg`/`ripgrep`, `shellcheck`, `shfmt`, `sponge`, `sqlite3`, `tree`, `yq`, and `yamllint`. Prefer these explicit container tools over assuming a VS Code extension exposes an equivalent CLI on `PATH`.
+
+**CLI compatibility notes:** Some commands are available via compatibility aliases because Debian package names differ from what agents often expect. Prefer `bat`, `fd`, `git-delta`, `httpie`, `ipython`, `miller`, and `ripgrep` as stable spellings. `yq` is installed as the Mike Farah variant, so standard `yq eval`/`yq e` syntax is expected.
+
 **Start Home Assistant:**
 
 ```bash
@@ -107,11 +111,30 @@ pkill -f "hass --config" || true && pkill -f "debugpy.*5678" || true && ./script
 
 **When to restart HA:** After modifying Python files, `manifest.json`, `services.yaml`, translations, or config flow changes
 
-**Validate changes:**
+**Validate changes — choose the most specific script for your changes:**
+
+| Changed files                          | Run this                              |
+| -------------------------------------- | ------------------------------------- |
+| `*.py` only                            | `script/python` + `script/type-check` |
+| `*.yaml` / `*.yml` only                | `script/yaml-check`                   |
+| `*.md` only                            | `script/markdown`                     |
+| `script/` or `.devcontainer/*.sh` only | `script/shell` + `script/shell-check` |
+| Multiple types or unsure               | `script/lint` + `script/type-check`   |
+
+**Recommended workflow — fix scripts output already shows what they couldn't fix:**
+
+Fix-mode scripts auto-heal files **and** print remaining errors in their output.
+No separate check-run is needed after — the exit code and output are the complete picture.
 
 ```bash
-script/check      # Always run before considering task complete
+# Repeat until both exit 0:
+script/lint         # Fixes Python + shell + markdown; checks yaml + shellcheck; shows all remaining
+script/type-check   # Pyright — no auto-fix ever
+# Fix remaining issues from output, then repeat.
 ```
+
+> `script/check`, `script/lint-check`, `script/python-check` are **check-only** (no file writes).
+> Use them in CI/CD. AI agents should always use fix-mode scripts to benefit from auto-healing.
 
 **Logs:**
 
@@ -153,21 +176,12 @@ script/check      # Always run before considering task complete
 - Offer to create summary for fresh session if context is strained
 - Suggest once, don't nag if declined
 
-**Commit format:** [Conventional Commits](https://www.conventionalcommits.org/)
-
-```text
-type(scope): short summary (max 72 chars)
-
-- Optional detailed points
-- Reference issues if applicable
-```
+**Commit format:** [Conventional Commits](https://www.conventionalcommits.org/) — see `.github/instructions/commit-message.instructions.md` for full conventions, types, scopes, and examples.
 
 **Always check `git diff` first** — don't rely on session memory. Include all changes in your message.
 
-**Common types:**
+**Commit rules (CRITICAL):**
 
-- `feat:` — User-facing functionality (new sensor, service, config option)
-- `fix:` — Bug fixes (user-facing issues)
-- `chore:` — Dev tools, dependencies, devcontainer (NOT user-facing)
-- `refactor:` — Code restructuring (no functional change)
-- `docs:` — Documentation changes
+- **Never commit automatically** — only commit when the developer explicitly requests it
+- A previous commit request is NOT a standing permission; each commit requires a fresh explicit instruction
+- **Never ask about pushing** — the developer always handles `git push` themselves; do not offer or suggest it

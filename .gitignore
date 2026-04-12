@@ -9,6 +9,8 @@ custom_components/*
 # Development tool caches and dependency locks
 .ruff_cache/
 uv.lock
+node_modules
+node_modules/
 
 # Virtual environment and shell configuration (when HOME is set to workspace)
 .local/
@@ -194,7 +196,6 @@ pip-selfcheck.json
 ### VisualStudioCode ###
 .vscode/*
 !.vscode/settings.default.jsonc
-!.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json

@@ -1,6 +1,7 @@
 #!/bin/bash
 # Output formatting library for consistent script styling
 # Source this file in your scripts with: source "$(dirname "$0")/../.lib/output.sh"
+# shellcheck disable=SC2034  # All variables in this library are used by sourcing scripts
 
 # Color codes
 readonly RED='\033[0;31m'
@@ -19,6 +20,7 @@ readonly CROSS='✗'
 readonly ARROW='→'
 readonly INFO='ℹ'
 readonly WARNING='⚠'
+# shellcheck disable=SC2034  # These symbols are available to sourcing scripts
 readonly ROCKET='🚀'
 readonly PACKAGE='📦'
 readonly WRENCH='🔧'
@@ -82,6 +84,24 @@ require_command() {
         if [[ -n $install_hint ]]; then
             log_info "Install with: $install_hint"
         fi
+        exit 1
+    fi
+}
+
+# Activate the Home Assistant virtual environment if not already active.
+# Silently skips when VIRTUAL_ENV is already set (e.g. in CI or nested calls).
+activate_venv() {
+    if [[ -n ${VIRTUAL_ENV:-} ]]; then
+        return 0
+    fi
+    log_header "Activating virtual environment"
+    # shellcheck source=/dev/null
+    if [[ -f "$PWD/.local/ha-venv/bin/activate" ]]; then
+        source "$PWD/.local/ha-venv/bin/activate"
+    elif [[ -f "$HOME/.local/ha-venv/bin/activate" ]]; then
+        source "$HOME/.local/ha-venv/bin/activate"
+    else
+        log_error "Virtual environment not found in $PWD/.local/ha-venv or $HOME/.local/ha-venv"
         exit 1
     fi
 }

@@ -41,7 +41,7 @@ fi
 if pkill -f "debugpy.*5678"; then
     log_info "Stopped existing debugpy process (port 5678)"
 fi
-sleep 1  # Give processes time to terminate
+sleep 1 # Give processes time to terminate
 
 # Clean up critical issues (accidental package installations)
 # Uses minimal mode to avoid deleting useful caches
@@ -49,8 +49,8 @@ sleep 1  # Give processes time to terminate
 
 # Create config dir if not present
 if [[ ! -d ${PWD}/config ]]; then
-        mkdir -p "${PWD}/config"
-        hass --config "${PWD}/config" --script ensure_config
+    mkdir -p "${PWD}/config"
+    hass --config "${PWD}/config" --script ensure_config
 fi
 
 "$SCRIPT_DIR/setup/sync-hacs"

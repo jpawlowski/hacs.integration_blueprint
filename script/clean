@@ -48,7 +48,7 @@ if [[ $MINIMAL_MODE == false ]]; then
 fi
 
 # Clean up accidental package installation (always, even in minimal mode)
-if compgen -G "*.egg-info" > /dev/null; then
+if compgen -G "*.egg-info" >/dev/null; then
     if [[ $MINIMAL_MODE == false ]]; then
         log_step "Removing *.egg-info directories"
     fi

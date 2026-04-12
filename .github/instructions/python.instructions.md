@@ -31,7 +31,7 @@ applyTo: "**/*.py"
 
 **Example structure:**
 
-```
+```text
 sensor/
   __init__.py          # Setup and entity list (50 lines)
   air_quality.py       # Air quality sensor class (200 lines)
@@ -229,13 +229,20 @@ async def test_sensor_setup(hass, config_entry, coordinator):
 
 ## Validation
 
-Run before submitting: `script/type-check`, `script/lint`, `script/test`
+**Recommended workflow — run fix scripts first, they report what they couldn't fix:**
+
+```bash
+script/python       # Ruff format + ruff check --fix — output shows remaining errors
+script/type-check   # Pyright — no auto-fix, always manual
+```
+
+Repeat until both exit 0. Only manually edit files for errors that remain in the output.
 
 **When validation fails:**
 
 - Look up error codes: [Ruff rules](https://docs.astral.sh/ruff/rules/), [Pyright docs](https://microsoft.github.io/pyright/)
 - Search [HA docs](https://developers.home-assistant.io/) for patterns
-- Fix root cause - Don't bypass checks
+- Fix root cause — don't bypass checks
 
 **Suppressing checks (use sparingly for false positives/library issues):**
 

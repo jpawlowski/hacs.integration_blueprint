@@ -197,24 +197,24 @@ This project includes comprehensive instruction files for AI coding assistants (
 
 ### Available Instruction Files
 
-| File | Applies To | Purpose |
-|------|------------|---------|
-| `python.instructions.md` | `**/*.py` | Python code style, imports, type hints, async patterns, linting |
-| `yaml.instructions.md` | `**/*.yaml`, `**/*.yml` | YAML formatting, Home Assistant YAML conventions |
-| `json.instructions.md` | `**/*.json` | JSON formatting, schema validation, no trailing commas |
-| `markdown.instructions.md` | `**/*.md` | Markdown formatting, documentation structure, linting |
-| `manifest.instructions.md` | `**/manifest.json` | Integration manifest requirements, quality scale, IoT class |
-| `configuration_yaml.instructions.md` | `**/configuration.yaml` | Home Assistant configuration patterns (deprecated for device integrations) |
-| `config_flow.instructions.md` | `**/config_flow_handler/**/*.py`, `**/config_flow.py` | Config flow patterns, discovery, reauth, reconfigure, unique IDs |
-| `service_actions.instructions.md` | `**/service_actions/**/*.py` | Service action implementation, registration in `async_setup()`, error handling |
-| `services_yaml.instructions.md` | `**/services.yaml` | Service action definitions, schema, descriptions, examples (legacy filename) |
-| `entities.instructions.md` | Entity platform files | Entity implementation, EntityDescription, device info, state management |
-| `coordinator.instructions.md` | `**/coordinator/**/*.py`, `**/api/**/*.py` | DataUpdateCoordinator patterns, error handling, caching, pull vs push |
-| `api.instructions.md` | `**/api/**/*.py`, `**/coordinator/**/*.py` | API client implementation, exceptions, rate limiting, pagination |
-| `diagnostics.instructions.md` | `**/diagnostics.py` | Diagnostics data collection, `async_redact_data()` for sensitive data |
-| `repairs.instructions.md` | `**/repairs.py` | Repair flows, issue creation, severity levels, fix flows |
-| `translations.instructions.md` | `**/translations/*.json` | Translation file structure, placeholders, nested keys |
-| `tests.instructions.md` | `tests/**/*.py` | Test patterns, fixtures, mocking, pytest conventions |
+| File                                 | Applies To                                            | Purpose                                                                        |
+| ------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `python.instructions.md`             | `**/*.py`                                             | Python code style, imports, type hints, async patterns, linting                |
+| `yaml.instructions.md`               | `**/*.yaml`, `**/*.yml`                               | YAML formatting, Home Assistant YAML conventions                               |
+| `json.instructions.md`               | `**/*.json`                                           | JSON formatting, schema validation, no trailing commas                         |
+| `markdown.instructions.md`           | `**/*.md`                                             | Markdown formatting, documentation structure, linting                          |
+| `manifest.instructions.md`           | `**/manifest.json`                                    | Integration manifest requirements, quality scale, IoT class                    |
+| `configuration_yaml.instructions.md` | `**/configuration.yaml`                               | Home Assistant configuration patterns (deprecated for device integrations)     |
+| `config_flow.instructions.md`        | `**/config_flow_handler/**/*.py`, `**/config_flow.py` | Config flow patterns, discovery, reauth, reconfigure, unique IDs               |
+| `service_actions.instructions.md`    | `**/service_actions/**/*.py`                          | Service action implementation, registration in `async_setup()`, error handling |
+| `services_yaml.instructions.md`      | `**/services.yaml`                                    | Service action definitions, schema, descriptions, examples (legacy filename)   |
+| `entities.instructions.md`           | Entity platform files                                 | Entity implementation, EntityDescription, device info, state management        |
+| `coordinator.instructions.md`        | `**/coordinator/**/*.py`, `**/api/**/*.py`            | DataUpdateCoordinator patterns, error handling, caching, pull vs push          |
+| `api.instructions.md`                | `**/api/**/*.py`, `**/coordinator/**/*.py`            | API client implementation, exceptions, rate limiting, pagination               |
+| `diagnostics.instructions.md`        | `**/diagnostics.py`                                   | Diagnostics data collection, `async_redact_data()` for sensitive data          |
+| `repairs.instructions.md`            | `**/repairs.py`                                       | Repair flows, issue creation, severity levels, fix flows                       |
+| `translations.instructions.md`       | `**/translations/*.json`                              | Translation file structure, placeholders, nested keys                          |
+| `tests.instructions.md`              | `tests/**/*.py`                                       | Test patterns, fixtures, mocking, pytest conventions                           |
 
 **Note:** Entity platform files include: `alarm_control_panel/**/*.py`, `binary_sensor/**/*.py`, `button/**/*.py`, `camera/**/*.py`, `climate/**/*.py`, `cover/**/*.py`, `fan/**/*.py`, `humidifier/**/*.py`, `light/**/*.py`, `lock/**/*.py`, `number/**/*.py`, `select/**/*.py`, `sensor/**/*.py`, `siren/**/*.py`, `switch/**/*.py`, `vacuum/**/*.py`, `water_heater/**/*.py`, `entity/**/*.py`, `entity_utils/**/*.py`
 
@@ -279,7 +279,7 @@ Use `excludeAgent` frontmatter to control which agents use specific instructions
 ```yaml
 ---
 applyTo: "**/*.py"
-excludeAgent: "code-review"  # Only coding-agent uses this
+excludeAgent: "code-review" # Only coding-agent uses this
 ---
 ```
 

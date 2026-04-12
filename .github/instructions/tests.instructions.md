@@ -73,6 +73,7 @@ tests/
 **Mocking:**
 
 ✅ **Mock:** External APIs, network calls, time-dependent operations
+
 - Use `patch.object()` for success cases, `side_effect` for errors
 - Pattern: `with patch.object(client, "method", return_value=data):`
 

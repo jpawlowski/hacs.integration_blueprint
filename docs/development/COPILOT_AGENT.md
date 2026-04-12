@@ -28,6 +28,7 @@ This is a fresh Home Assistant integration blueprint. Transform it for [DEVICE/S
 High-level: [2-3 sentences about what it does]
 
 API Details:
+
 - Protocol: [REST/GraphQL/WebSocket/MQTT/etc.]
 - Endpoint: [base URL or connection details]
 - Auth: [API key/OAuth/none]
@@ -36,6 +37,7 @@ Example API response:
 [paste JSON or data structure from actual device/service]
 
 Tasks:
+
 1. Analyze the blueprint structure (documented in AGENTS.md)
 2. Remove entity platforms not needed for this device
 3. Implement API client based on above structure
@@ -56,19 +58,21 @@ High-level: Smart thermostat that controls temperature via REST API. Reads curre
 temp/humidity, sets target temperature, changes heating/cooling mode.
 
 API Details:
+
 - Protocol: REST API
 - Endpoint: http://{host}/api/v1/
 - Auth: API key in X-API-Key header
 
 Example API response from /status:
 {
-  "temp": {"current": 21.5, "target": 22.0},
-  "humidity": 45,
-  "mode": "heat",
-  "state": "heating"
+"temp": {"current": 21.5, "target": 22.0},
+"humidity": 45,
+"mode": "heat",
+"state": "heating"
 }
 
 Tasks:
+
 1. Analyze the blueprint structure (documented in AGENTS.md)
 2. Remove entity platforms not needed (fan, number, select, switch)
 3. Keep climate platform, customize for thermostat control

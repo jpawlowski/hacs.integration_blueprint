@@ -1,9 +1,18 @@
 #!/bin/bash
 
-# script/check: Run linting and type checking tools together
+# script/check: Run all checks (type, lint, spell) — recommended before committing
 #
-# Runs type-check (Pyright), lint-check (Ruff), and spell-check (codespell) in sequence.
-# Recommended before committing changes.
+# Runs the full validation suite in sequence:
+#   type-check      Pyright type checking
+#   lint-check      Python (Ruff), YAML (yamllint), Shell (shfmt + shellcheck), Markdown
+#   spell-check     Spelling (codespell)
+#
+# For targeted checks after specific file type changes:
+#   ./script/type-check     Python type checking only (Pyright)
+#   ./script/python-check   Python lint/format only (Ruff)
+#   ./script/yaml-check     YAML only (yamllint)
+#   ./script/shell-check    Shell only (shfmt + shellcheck)
+#   ./script/spell-check    Spelling only (codespell)
 #
 # Usage:
 #   ./script/check

@@ -60,6 +60,10 @@
     "editor.formatOnSave": false
   },
 
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    { "file": ".github/instructions/commit-message.instructions.md" }
+  ],
+
   "json.schemas": [
     // These values differs between working with devcontainer and locally, therefore their values should NOT be in sync!
     {
