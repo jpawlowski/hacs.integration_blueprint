@@ -136,17 +136,14 @@ This allows translating the option labels via `selector.[translation_key].option
 **Best Practices for Schema Definition:**
 
 1. **Always add icons** - Provide meaningful icons for sections AND individual fields where applicable
-
    - Sections: `icon: mdi:cog-outline` (basic), `icon: mdi:tune-vertical` (advanced)
    - Fields: Consider field type and purpose (e.g., `mdi:timer` for duration, `mdi:thermometer` for temperature)
 
 2. **Always add descriptions** - Provide descriptions wherever the schema allows (sections, fields)
-
    - Makes the UI more user-friendly
    - Helps users understand what each parameter does
 
 3. **Markdown support** - Be aware of where markdown is supported:
-
    - ✅ **Service action descriptions** - Markdown is supported
    - ✅ **Section descriptions** - Markdown is supported
    - ❌ **Field names** - Plain text only (keep short, 2-4 words)

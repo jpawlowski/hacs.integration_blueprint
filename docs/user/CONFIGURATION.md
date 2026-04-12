@@ -10,21 +10,21 @@ These options are configured during initial setup via the Home Assistant UI.
 
 #### Connection Settings
 
-| Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
-| **Host** | string | Yes | - | Hostname or IP address of the device/service |
-| **Port** | integer | No | 8080 | Connection port |
-| **API Key** | string | Yes* | - | Authentication key or token |
-| **Use SSL** | boolean | No | false | Enable HTTPS connection |
+| Option      | Type    | Required | Default | Description                                  |
+| ----------- | ------- | -------- | ------- | -------------------------------------------- |
+| **Host**    | string  | Yes      | -       | Hostname or IP address of the device/service |
+| **Port**    | integer | No       | 8080    | Connection port                              |
+| **API Key** | string  | Yes\*    | -       | Authentication key or token                  |
+| **Use SSL** | boolean | No       | false   | Enable HTTPS connection                      |
 
-*Required if the device/service requires authentication.
+\*Required if the device/service requires authentication.
 
 #### Update Settings
 
-| Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
-| **Update Interval** | integer (seconds) | No | 300 | How often to poll for updates (minimum: 30 seconds) |
-| **Name** | string | No | "Device" | Friendly name for the integration instance |
+| Option              | Type              | Required | Default  | Description                                         |
+| ------------------- | ----------------- | -------- | -------- | --------------------------------------------------- |
+| **Update Interval** | integer (seconds) | No       | 300      | How often to poll for updates (minimum: 30 seconds) |
+| **Name**            | string            | No       | "Device" | Friendly name for the integration instance          |
 
 ### Options Flow (Reconfiguration)
 
@@ -93,11 +93,11 @@ Execute an example service action on the device.
 
 **Service data:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `entity_id` | string or list | No | Target entity/entities (if omitted, targets all) |
-| `parameter` | string | Yes | Service-specific parameter |
-| `value` | integer | No | Numeric value for the action |
+| Parameter   | Type           | Required | Description                                      |
+| ----------- | -------------- | -------- | ------------------------------------------------ |
+| `entity_id` | string or list | No       | Target entity/entities (if omitted, targets all) |
+| `parameter` | string         | Yes      | Service-specific parameter                       |
+| `value`     | integer        | No       | Numeric value for the action                     |
 
 **Example:**
 

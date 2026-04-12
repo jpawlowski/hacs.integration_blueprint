@@ -62,11 +62,11 @@ async-timeout>=4.0.0
 
 ### When to add dependencies
 
-| Add to | When |
-|--------|------|
-| `manifest.json` + `requirements.txt` | Runtime dependency (end users need it) |
-| `requirements_dev.txt` | Development tool (linting, formatting, type checking) |
-| `requirements_test.txt` | Testing tool (pytest plugins, test utilities) |
+| Add to                               | When                                                  |
+| ------------------------------------ | ----------------------------------------------------- |
+| `manifest.json` + `requirements.txt` | Runtime dependency (end users need it)                |
+| `requirements_dev.txt`               | Development tool (linting, formatting, type checking) |
+| `requirements_test.txt`              | Testing tool (pytest plugins, test utilities)         |
 
 ## 📝 Maintenance
 
