@@ -27,6 +27,8 @@ if [[ ${1:-} == --full ]]; then
     FULL_RESET=true
 fi
 
+run_hook "setup/reset" "pre"
+
 log_header "Resetting development environment to fresh state"
 
 # Check if config directory exists
@@ -107,3 +109,5 @@ if [[ $FULL_RESET == false ]]; then
     echo ""
     log_info "Tip: Use './script/setup/reset --full' to also reset configuration.yaml from git"
 fi
+
+run_hook "setup/reset" "post"

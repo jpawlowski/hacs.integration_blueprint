@@ -121,3 +121,12 @@ elif [[ ! -f "initialize.sh" ]]; then
     # Already initialized, silent success
     :
 fi
+
+# Run user post-attach hook if present (lives in .devcontainer/hooks/post-attach.post.sh)
+_hook_file="$(cd "$(dirname "$0")" && pwd)/hooks/post-attach.post.sh"
+if [[ -f "$_hook_file" ]]; then
+    print_info "Running hook: .devcontainer/hooks/post-attach.post.sh"
+    # shellcheck source=/dev/null
+    source "$_hook_file"
+fi
+unset _hook_file

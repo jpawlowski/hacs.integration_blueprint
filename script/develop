@@ -55,6 +55,8 @@ fi
 
 "$SCRIPT_DIR/setup/sync-hacs"
 
+run_hook "develop" "pre"
+
 # Set the path to custom_components
 ## This let's us have the structure we want <root>/custom_components/ha_integration_domain
 ## while at the same time have Home Assistant configuration inside <root>/config

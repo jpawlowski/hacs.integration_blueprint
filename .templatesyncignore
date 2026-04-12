@@ -1,0 +1,85 @@
+# Template Sync Ignore File
+# ============================================================
+# Files and folders listed here will NOT be synced from the
+# upstream template (jpawlowski/hacs.integration_blueprint).
+#
+# Syntax follows .gitignore glob patterns.
+# See: https://github.com/AndreasAugustin/actions-template-sync
+# ============================================================
+
+# ── Your integration source code ─────────────────────────────
+# Never overwrite your integration with blueprint placeholder code
+custom_components/
+
+# ── Tests ────────────────────────────────────────────────────
+# Test files reference your integration domain (set by initialize.sh).
+# Future test files added by the blueprint would arrive with
+# ha_integration_domain hard-coded, breaking your imports.
+tests/
+
+# ── Project configuration ─────────────────────────────────────
+# These files are customized for your integration during initialization
+# (initialize.sh replaces ha_integration_domain and related strings).
+# Syncing them back would revert those substitutions.
+pyproject.toml
+.yamllint.yml
+.pre-commit-config.yaml
+
+# ── VS Code workspace settings ───────────────────────────────
+# launch.json and tasks.json reference your integration domain
+# in debugger arguments and task commands.
+.vscode/launch.json
+.vscode/tasks.json
+
+# ── User-specific project files ──────────────────────────────
+# These are customized for your integration during initialization
+README.md
+README.template.md
+LICENSE
+initialize.sh
+hacs.json
+CONTRIBUTING.md
+DEPENDENCIES.md
+
+# ── AI agent instruction files ───────────────────────────────
+# These contain domain-specific references (ha_integration_domain,
+# Integration Blueprint, etc.) that were replaced during init.
+# Maintain these yourself to reflect your integration's patterns.
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.github/copilot-instructions.md
+
+# ── GitHub project settings ──────────────────────────────────
+# Ownership, funding, and other per-project settings
+.github/CODEOWNERS
+.github/FUNDING.yml
+.github/COPILOT_CODING_AGENT.md
+
+# ── Script and DevContainer hooks ────────────────────────────
+# Your custom pre/post hooks live here — never overwritten by template sync
+script/hooks/
+.devcontainer/hooks/
+
+# ── Release management ───────────────────────────────────────
+# Release Please configuration is project-specific
+release-please-config.json
+.release-please-manifest.json
+
+# ── Local Home Assistant development config ──────────────────
+# Your local HA instance config (credentials, test devices, etc.)
+config/
+
+# ── Documentation ────────────────────────────────────────────
+# Docs are written for your specific integration
+docs/
+
+# ── This sync workflow ───────────────────────────────────────
+# Keep this file in your control — customize the schedule,
+# add PAT secrets, or adjust PR settings as you see fit.
+.github/workflows/template-sync.yml
+
+# ── Lockfiles ────────────────────────────────────────────────
+# Manage your own lockfile to avoid noisy, conflict-prone PRs.
+# Run `uv lock` manually after updating requirements*.txt.
+uv.lock

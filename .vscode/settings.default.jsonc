@@ -62,7 +62,7 @@
   },
 
   "github.copilot.chat.commitMessageGeneration.instructions": [
-    { "file": ".github/instructions/commit-message.instructions.md" }
+    { "file": ".github/instructions/blueprint.commit-message.instructions.md" }
   ],
 
   "json.schemas": [

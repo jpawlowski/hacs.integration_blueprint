@@ -30,6 +30,8 @@ get_version() {
     jq -r '.version' "$MANIFEST"
 }
 
+run_hook "version" "pre"
+
 case "${1:-}" in
 --tag)
     echo "v$(get_version)"
@@ -60,3 +62,5 @@ case "${1:-}" in
     exit 1
     ;;
 esac
+
+run_hook "version" "post"

@@ -123,7 +123,7 @@ When a task completes and the developer moves to a new topic, suggest committing
 - A previous commit request is NOT a standing permission; each commit requires a fresh explicit instruction
 - **Never ask about pushing** — the developer always handles `git push` themselves; do not offer or suggest it
 
-**Commit message format:** Follow [Conventional Commits](https://www.conventionalcommits.org/) — see `.github/instructions/commit-message.instructions.md` for full conventions, types, scopes, and examples.
+**Commit message format:** Follow [Conventional Commits](https://www.conventionalcommits.org/) — see `.github/instructions/blueprint.commit-message.instructions.md` for full conventions, types, scopes, and examples.
 
 ## Custom Integration Flexibility
 
@@ -174,10 +174,10 @@ As an AI agent, **aim for Silver or Gold Quality Scale** when generating code:
 
 **For comprehensive standards, see:**
 
-- `.github/instructions/python.instructions.md` - Python patterns, imports, type hints
-- `.github/instructions/yaml.instructions.md` - YAML structure and HA-specific patterns
-- `.github/instructions/json.instructions.md` - JSON formatting and schema validation
-- `.github/instructions/shell.instructions.md` - Shell script style, shfmt, shellcheck
+- `.github/instructions/blueprint.python.instructions.md` - Python patterns, imports, type hints
+- `.github/instructions/blueprint.yaml.instructions.md` - YAML structure and HA-specific patterns
+- `.github/instructions/blueprint.json.instructions.md` - JSON formatting and schema validation
+- `.github/instructions/blueprint.shell.instructions.md` - Shell script style, shfmt, shellcheck
 
 **GitHub Copilot users:** These instruction files are automatically provided based on file type.
 
@@ -235,9 +235,9 @@ This integration uses the following identifiers consistently:
 
 **For detailed patterns, see:**
 
-- `.github/instructions/entities.instructions.md` - Entity platform patterns
-- `.github/instructions/coordinator.instructions.md` - Coordinator implementation
-- `.github/instructions/api.instructions.md` - API client patterns
+- `.github/instructions/blueprint.entities.instructions.md` - Entity platform patterns
+- `.github/instructions/blueprint.coordinator.instructions.md` - Coordinator implementation
+- `.github/instructions/blueprint.api.instructions.md` - API client patterns
 
 ### Device Info
 
@@ -282,7 +282,7 @@ All entities should provide consistent device info via the base entity class (ma
 
 **single_config_entry:** Set `true` to allow only one config entry per integration
 
-See `.github/instructions/manifest.instructions.md` for comprehensive manifest documentation.
+See `.github/instructions/blueprint.manifest.instructions.md` for comprehensive manifest documentation.
 
 ### Config Flow Best Practices
 
@@ -323,7 +323,7 @@ python3 -m script.scaffold config_flow_oauth2     # OAuth2 flow
 - Support user setup, discovery, reauth, reconfigure
 - Always set unique_id for discovered entries
 
-See `.github/instructions/config_flow.instructions.md` for comprehensive patterns.
+See `.github/instructions/blueprint.config_flow.instructions.md` for comprehensive patterns.
 
 **Service actions:**
 
@@ -332,7 +332,7 @@ See `.github/instructions/config_flow.instructions.md` for comprehensive pattern
 - **Register in `async_setup()`** - NOT in `async_setup_entry()` (Quality Scale!)
 - Format: `<integration_domain>.<action_name>`
 
-See `.github/instructions/service_actions.instructions.md` for service patterns.
+See `.github/instructions/blueprint.service_actions.instructions.md` for service patterns.
 
 **Coordinator:**
 
@@ -340,7 +340,7 @@ See `.github/instructions/service_actions.instructions.md` for service patterns.
 - Raise `ConfigEntryAuthFailed` (triggers reauth) or `UpdateFailed` (retry)
 - Use `async_config_entry_first_refresh()` for first update
 
-See `.github/instructions/coordinator.instructions.md` and `.github/instructions/api.instructions.md` for details.
+See `.github/instructions/blueprint.coordinator.instructions.md` and `.github/instructions/blueprint.api.instructions.md` for details.
 
 **Entities:**
 
@@ -348,7 +348,7 @@ See `.github/instructions/coordinator.instructions.md` and `.github/instructions
 - Read from `coordinator.data`, never call API directly
 - Use `EntityDescription` for static metadata
 
-See `.github/instructions/entities.instructions.md` for entity patterns.
+See `.github/instructions/blueprint.entities.instructions.md` for entity patterns.
 
 **Repairs:**
 
@@ -357,7 +357,7 @@ See `.github/instructions/entities.instructions.md` for entity patterns.
 - Implement `RepairsFlow` for guided user fixes
 - Delete issues after successful repair
 
-See `.github/instructions/repairs.instructions.md` for comprehensive patterns.
+See `.github/instructions/blueprint.repairs.instructions.md` for comprehensive patterns.
 
 **Entity availability:**
 
@@ -472,7 +472,7 @@ References: [Ruff rules](https://docs.astral.sh/ruff/rules/) · [Pyright docs](h
 
 Aim for zero validation errors in generated code. The developer expects production-ready output.
 
-See `.github/instructions/python.instructions.md` for linter overrides and error recovery strategies.
+See `.github/instructions/blueprint.python.instructions.md` for linter overrides and error recovery strategies.
 
 - You may use `# noqa: CODE` or `# type: ignore` when genuinely necessary
 - Use sparingly and only with good reason (e.g., false positives, external library issues)
@@ -536,7 +536,7 @@ script/test --cov-html                # With coverage report
 script/test --snapshot-update         # Update Syrupy snapshots
 ```
 
-See `.github/instructions/tests.instructions.md` for comprehensive testing patterns.
+See `.github/instructions/blueprint.tests.instructions.md` for comprehensive testing patterns.
 
 ## Breaking Changes
 

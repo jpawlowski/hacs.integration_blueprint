@@ -49,3 +49,11 @@ if [ -f ".devcontainer/.bashrc" ]; then
 fi
 
 echo "✓ Shell configuration complete"
+
+_hook_dir="$(cd "$(dirname "$0")" && pwd)/hooks"
+if [[ -f "$_hook_dir/setup-shell.post.sh" ]]; then
+    echo "ℹ Running hook: .devcontainer/hooks/setup-shell.post.sh"
+    # shellcheck source=/dev/null
+    source "$_hook_dir/setup-shell.post.sh"
+fi
+unset _hook_dir

@@ -70,7 +70,7 @@ fix(coordinator): handle API timeout during initial refresh
 
 chore(devcontainer): add commit message instructions for Copilot
 
-- Add .github/instructions/commit-message.instructions.md with
+- Add .github/instructions/blueprint.commit-message.instructions.md with
   Conventional Commits types, scopes, rules, and examples
 - Wire github.copilot.chat.commitMessageGeneration.instructions
   in devcontainer.json and settings.default.jsonc

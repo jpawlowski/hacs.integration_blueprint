@@ -20,6 +20,8 @@ cd "$SCRIPT_DIR/../.."
 # shellcheck source=script/.lib/output.sh
 source "$SCRIPT_DIR/../.lib/output.sh"
 
+run_hook "setup/bootstrap" "pre"
+
 if [[ ${APT_UPDATE:-"0"} == "1" ]]; then
     log_header "Updating system packages"
     sudo apt-get update
@@ -196,4 +198,5 @@ else
     fi
 fi
 
+run_hook "setup/bootstrap" "post"
 log_success "Bootstrap complete"

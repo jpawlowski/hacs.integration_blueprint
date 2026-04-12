@@ -20,6 +20,8 @@ cd "$SCRIPT_DIR/../.."
 # shellcheck source=script/.lib/output.sh
 source "$SCRIPT_DIR/../.lib/output.sh"
 
+run_hook "setup/sync-hacs" "pre"
+
 log_header "Syncing HACS-installed integrations"
 
 # Check if config/custom_components exists
@@ -74,3 +76,5 @@ elif [[ $synced -eq 0 && $cleaned -gt 0 ]]; then
 else
     log_success "Synced $synced integration(s), cleaned up $cleaned broken link(s)"
 fi
+
+run_hook "setup/sync-hacs" "post"

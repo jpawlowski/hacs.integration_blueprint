@@ -4,7 +4,7 @@ applyTo: "custom_components/**/coordinator/**/*.py, custom_components/**/api/**/
 
 # Coordinator Instructions
 
-**Applies to:** Coordinator implementation files (always sent together with `api.instructions.md`)
+**Applies to:** Coordinator implementation files (always sent together with `blueprint.api.instructions.md`)
 
 ## Using the Coordinator
 

@@ -66,6 +66,8 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+run_hook "hassfest" "pre"
+
 log_header "Home Assistant hassfest validation"
 log_info "Target version: $HA_VERSION_TAG"
 
@@ -163,6 +165,7 @@ echo ""
 if "${HASSFEST_CMD[@]}"; then
     echo ""
     log_success "Hassfest validation passed"
+    run_hook "hassfest" "post"
 else
     echo ""
     log_error "Hassfest validation failed"

@@ -28,6 +28,8 @@ source "$SCRIPT_DIR/.lib/output.sh"
 
 activate_venv
 
+run_hook "lint" "pre"
+
 "$SCRIPT_DIR/python"
 echo ""
 "$SCRIPT_DIR/yaml-check"
@@ -37,5 +39,7 @@ echo ""
 "$SCRIPT_DIR/shell-check"
 echo ""
 "$SCRIPT_DIR/markdown"
+
+run_hook "lint" "post"
 
 log_success "Linting completed"

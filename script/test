@@ -76,7 +76,14 @@ else
     log_header "Running tests"
 fi
 echo ""
+
+run_hook "test" "pre"
+echo ""
 pytest "${COVERAGE_ARGS[@]}" "${PYTEST_ARGS[@]}"
+
+run_hook "test" "post"
+
+log_success "Tests completed"
 
 if [[ ${#COVERAGE_ARGS[@]} -gt 0 ]] && [[ " ${COVERAGE_ARGS[*]} " =~ " --cov-report=html " ]]; then
     echo ""

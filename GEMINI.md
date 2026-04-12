@@ -27,10 +27,10 @@ Additional domain-specific guidance is available in `.github/instructions/*.inst
 These files use `applyTo` globs to indicate which files they cover.
 Consult the relevant instruction file when working on specific file types:
 
-- `python.instructions.md` — Python style, async patterns, HA imports
-- `entities.instructions.md` — Entity platform patterns, inheritance
-- `config_flow.instructions.md` — Config flow, reauth, discovery
-- `coordinator.instructions.md` — DataUpdateCoordinator patterns
-- `api.instructions.md` — API client, exception hierarchy
-- `services_yaml.instructions.md` — Service action definitions
-- `translations.instructions.md` — Translation file structure
+- `blueprint.python.instructions.md` — Python style, async patterns, HA imports
+- `blueprint.entities.instructions.md` — Entity platform patterns, inheritance
+- `blueprint.config_flow.instructions.md` — Config flow, reauth, discovery
+- `blueprint.coordinator.instructions.md` — DataUpdateCoordinator patterns
+- `blueprint.api.instructions.md` — API client, exception hierarchy
+- `blueprint.services_yaml.instructions.md` — Service action definitions
+- `blueprint.translations.instructions.md` — Translation file structure

@@ -19,6 +19,8 @@ cd "$SCRIPT_DIR/.."
 # shellcheck source=script/.lib/output.sh
 source "$SCRIPT_DIR/.lib/output.sh"
 
+run_hook "help" "pre"
+
 REPO_NAME=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || basename "$(pwd)")
 
 printf "%bDevelopment environment for %s%b\n\n" "$BOLD" "$REPO_NAME" "$NC"
@@ -69,5 +71,7 @@ if [[ -d script/setup ]]; then
     printf "%bSetup & maintenance:%b\n\n" "$BOLD" "$NC"
     show_scripts "script/setup" "script/setup/"
 fi
+
+run_hook "help" "post"
 
 echo ""

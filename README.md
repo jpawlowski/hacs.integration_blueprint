@@ -267,6 +267,14 @@ This repository uses the [Scripts to Rule Them All](https://github.com/github/sc
 
 The project includes pre-configured VS Code tasks for common operations. Press `Ctrl+Shift+B` (or `Cmd+Shift+B` on macOS) to see available tasks like "Run Home Assistant (Development Mode)", "Run Tests", "Lint", etc.
 
+### Staying up to date
+
+Once your integration is live, a weekly pull request will offer you any improvements made to the upstream blueprint. Review the PR and merge what's useful — anything you want to keep as-is can simply be excluded.
+
+You can also extend any `script/` or `.devcontainer/` script without touching the original files by placing **hook scripts** in `script/hooks/` or `.devcontainer/hooks/`. These directories are never overwritten by template sync.
+
+See [docs/development/CUSTOMIZATION.md](docs/development/CUSTOMIZATION.md) for details on both topics.
+
 ### Troubleshooting
 
 #### Many "Problems" showing after first devcontainer build?

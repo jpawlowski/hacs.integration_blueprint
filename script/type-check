@@ -21,6 +21,8 @@ source "$SCRIPT_DIR/.lib/output.sh"
 
 activate_venv
 
+run_hook "type-check" "pre"
+
 log_header "Running type checking tools"
 
 export PATH="$PWD/node_modules/.bin:$PATH"
@@ -30,4 +32,5 @@ fi
 
 pyright
 
+run_hook "type-check" "post"
 log_success "Type checking completed"

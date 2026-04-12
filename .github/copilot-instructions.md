@@ -176,7 +176,7 @@ script/type-check   # Pyright — no auto-fix ever
 - Offer to create summary for fresh session if context is strained
 - Suggest once, don't nag if declined
 
-**Commit format:** [Conventional Commits](https://www.conventionalcommits.org/) — see `.github/instructions/commit-message.instructions.md` for full conventions, types, scopes, and examples.
+**Commit format:** [Conventional Commits](https://www.conventionalcommits.org/) — see `.github/instructions/blueprint.commit-message.instructions.md` for full conventions, types, scopes, and examples.
 
 **Always check `git diff` first** — don't rely on session memory. Include all changes in your message.
 

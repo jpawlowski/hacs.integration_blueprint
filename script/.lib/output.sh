@@ -105,3 +105,26 @@ activate_venv() {
         exit 1
     fi
 }
+
+# Run a user-defined hook script if it exists.
+# Hooks live in script/user/<name>.<phase>.sh and are sourced (not executed),
+# so they can read and set variables in the calling script's environment.
+#
+# Usage:  run_hook <script-name> <phase>
+# Phases: pre | post
+#
+# Example — in script/develop:
+#   run_hook "develop" "pre"
+#
+# The user creates script/user/develop.pre.sh to customize behavior.
+# SCRIPT_DIR must be set in the calling script before sourcing output.sh.
+run_hook() {
+    local script_name="$1"
+    local phase="$2"
+    local hook_file="script/hooks/${script_name}.${phase}.sh"
+    if [[ -f "$hook_file" ]]; then
+        log_info "Running hook: script/hooks/${script_name}.${phase}.sh"
+        # shellcheck source=/dev/null
+        source "$hook_file"
+    fi
+}

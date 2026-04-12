@@ -21,6 +21,8 @@ source "$SCRIPT_DIR/.lib/output.sh"
 
 activate_venv
 
+run_hook "spell" "pre"
+
 log_header "Running codespell with auto-fix"
 codespell \
     --write-changes \
@@ -37,4 +39,5 @@ codespell \
 # Clean up any accidental package installation from uv run
 "$SCRIPT_DIR/clean" --minimal
 
+run_hook "spell" "post"
 log_success "Spell checking completed"

@@ -13,13 +13,13 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$SCRIPT_DIR/../.."
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$SCRIPT_DIR/.."
 
 # shellcheck source=script/.lib/output.sh
-source "$SCRIPT_DIR/../.lib/output.sh"
+source "$SCRIPT_DIR/.lib/output.sh"
 
-"$SCRIPT_DIR/bootstrap"
+"$SCRIPT_DIR/setup/bootstrap"
 
 ensure_command_alias() {
     local alias_name=$1
@@ -108,7 +108,7 @@ if [[ ${HA_INSTALL_HACS:-"0"} == "1" ]]; then
         # Install HACS Python dependencies
         log_step "Installing HACS Python dependencies"
         if uv pip install -q 'aiogithubapi>=22.10.1'; then
-            "$SCRIPT_DIR/sync-hacs"
+            "$SCRIPT_DIR/setup/sync-hacs"
             log_success "HACS installed successfully"
             log_info "Location: ${BOLD}config/custom_components/hacs/${NC}"
             log_info "Version: Stable release (no auto-updates)"
@@ -125,6 +125,8 @@ if [[ ${HA_INSTALL_HACS:-"0"} == "1" ]]; then
         cd ../..
     fi
 fi
+
+run_hook "setup/setup" "post"
 
 echo ""
 log_success "Project setup complete"

@@ -397,6 +397,8 @@ run_copilot() {
     return "$result"
 }
 
+run_hook "release-notes" "pre"
+
 case "$MODE" in
 --interactive)
     log_header "Launching Copilot CLI (interactive mode)"
@@ -453,3 +455,5 @@ stdout | "")
     exit 1
     ;;
 esac
+
+run_hook "release-notes" "post"

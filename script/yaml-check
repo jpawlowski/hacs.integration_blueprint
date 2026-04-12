@@ -22,6 +22,8 @@ source "$SCRIPT_DIR/.lib/output.sh"
 
 activate_venv
 
+run_hook "yaml-check" "pre"
+
 log_header "Checking YAML with yamllint"
 yamllint -c .yamllint.yml \
     custom_components/ha_integration_domain/ \
@@ -30,4 +32,5 @@ yamllint -c .yamllint.yml \
     .pre-commit-config.yaml \
     .prettierrc.yml
 
+run_hook "yaml-check" "post"
 log_success "YAML check completed"

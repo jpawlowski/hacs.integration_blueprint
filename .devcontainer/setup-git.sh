@@ -13,6 +13,13 @@ set -e
 
 echo "Setting up Git configuration..."
 
+_devcontainer_dir="$(cd "$(dirname "$0")" && pwd)"
+if [[ -f "$_devcontainer_dir/hooks/setup-git.pre.sh" ]]; then
+    echo "ℹ Running hook: .devcontainer/hooks/setup-git.pre.sh"
+    # shellcheck source=/dev/null
+    source "$_devcontainer_dir/hooks/setup-git.pre.sh"
+fi
+
 # Check if we're in Codespaces (GitHub automatically configures Git)
 if [ -n "$CODESPACES" ]; then
     echo "✓ Running in GitHub Codespaces - Git already configured by GitHub"
@@ -125,3 +132,10 @@ if [ -n "$SIGNING_KEY" ]; then
 fi
 
 echo "✓ Git configuration complete"
+
+if [[ -f "$_devcontainer_dir/hooks/setup-git.post.sh" ]]; then
+    echo "ℹ Running hook: .devcontainer/hooks/setup-git.post.sh"
+    # shellcheck source=/dev/null
+    source "$_devcontainer_dir/hooks/setup-git.post.sh"
+fi
+unset _devcontainer_dir

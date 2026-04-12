@@ -53,7 +53,7 @@ Understanding the relationship between these components is essential:
 
 4. **Repair Flow** (`repairs.py` - separate from config_flow_handler):
    - User fixes issues → shows forms → collects input → resolves problem
-   - See `repairs.instructions.md` for Repair Flow patterns (different architecture)
+   - See `blueprint.repairs.instructions.md` for Repair Flow patterns (different architecture)
 
 **Common confusion - Data Entry Flow vs. data.py:**
 

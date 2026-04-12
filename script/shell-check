@@ -21,11 +21,14 @@ cd "$SCRIPT_DIR/.."
 # shellcheck source=script/.lib/output.sh
 source "$SCRIPT_DIR/.lib/output.sh"
 
+run_hook "shell-check" "pre"
+
 log_header "Checking shell scripts with shellcheck"
 # shellcheck disable=SC2046  # Word splitting is intentional here for file list
-shellcheck -x $(find script/ .devcontainer/ -type f \( -name "*.sh" -o ! -name "*.*" \) | sort)
+shellcheck -x $(find script/ .devcontainer/ -not -path "script/hooks/*" -not -path ".devcontainer/hooks/*" -type f \( -name "*.sh" -o ! -name "*.*" \) | sort)
 
 log_header "Checking shell script format with shfmt"
-shfmt -i 4 -d script/ .devcontainer/
+find script/ .devcontainer/ -not -path "script/hooks/*" -not -path ".devcontainer/hooks/*" -type f \( -name "*.sh" -o ! -name "*.*" \) -print0 | xargs -0 shfmt -i 4 -d
 
+run_hook "shell-check" "post"
 log_success "Shell check completed"

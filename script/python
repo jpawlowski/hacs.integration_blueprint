@@ -21,6 +21,8 @@ source "$SCRIPT_DIR/.lib/output.sh"
 
 activate_venv
 
+run_hook "python" "pre"
+
 log_header "Running Ruff format"
 ruff format custom_components/ tests/
 
@@ -30,4 +32,5 @@ ruff check custom_components/ tests/ --fix
 # Clean up any accidental package installation from uv run
 "$SCRIPT_DIR/clean" --minimal
 
+run_hook "python" "post"
 log_success "Python formatting and linting completed"

@@ -21,6 +21,8 @@ source "$SCRIPT_DIR/.lib/output.sh"
 
 activate_venv
 
+run_hook "spell-check" "pre"
+
 log_header "Checking spelling with codespell"
 codespell \
     --ignore-words-list=aiport,astroid,checkin,currenty,hass,iif,incomfort,lookin,nam,NotIn \
@@ -36,4 +38,5 @@ codespell \
 # Clean up any accidental package installation from uv run
 "$SCRIPT_DIR/clean" --minimal
 
+run_hook "spell-check" "post"
 log_success "Spell check completed"

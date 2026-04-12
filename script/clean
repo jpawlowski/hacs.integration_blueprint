@@ -43,6 +43,8 @@ elif [[ ${1:-} == --deep ]]; then
     DEEP_MODE=true
 fi
 
+run_hook "clean" "pre"
+
 if [[ $MINIMAL_MODE == false ]]; then
     log_header "Cleaning development artifacts"
 fi
@@ -106,6 +108,7 @@ if [[ $DEEP_MODE == true ]]; then
     find . -type f -name "*.pyc" -delete 2>/dev/null || true
 fi
 
+run_hook "clean" "post"
 log_success "Cleanup complete"
 
 if [[ $DEEP_MODE == false ]]; then

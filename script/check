@@ -28,6 +28,10 @@ cd "$SCRIPT_DIR/.."
 # shellcheck source=script/.lib/output.sh
 source "$SCRIPT_DIR/.lib/output.sh"
 
+activate_venv
+
+run_hook "check" "pre"
+
 "$SCRIPT_DIR/type-check"
 echo ""
 "$SCRIPT_DIR/lint-check"
@@ -39,5 +43,7 @@ if [ -z "${CI:-}" ] && [ -z "${GITHUB_ACTIONS:-}" ] && [ -d "$SCRIPT_DIR/../.loc
     echo ""
     "$SCRIPT_DIR/hassfest"
 fi
+
+run_hook "check" "post"
 
 log_success "All checks passed"
