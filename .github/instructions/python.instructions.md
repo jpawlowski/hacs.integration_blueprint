@@ -31,7 +31,7 @@ applyTo: "**/*.py"
 
 **Example structure:**
 
-```
+```text
 sensor/
   __init__.py          # Setup and entity list (50 lines)
   air_quality.py       # Air quality sensor class (200 lines)

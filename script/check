@@ -3,9 +3,9 @@
 # script/check: Run all checks (type, lint, spell) — recommended before committing
 #
 # Runs the full validation suite in sequence:
-#   type-check   Pyright type checking
-#   lint-check   Python (Ruff), YAML (yamllint), Shell (shfmt + shellcheck)
-#   spell-check  Spelling (codespell)
+#   type-check      Pyright type checking
+#   lint-check      Python (Ruff), YAML (yamllint), Shell (shfmt + shellcheck), Markdown
+#   spell-check     Spelling (codespell)
 #
 # For targeted checks after specific file type changes:
 #   ./script/type-check     Python type checking only (Pyright)

@@ -117,6 +117,7 @@ pkill -f "hass --config" || true && pkill -f "debugpy.*5678" || true && ./script
 | -------------------------------------- | ------------------------------------- |
 | `*.py` only                            | `script/python` + `script/type-check` |
 | `*.yaml` / `*.yml` only                | `script/yaml-check`                   |
+| `*.md` only                            | `script/markdown`                     |
 | `script/` or `.devcontainer/*.sh` only | `script/shell` + `script/shell-check` |
 | Multiple types or unsure               | `script/lint` + `script/type-check`   |
 
@@ -127,7 +128,7 @@ No separate check-run is needed after — the exit code and output are the compl
 
 ```bash
 # Repeat until both exit 0:
-script/lint         # Fixes Python + shell; checks yaml + shellcheck; shows all remaining
+script/lint         # Fixes Python + shell + markdown; checks yaml + shellcheck; shows all remaining
 script/type-check   # Pyright — no auto-fix ever
 # Fix remaining issues from output, then repeat.
 ```

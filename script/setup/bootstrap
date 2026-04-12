@@ -158,6 +158,14 @@ set +e
 rm -rf /tmp/requirements*.txt /tmp/homeassistant/ || log_warning "Failed to clean up temporary files"
 set -e
 
+log_header "Installing Node.js dependencies"
+if command -v npm >/dev/null 2>&1; then
+    npm install --silent
+else
+    log_warning "npm not found — skipping Node.js dependency installation"
+    log_info "Install Node.js to enable: prettier, markdownlint-cli2"
+fi
+
 # Only install pre-commit hooks in local development, not in CI
 # GITHUB_ACTIONS is always set to "true" in GitHub Actions environments
 if [[ -d ".git" && -z "${GITHUB_ACTIONS:-}" ]]; then

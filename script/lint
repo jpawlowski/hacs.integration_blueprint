@@ -3,16 +3,17 @@
 # script/lint: Format and lint all file types
 #
 # Orchestrates formatting and linting across all languages:
-# Python (Ruff), YAML (yamllint), Shell (shfmt + shellcheck), Spelling (codespell).
-# Applies auto-fixes where available.
+# Python (Ruff), YAML (yamllint), Shell (shfmt + shellcheck), Markdown (Prettier + markdownlint-cli2),
+# Spelling (codespell). Applies auto-fixes where available.
 #
 # Usage:
 #   ./script/lint
 #
 # For targeted language-specific formatting:
-#   ./script/python      Python only (Ruff format + fix)
-#   ./script/shell       Shell only  (shfmt)
-#   ./script/spell       Spelling    (codespell --write-changes)
+#   ./script/python      Python only    (Ruff format + fix)
+#   ./script/shell       Shell only     (shfmt)
+#   ./script/spell       Spelling       (codespell --write-changes)
+#   ./script/markdown    Markdown only  (Prettier + markdownlint-cli2 --fix)
 #
 # Examples:
 #   ./script/lint
@@ -34,5 +35,7 @@ echo ""
 "$SCRIPT_DIR/shell"
 echo ""
 "$SCRIPT_DIR/shell-check"
+echo ""
+"$SCRIPT_DIR/markdown"
 
 log_success "Linting completed"

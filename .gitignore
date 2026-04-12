@@ -9,6 +9,7 @@ custom_components/*
 # Development tool caches and dependency locks
 .ruff_cache/
 uv.lock
+node_modules/
 
 # Virtual environment and shell configuration (when HOME is set to workspace)
 .local/

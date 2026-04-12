@@ -399,12 +399,13 @@ script/check      # Full validation: type-check + lint-check + spell-check
 
 **After editing specific file types, use the targeted script — it is faster:**
 
-| Changed files | Run this | Why faster |
-|---|---|---|
-| `*.py` only | `script/python` + `script/type-check` | Fixes + reports ruff; skips yaml, shell |
-| `*.yaml` / `*.yml` only | `script/yaml-check` | Skips Python, Shell, types |
-| `script/` or `.devcontainer/*.sh` only | `script/shell` + `script/shell-check` | Fixes shfmt, then checks shellcheck |
-| Multiple types or unsure | `script/lint` + `script/type-check` | Safe default for agents |
+| Changed files                          | Run this                              | Why faster                                        |
+| -------------------------------------- | ------------------------------------- | ------------------------------------------------- |
+| `*.py` only                            | `script/python` + `script/type-check` | Fixes + reports ruff; skips yaml, shell, markdown |
+| `*.yaml` / `*.yml` only                | `script/yaml-check`                   | Skips Python, Shell, Markdown, types              |
+| `*.md` only                            | `script/markdown`                     | Prettier + markdownlint only                      |
+| `script/` or `.devcontainer/*.sh` only | `script/shell` + `script/shell-check` | Fixes shfmt, then checks shellcheck               |
+| Multiple types or unsure               | `script/lint` + `script/type-check`   | Safe default for agents                           |
 
 **Recommended agent workflow — fix scripts already show what they couldn't fix:**
 
@@ -414,7 +415,7 @@ what still needs manual attention.
 
 ```bash
 # Run this loop until both commands exit 0:
-script/lint         # Fixes Python + shell formatting; checks yaml + shellcheck; shows all remaining
+script/lint         # Fixes Python + shell + markdown formatting; checks yaml + shellcheck; shows all remaining
 script/type-check   # Pyright type errors — no auto-fix ever, always a manual loop
 # Then fix remaining issues from the output above and repeat.
 ```
@@ -426,10 +427,11 @@ script/type-check   # Pyright type errors — no auto-fix ever, always a manual 
 **Fix / format scripts (apply changes automatically):**
 
 ```bash
-script/lint         # Format + fix all types (Python, Shell)
+script/lint         # Format + fix all types (Python, Shell, Markdown)
 script/python       # Ruff format + ruff check --fix  (Python only)
 script/shell        # shfmt -w                        (Shell only)
 script/spell        # codespell --write-changes        (spelling)
+script/markdown     # Prettier --write + markdownlint  (Markdown only)
 ```
 
 **Check-only scripts (never modify files):**
@@ -439,6 +441,7 @@ script/lint-check   # Check all types without changes
 script/python-check # Ruff format --check + ruff check  (Python only)
 script/yaml-check   # yamllint                           (YAML only)
 script/shell-check  # shfmt -d + shellcheck              (Shell only)
+script/markdown-check # Prettier --check + markdownlint  (Markdown only)
 script/type-check   # Pyright                            (types only)
 script/spell-check  # codespell                          (spelling only)
 script/test         # pytest                             (tests only)
@@ -446,15 +449,17 @@ script/test         # pytest                             (tests only)
 
 **Configured tools:**
 
-| Tool | Scope | Fixes? |
-|---|---|---|
-| **Ruff** | Python lint + format | ✅ `script/python` |
-| **Pyright** | Python type checking | ❌ manual |
-| **yamllint** | YAML structure + style | ❌ manual |
-| **shfmt** | Shell script formatting | ✅ `script/shell` |
-| **shellcheck** | Shell script static analysis | ❌ manual |
-| **codespell** | Spelling in code + docs | ✅ `script/spell` |
-| **pytest** | Unit + integration tests | ❌ n/a |
+| Tool                  | Scope                        | Fixes?               |
+| --------------------- | ---------------------------- | -------------------- |
+| **Ruff**              | Python lint + format         | ✅ `script/python`   |
+| **Pyright**           | Python type checking         | ❌ manual            |
+| **yamllint**          | YAML structure + style       | ❌ manual            |
+| **shfmt**             | Shell script formatting      | ✅ `script/shell`    |
+| **shellcheck**        | Shell script static analysis | ❌ manual            |
+| **Prettier**          | Markdown formatting          | ✅ `script/markdown` |
+| **markdownlint-cli2** | Markdown structure + style   | ✅ `script/markdown` |
+| **codespell**         | Spelling in code + docs      | ✅ `script/spell`    |
+| **pytest**            | Unit + integration tests     | ❌ n/a               |
 
 References: [Ruff rules](https://docs.astral.sh/ruff/rules/) · [Pyright docs](https://microsoft.github.io/pyright/)
 

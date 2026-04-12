@@ -1,0 +1,10 @@
+{
+  "name": "ha-integration-blueprint-tools",
+  "version": "1.0.0",
+  "description": "Development tools for the Home Assistant integration blueprint",
+  "private": true,
+  "devDependencies": {
+    "markdownlint-cli2": "0.22.0",
+    "prettier": "3.8.2"
+  }
+}

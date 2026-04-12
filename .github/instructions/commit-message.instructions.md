@@ -9,7 +9,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 
 ## Format
 
-```
+```text
 type(scope): short summary (max 72 chars)
 
 - Body bullet point: explain WHAT changed and WHY, not HOW
@@ -56,7 +56,7 @@ Scope is optional but clarifies the affected component. Use the name of the affe
 
 ## Examples
 
-```
+```text
 feat(sensor): add temperature sensor for air purifier
 
 - Add AirPurifierTemperatureSensor entity class

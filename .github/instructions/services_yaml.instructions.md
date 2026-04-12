@@ -121,4 +121,4 @@ script/yaml-check   # yamllint — catches YAML syntax and style errors
 Service action schemas are also validated by Home Assistant on integration load.
 Check `config/home-assistant.log` for runtime schema errors.
 
-Reference: https://developers.home-assistant.io/docs/dev_101_services/
+Reference: <https://developers.home-assistant.io/docs/dev_101_services/>

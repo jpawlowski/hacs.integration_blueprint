@@ -42,16 +42,13 @@ Understanding the relationship between these components is essential:
 **Where Data Entry Flow is actually used:**
 
 1. **Config Flow** (`config_flow_handler/config_flow.py`):
-
    - User adds integration → shows forms → collects input → creates `ConfigEntry`
    - Methods like `async_show_form()`, `async_create_entry()` are Data Entry Flow
 
 2. **Options Flow** (`config_flow_handler/options_flow.py`):
-
    - User changes settings → shows forms → collects input → updates `ConfigEntry.options`
 
 3. **Subentry Flow** (`config_flow_handler/subentry_flow.py`):
-
    - User adds sub-devices → shows forms → collects input → creates sub-entries
 
 4. **Repair Flow** (`repairs.py` - separate from config_flow_handler):

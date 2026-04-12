@@ -3,23 +3,17 @@
   "MD004": false,
   "MD013": false,
   "MD033": false,
+  "MD036": false,
   "MD041": false,
   "no-trailing-punctuation": false,
   "no-inline-html": {
-    "allowed_elements": [
-      "br",
-      "details",
-      "summary",
-      "img",
-      "a",
-      "kbd"
-    ]
+    "allowed_elements": ["br", "details", "summary", "img", "a", "kbd"]
   },
   "code-block-style": {
     "style": "fenced"
   },
   "emphasis-style": {
-    "style": "asterisk"
+    "style": "underscore"
   },
   "strong-style": {
     "style": "asterisk"
