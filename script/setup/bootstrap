@@ -19,6 +19,8 @@ cd "$SCRIPT_DIR/../.."
 
 # shellcheck source=script/.lib/output.sh
 source "$SCRIPT_DIR/../.lib/output.sh"
+# shellcheck source=script/.lib/download.sh
+source "$SCRIPT_DIR/../.lib/download.sh"
 # shellcheck source=script/.lib/ha_version.sh
 source "$SCRIPT_DIR/../.lib/ha_version.sh"
 
@@ -153,30 +155,6 @@ else
 fi
 
 HA_CORE_BASE_URL="https://raw.githubusercontent.com/home-assistant/core/${HA_VERSION}"
-
-# _download URL DEST
-# Resilient file download with timeout and retry (3 attempts, exponential back-off).
-_download() {
-    local url="$1" dest="$2" attempt max_attempts delay
-    max_attempts=3
-    delay=2
-    for ((attempt = 1; attempt <= max_attempts; attempt++)); do
-        if curl -fsSL \
-            --connect-timeout 10 \
-            --max-time 60 \
-            --retry 0 \
-            "$url" -o "$dest"; then
-            return 0
-        fi
-        if ((attempt < max_attempts)); then
-            log_warning "Download failed (attempt ${attempt}/${max_attempts}): ${url##*/} — retrying in ${delay}s..."
-            sleep "$delay"
-            delay=$((delay * 2))
-        fi
-    done
-    log_error "Download failed after ${max_attempts} attempts: $url"
-    return 1
-}
 
 log_header "Installing Home Assistant ${HA_VERSION} runtime dependencies"
 mkdir -p "/tmp/homeassistant"

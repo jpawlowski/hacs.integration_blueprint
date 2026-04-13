@@ -18,6 +18,8 @@ cd "$SCRIPT_DIR/.."
 
 # shellcheck source=script/.lib/output.sh
 source "$SCRIPT_DIR/.lib/output.sh"
+# shellcheck source=script/.lib/download.sh
+source "$SCRIPT_DIR/.lib/download.sh"
 
 "$SCRIPT_DIR/setup/bootstrap"
 
@@ -100,8 +102,9 @@ if [[ ${HA_INSTALL_HACS:-"0"} == "1" ]]; then
     # Download and extract HACS (stable release ZIP)
     cd config/custom_components
     log_step "Downloading HACS"
-    if wget -q --tries=3 --timeout=30 --waitretry=2 \
-        https://github.com/hacs/integration/releases/latest/download/hacs.zip &&
+    if _download \
+        https://github.com/hacs/integration/releases/latest/download/hacs.zip \
+        hacs.zip &&
         unzip -q hacs.zip -d hacs &&
         rm hacs.zip; then
         cd ../..
@@ -121,7 +124,7 @@ if [[ ${HA_INSTALL_HACS:-"0"} == "1" ]]; then
         log_warning "HACS installation failed"
         log_info "You can install manually:"
         log_step "${BOLD}cd config/custom_components${NC}"
-        log_step "${BOLD}wget https://github.com/hacs/integration/releases/latest/download/hacs.zip${NC}"
+        log_step "${BOLD}curl -fsSL https://github.com/hacs/integration/releases/latest/download/hacs.zip -o hacs.zip${NC}"
         log_step "${BOLD}unzip hacs.zip -d hacs && rm hacs.zip${NC}"
         cd ../..
     fi
