@@ -27,26 +27,57 @@ cd "$SCRIPT_DIR/.."
 
 # shellcheck source=script/.lib/output.sh
 source "$SCRIPT_DIR/.lib/output.sh"
+# shellcheck source=script/.lib/ha_version.sh
+source "$SCRIPT_DIR/.lib/ha_version.sh"
 
 # Configuration
 HA_CORE_DIR=".local/ha-core"
 HA_CORE_REPO="https://github.com/home-assistant/core.git"
 INTEGRATION_PATH="custom_components/ha_integration_domain"
 
+# Kill a stalled git fetch if it transfers < 1 KB/s for 30 s
+export GIT_HTTP_LOW_SPEED_LIMIT=1024
+export GIT_HTTP_LOW_SPEED_TIME=30
+
+# _git_fetch_tag TAG
+# Fetches a single HA Core tag with up to 3 attempts and exponential back-off.
+_git_fetch_tag() {
+    local tag="$1" attempt max_attempts delay
+    max_attempts=3
+    delay=2
+    for ((attempt = 1; attempt <= max_attempts; attempt++)); do
+        if git fetch --depth 1 --filter=blob:none origin tag "$tag" >/dev/null 2>&1; then
+            return 0
+        fi
+        if ((attempt < max_attempts)); then
+            log_warning "git fetch failed (attempt ${attempt}/${max_attempts}) — retrying in ${delay}s..."
+            sleep "$delay"
+            delay=$((delay * 2))
+        fi
+    done
+    log_error "git fetch failed after ${max_attempts} attempts for tag $tag"
+    return 1
+}
+
 # Detect Home Assistant version to use
 if [ -n "${HA_VERSION:-}" ]; then
-    # Use version from environment (DevContainer)
+    # Use version from environment (DevContainer); resolve specifiers to concrete versions
     HA_VERSION_TAG="$HA_VERSION"
-    # Resolve "latest" to actual version number via PyPI
-    if [ "$HA_VERSION_TAG" = "latest" ]; then
-        HA_VERSION_TAG=$(curl -fsSL https://pypi.org/pypi/homeassistant/json | python3 -c "import sys, json; print(json.load(sys.stdin)['info']['version'])" 2>/dev/null || echo "dev")
+    if ! resolve_ha_version HA_VERSION_TAG "$HA_VERSION_TAG"; then
+        log_error "Could not resolve HA version '${HA_VERSION}' from PyPI"
+        exit 1
     fi
 elif command -v python3 >/dev/null 2>&1; then
     # Detect from installed homeassistant package
-    HA_VERSION_TAG=$(python3 -c "from homeassistant.const import __version__; print(__version__)" 2>/dev/null || echo "dev")
+    HA_VERSION_TAG=$(python3 -c "from homeassistant.const import __version__; print(__version__)" 2>/dev/null || true)
+    if [ -z "$HA_VERSION_TAG" ]; then
+        log_error "Home Assistant is not installed — cannot determine version for hassfest"
+        log_info "Run: ./script/setup/bootstrap"
+        exit 1
+    fi
 else
-    # Fallback to dev branch
-    HA_VERSION_TAG="dev"
+    log_error "python3 is not available — cannot run hassfest"
+    exit 1
 fi
 
 # Parse arguments
@@ -91,13 +122,8 @@ if [ ! -d "$HA_CORE_DIR" ]; then
     echo "homeassistant/" >>.git/info/sparse-checkout
 
     # Fetch the specific version (shallow clone + blobless for minimal size)
-    if [ "$HA_VERSION_TAG" = "dev" ]; then
-        git fetch --depth 1 --filter=blob:none origin dev 2>&1 | grep -E "(Receiving|Resolving|Fetching)" || true
-        git checkout dev >/dev/null 2>&1
-    else
-        git fetch --depth 1 --filter=blob:none origin tag "$HA_VERSION_TAG" 2>&1 | grep -E "(Receiving|Resolving|Fetching)" || true
-        git checkout "$HA_VERSION_TAG" >/dev/null 2>&1
-    fi
+    _git_fetch_tag "$HA_VERSION_TAG"
+    git checkout "$HA_VERSION_TAG" >/dev/null 2>&1
     cd - >/dev/null
     echo ""
 else
@@ -109,13 +135,8 @@ else
     if [ "$UPDATE_CORE" = true ] || [ "$CURRENT_VERSION" != "$HA_VERSION_TAG" ]; then
         log_info "Updating to version $HA_VERSION_TAG..."
         cd "$HA_CORE_DIR"
-        if [ "$HA_VERSION_TAG" = "dev" ]; then
-            git fetch --depth 1 --filter=blob:none origin dev >/dev/null 2>&1
-            git checkout dev >/dev/null 2>&1
-        else
-            git fetch --depth 1 --filter=blob:none origin tag "$HA_VERSION_TAG" >/dev/null 2>&1
-            git checkout "$HA_VERSION_TAG" >/dev/null 2>&1
-        fi
+        _git_fetch_tag "$HA_VERSION_TAG"
+        git checkout "$HA_VERSION_TAG" >/dev/null 2>&1
         cd - >/dev/null
     else
         log_info "Using cached version $CURRENT_VERSION"

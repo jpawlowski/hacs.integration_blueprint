@@ -100,7 +100,8 @@ if [[ ${HA_INSTALL_HACS:-"0"} == "1" ]]; then
     # Download and extract HACS (stable release ZIP)
     cd config/custom_components
     log_step "Downloading HACS"
-    if wget -q https://github.com/hacs/integration/releases/latest/download/hacs.zip &&
+    if wget -q --tries=3 --timeout=30 --waitretry=2 \
+        https://github.com/hacs/integration/releases/latest/download/hacs.zip &&
         unzip -q hacs.zip -d hacs &&
         rm hacs.zip; then
         cd ../..

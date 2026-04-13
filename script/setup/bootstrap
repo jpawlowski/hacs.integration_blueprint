@@ -19,6 +19,8 @@ cd "$SCRIPT_DIR/../.."
 
 # shellcheck source=script/.lib/output.sh
 source "$SCRIPT_DIR/../.lib/output.sh"
+# shellcheck source=script/.lib/ha_version.sh
+source "$SCRIPT_DIR/../.lib/ha_version.sh"
 
 run_hook "setup/bootstrap" "pre"
 
@@ -133,36 +135,59 @@ else
     log_info "No runtime dependencies defined (this is normal for blueprints)"
 fi
 
-HA_VERSION="${HA_VERSION:-$(grep '"homeassistant"' hacs.json | head -1 | sed 's/.*"homeassistant"\s*:\s*"\([^"]*\)".*/\1/')}"
-
-if [[ -z "$HA_VERSION" ]]; then
-    log_error "HA_VERSION not set and could not be determined from hacs.json"
-    exit 1
-fi
-
-# Resolve "latest" to actual version number via PyPI
-if [[ "$HA_VERSION" == "latest" ]]; then
-    log_info "Resolving latest Home Assistant version via PyPI..."
-    HA_VERSION=$(curl -fsSL https://pypi.org/pypi/homeassistant/json | python3 -c "import sys, json; print(json.load(sys.stdin)['info']['version'])")
+if [[ -n "${HA_VERSION:-}" ]]; then
+    # Explicit HA_VERSION from environment — use exactly as specified
+    resolve_ha_version HA_VERSION "$HA_VERSION"
+else
+    # Read from hacs.json: treat YEAR.MONTH.0 as YEAR.MONTH so the latest
+    # stable patch is installed (hacs.json records minimum version, not pin)
+    HA_VERSION=$(grep '"homeassistant"' hacs.json | head -1 | sed 's/.*"homeassistant"\s*:\s*"\([^"]*\)".*/\1/')
     if [[ -z "$HA_VERSION" ]]; then
-        log_error "Failed to resolve latest Home Assistant version from PyPI"
+        log_error "HA_VERSION not set and could not be determined from hacs.json"
         exit 1
     fi
-    log_info "Resolved to: ${HA_VERSION}"
+    if [[ "$HA_VERSION" =~ ^[0-9]{4}\.[0-9]+\.0$ ]]; then
+        HA_VERSION="${HA_VERSION%.*}" # "2026.4.0" → "2026.4" → latest patch
+    fi
+    resolve_ha_version HA_VERSION "$HA_VERSION"
 fi
 
 HA_CORE_BASE_URL="https://raw.githubusercontent.com/home-assistant/core/${HA_VERSION}"
 
+# _download URL DEST
+# Resilient file download with timeout and retry (3 attempts, exponential back-off).
+_download() {
+    local url="$1" dest="$2" attempt max_attempts delay
+    max_attempts=3
+    delay=2
+    for ((attempt = 1; attempt <= max_attempts; attempt++)); do
+        if curl -fsSL \
+            --connect-timeout 10 \
+            --max-time 60 \
+            --retry 0 \
+            "$url" -o "$dest"; then
+            return 0
+        fi
+        if ((attempt < max_attempts)); then
+            log_warning "Download failed (attempt ${attempt}/${max_attempts}): ${url##*/} — retrying in ${delay}s..."
+            sleep "$delay"
+            delay=$((delay * 2))
+        fi
+    done
+    log_error "Download failed after ${max_attempts} attempts: $url"
+    return 1
+}
+
 log_header "Installing Home Assistant ${HA_VERSION} runtime dependencies"
 mkdir -p "/tmp/homeassistant"
-curl -fsSL "${HA_CORE_BASE_URL}/homeassistant/package_constraints.txt" -o "/tmp/homeassistant/package_constraints.txt" # constraints for requirements files
-curl -fsSL "${HA_CORE_BASE_URL}/requirements.txt" -o "/tmp/requirements.txt"                                           # required by requirements_all.txt
-curl -fsSL "${HA_CORE_BASE_URL}/requirements_all.txt" -o "/tmp/requirements_all.txt"
+_download "${HA_CORE_BASE_URL}/homeassistant/package_constraints.txt" "/tmp/homeassistant/package_constraints.txt" # constraints for requirements files
+_download "${HA_CORE_BASE_URL}/requirements.txt" "/tmp/requirements.txt"                                           # required by requirements_all.txt
+_download "${HA_CORE_BASE_URL}/requirements_all.txt" "/tmp/requirements_all.txt"
 uv pip install --requirement "/tmp/requirements_all.txt"
 
 log_header "Installing Home Assistant ${HA_VERSION} test dependencies"
-curl -fsSL "${HA_CORE_BASE_URL}/requirements_test_pre_commit.txt" -o "/tmp/requirements_test_pre_commit.txt" # required by requirements_test.txt
-curl -fsSL "${HA_CORE_BASE_URL}/requirements_test.txt" -o "/tmp/requirements_test.txt"
+_download "${HA_CORE_BASE_URL}/requirements_test_pre_commit.txt" "/tmp/requirements_test_pre_commit.txt" # required by requirements_test.txt
+_download "${HA_CORE_BASE_URL}/requirements_test.txt" "/tmp/requirements_test.txt"
 uv pip install --requirement "/tmp/requirements_test.txt"
 
 log_header "Installing Home Assistant ${HA_VERSION} core"

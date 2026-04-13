@@ -5,8 +5,14 @@
   "postAttachCommand": "bash .devcontainer/post-attach.sh",
   "containerEnv": {
     // Home Assistant version to install in the devcontainer.
-    // Set to a specific version (e.g., "2026.4.0") or "latest" to always use the newest release.
-    // If not set, defaults to version from hacs.json.
+    // Supported values:
+    //   "latest"       → newest stable release
+    //   "beta"         → newest pre-release (alpha/beta/RC)
+    //   "YEAR.MONTH"   → latest patch for that month (e.g. "2026.4")
+    //   "YEAR.MONTH.0" → same as above (hacs.json minimum → resolved to latest patch)
+    //   "YEAR.MONTH.N" → exact stable version (e.g. "2026.4.2")
+    //   "YEAR.MONTH.NbM" → exact pre-release (e.g. "2026.4.0b1")
+    // If not set, defaults to the version in hacs.json (resolved to latest patch).
     // "HA_VERSION": "2026.4.0",
     // Install HACS in the Home Assistant installation
     "HA_INSTALL_HACS": "1",
