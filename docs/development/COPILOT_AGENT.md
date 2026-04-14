@@ -113,7 +113,8 @@ After Copilot creates a draft pull request:
    - Or make manual adjustments and commit to the PR branch
    - Stop Codespace when done to save free hours
 
-**Note:** Copilot Agent runs in GitHub Actions (ephemeral environment), so it cannot provide live web access to Home Assistant during development. Manual testing in Codespaces is required.
+> [!NOTE]
+> Copilot Agent runs in GitHub Actions (ephemeral environment), so it cannot provide live web access to Home Assistant during development. Manual testing in Codespaces is required.
 
 For detailed Codespaces usage, troubleshooting, and resource management, see [CODESPACES.md](CODESPACES.md).
 

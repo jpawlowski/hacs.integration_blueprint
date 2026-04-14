@@ -155,6 +155,7 @@ git commit -m "feat(sensor): add air quality index sensor"
 
 ## GitHub Repository Setup (One-Time)
 
+> [!NOTE]
 > These settings cannot be stored in the repository — configure them once on GitHub.com.
 
 ### Required: GitHub Actions Permissions
