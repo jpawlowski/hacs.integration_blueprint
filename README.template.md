@@ -42,11 +42,10 @@ Uncomment and customize these badges if you want to use them:
 | `button`        | Reset filter timer after replacement                     |
 | `fan`           | Air purifier fan control with speed settings             |
 
-> **💡 Interactive Demo**: The entities are interconnected for demonstration:
->
-> - Press the **Reset Filter Timer** button → **Filter Life Remaining** sensor updates to 100%
-> - Change the **Air Purifier** fan speed → **Fan Speed** select syncs automatically
-> - Change the **Fan Speed** select → **Air Purifier** fan syncs automatically
+> [!TIP]
+> **Interactive Demo:** The entities are interconnected for demonstration.
+> Press the **Reset Filter Timer** button to see **Filter Life Remaining** update to 100%.
+> Changing the **Air Purifier** fan speed syncs the **Fan Speed** select, and vice versa.
 
 ## 🚀 Quick Start
 
@@ -63,10 +62,11 @@ Then:
 1. Click "Download" to install the integration
 2. **Restart Home Assistant** (required after installation)
 
-> **Note:** The My Home Assistant redirect will first take you to a landing page. Click the button there to open your Home Assistant instance.
+> [!NOTE]
+> The My Home Assistant redirect will first take you to a landing page. Click the button there to open your Home Assistant instance.
 
 <details>
-<summary>**Manual Installation (Advanced)**</summary>
+<summary><strong>Manual Installation (Advanced)</strong></summary>
 
 If you prefer not to use HACS:
 
@@ -298,54 +298,95 @@ If your device is not responding:
 
 Contributions are welcome! Please open an issue or pull request if you have suggestions or improvements.
 
-### 🛠️ Development Setup
+You have two options to set up a development environment — expand below for full details.
 
-Want to contribute or customize this integration? You have two options:
+<details>
+<summary><strong>Development Setup</strong></summary>
 
-#### Cloud Development (Recommended)
+Both options provide the same fully-configured environment with Home Assistant, Python 3.14, Node.js LTS, and all necessary tools.
 
-The easiest way to get started - develop directly in your browser with GitHub Codespaces:
+### Option 1: GitHub Codespaces (Recommended) ☁️
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/jpawlowski/hacs.integration_blueprint?quickstart=1)
+Develop directly in your browser without installing anything locally!
 
-- ✅ Zero local setup required
-- ✅ Pre-configured development environment
-- ✅ Home Assistant included for testing
-- ✅ 60 hours/month free for personal accounts
+1. Click the green **"Code"** button in this repository
+2. Switch to the **"Codespaces"** tab
+3. Click **"Create codespace on main"**
+4. **Wait for setup** (2-3 minutes first time) — everything installs automatically
+5. **Review and commit** your changes in the Source Control panel (`Ctrl+Shift+G`)
 
-#### Local Development
+> [!TIP]
+> Codespaces gives you **60 hours/month free** for personal accounts. When you start Home Assistant (`script/develop`), port 8123 forwards automatically.
 
-Prefer working on your machine? You'll need:
+### Option 2: Local Development with VS Code 💻
 
-- Docker Desktop (or compatible Docker engine)
-- VS Code with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+#### Prerequisites
 
-Then:
+You'll need these installed locally:
 
-1. Clone this repository
-2. Open in VS Code
-3. Click "Reopen in Container" when prompted
+- **A Docker-compatible container engine:**
 
-Both options give you the same fully-configured development environment with Home Assistant, Python 3.13, and all necessary tools.
+  > [!TIP]
+  > **Not sure what to pick?** Start with [Docker Desktop](https://www.docker.com/products/docker-desktop/) — it works on all platforms, has a GUI, and needs no extra setup. The ⭐ options below are faster alternatives once you're comfortable. macOS and Linux offer the best devcontainer experience — containers run with no extra VM layer and file I/O is fast. Windows works well too; this integration uses named container volumes (files live inside WSL2, not on the Windows drive) to keep performance acceptable.
+
+  | Option                                                                                                                   | 🍎 macOS | 🐧 Linux | 🪟 Windows | Notes                                                                                                                                                                                                                                     |
+  | ------------------------------------------------------------------------------------------------------------------------ | :------: | :------: | :--------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | [Docker Desktop](https://www.docker.com/products/docker-desktop/)                                                        |    ✅    |    ✅    |     ✅     | **Easiest starting point for all platforms.** GUI-based, well-documented, one installer. Uses WSL2 as default backend on Windows (Hyper-V also available). Installation requires admin rights; daily use does not. Free for personal use. |
+  | [OrbStack](https://orbstack.dev/) ⭐                                                                                     |    ✅    |    —     |     —      | **Recommended for macOS** once Docker Desktop feels slow. Starts in ~2s, much lighter on RAM/CPU, full Docker API compatibility. Free for personal use.                                                                                   |
+  | [Docker CE](https://docs.docker.com/engine/install/) (native) ⭐                                                         |    —     |    ✅    |     —      | **Recommended for Linux.** Install directly via your package manager — no VM, no GUI, no overhead. Free.                                                                                                                                  |
+  | [WSL2](https://learn.microsoft.com/windows/wsl/install) + [Docker CE](https://docs.docker.com/engine/install/ubuntu/) ⭐ |    —     |    —     |     ✅     | **Recommended for Windows** once you're comfortable with WSL2. Docker runs natively inside WSL2 — no GUI overhead. Requires one-time WSL2 setup. Free.                                                                                    |
+  | [Rancher Desktop](https://rancherdesktop.io/)                                                                            |    ✅    |    ✅    |     ✅     | Open source by SUSE. GUI-based, uses WSL2 on Windows. Good alternative to Docker Desktop. Free.                                                                                                                                           |
+  | [Colima](https://github.com/abiosoft/colima)                                                                             |    ✅    |    ✅    |     —      | CLI-only, very lightweight. Good for terminal-focused workflows. Free.                                                                                                                                                                    |
+
+- **VS Code** with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+- **Git** — macOS and Linux usually have it already; see below if not, or to get a newer version:
+  - **🍎 macOS:** The system Git (`xcode-select --install`) works fine. Recommended: `brew install git` ([Homebrew](https://brew.sh/)) for a current version.
+  - **🐧 Linux:** Usually pre-installed. If not: `sudo apt install git` (or your distro's equivalent).
+  - **🪟 Windows + WSL2 ⭐:** Install Git _inside WSL2_ with `sudo apt install git`. Git on Windows itself is not needed — VS Code clones and operates entirely within WSL2.
+  - **🪟 Windows + Docker Desktop:** Install via `winget install Git.Git` or download [Git for Windows](https://git-scm.com/download/win).
+
+- **Hardware** — the devcontainer runs a full Home Assistant instance including Python tooling:
+
+  |          | Minimum    | Recommended                           |
+  | -------- | ---------- | ------------------------------------- |
+  | **RAM**  | 8 GB       | 16 GB or more                         |
+  | **CPU**  | 4 cores    | 8 cores or more                       |
+  | **Disk** | 10 GB free | 20 GB free (SSD strongly recommended) |
+
+> [!NOTE]
+> **New to Dev Containers?** See the [VS Code Dev Containers documentation](https://code.visualstudio.com/docs/devcontainers/containers#_system-requirements) for system requirements and how to install the extension. **Once the extension is installed, you're done** — this repository already ships a complete devcontainer configuration. You don't need to follow the rest of the VS Code guide; the setup steps below are all that's needed.
+
+#### Setup Steps
+
+1. **Clone in a Dev Container:**
+
+   **🍎 macOS / 🐧 Linux:** Clone the repository and open the folder in VS Code → click **"Reopen in Container"** when prompted (or `F1` → **"Dev Containers: Reopen in Container"**).
+
+   **🪟 Windows:** In VS Code, press `F1` → **"Dev Containers: Clone Repository in Named Container Volume..."** and enter the repository URL. This keeps files inside WSL2 for best I/O performance.
+
+2. Wait for the container to build (2-3 minutes first time)
+
+3. **Review and commit** changes in Source Control (`Ctrl+Shift+G`)
+
+4. **Start developing**:
+
+   ```bash
+   script/develop  # Home Assistant runs at http://localhost:8123
+   ```
+
+> [!NOTE]
+> Both Codespaces and local DevContainer provide the exact same experience. The only difference is where the container runs (GitHub's cloud vs. your machine).
+
+</details>
 
 ---
 
 ## 🤖 AI-Assisted Development
 
-> **ℹ️ Transparency Notice**
+> [!NOTE]
+> **Transparency Notice:** This integration was developed with assistance from AI coding agents (GitHub Copilot, Claude, and others). While the codebase follows Home Assistant Core standards, AI-generated code may not be reviewed or tested to the same extent as manually written code. AI tools were used to generate boilerplate code, implement standard integration features (config flow, coordinator, entities), ensure code quality and type safety, and write documentation. If you encounter unexpected behavior, please [open an issue](../../issues) on GitHub.
 >
-> This integration was developed with assistance from AI coding agents (GitHub Copilot, Claude, and others). While the codebase follows Home Assistant Core standards, AI-generated code may not be reviewed or tested to the same extent as manually written code.
->
-> AI tools were used to:
->
-> - Generate boilerplate code following Home Assistant patterns
-> - Implement standard integration features (config flow, coordinator, entities)
-> - Ensure code quality and type safety
-> - Write documentation and comments
->
-> Please be aware that AI-assisted development may result in unexpected behavior or edge cases that haven't been thoroughly tested. If you encounter any issues, please [open an issue](../../issues) on GitHub.
->
-> _Note: This section can be removed or modified if AI assistance was not used in your integration's development._
+> _This section can be removed or modified if AI assistance was not used in your integration's development._
 
 ---
 

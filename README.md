@@ -1,13 +1,13 @@
 # Home Assistant Integration Blueprint
 
-[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2025.11%2B-blue.svg)](https://www.home-assistant.io/)
-[![Python](https://img.shields.io/badge/python-3.13%2B-blue.svg)](https://www.python.org/)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.4%2B-blue.svg)](https://www.home-assistant.io/)
+[![Python](https://img.shields.io/badge/python-3.14%2B-blue.svg)](https://www.python.org/)
 [![AI Agent Ready](https://img.shields.io/badge/AI%20Agent-Ready-purple.svg)](#ai-agent-support)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A modern blueprint for creating Home Assistant custom integrations, based on [ludeeus/integration_blueprint](https://github.com/ludeeus/integration_blueprint) but closely aligned with **Home Assistant Core development practices**.
 
-This blueprint is designed to work with **Home Assistant 2025.7+** and includes all the patterns and tooling you need to build a professional integration without reinventing the wheel.
+This blueprint is designed to work with **Home Assistant 2026.4+** and includes all the patterns and tooling you need to build a professional integration without reinventing the wheel.
 
 > [!IMPORTANT]
 > **Use the template — don't fork!**
@@ -19,7 +19,7 @@ This blueprint is designed to work with **Home Assistant 2025.7+** and includes 
 
 - **[Getting Started](#getting-started---creating-your-integration)** - Create your integration in minutes
 - **[Development Guide](#development-guide)** - Scripts, tasks, and workflow
-- **[Architecture](#architecture--code-structure)** - Project structure and packages
+- **[Architecture](#architecture--code-structure)** - Project structure and packages → [full details](docs/development/ARCHITECTURE.md)
 - **[Integration Features](#integration-features)** - Config flow, coordinator, entities, and more
 - **[Resources & Support](#resources--support)** - Documentation, tools, and community
 
@@ -92,15 +92,10 @@ Develop directly in your browser without installing anything locally!
 
 7. **Review and commit** your changes in the Source Control panel (`Ctrl+Shift+G`)
 
-**That's it!** You're developing in a fully configured environment with Home Assistant, Python 3.13, and all tools ready. No local setup needed!
+**That's it!** You're developing in a fully configured environment with Home Assistant, Python 3.14, Node.js LTS, and all tools ready. No local setup needed!
 
-> 💡 **Pro tip:** Codespaces gives you 60 hours/month free for personal accounts. Perfect for integration development!
->
-> 🌐 **Port forwarding:** When you start Home Assistant (`script/develop`), port 8123 will automatically forward and you'll get a notification with the URL.
->
-> 🧹 **Auto-cleanup:** After initialization completes, the setup script removes itself automatically.
->
-> 📖 **More details:** See [Codespaces Development Guide](docs/development/CODESPACES.md) for tips, troubleshooting, and differences from local development.
+> [!TIP]
+> Codespaces gives you **60 hours/month free** for personal accounts. When you start Home Assistant (`script/develop`), port 8123 forwards automatically. The setup script removes itself after initialization. See the [Codespaces Development Guide](docs/development/CODESPACES.md) for more details.
 
 ### Option 2: Local Development with VS Code
 
@@ -110,18 +105,49 @@ If you prefer working on your local machine (requires Docker + VS Code):
 
 You'll need these installed locally:
 
-- **Docker Desktop** (or compatible Docker engine)
+- **A Docker-compatible container engine:**
+
+  > [!TIP]
+  > **Not sure what to pick?** Start with [Docker Desktop](https://www.docker.com/products/docker-desktop/) — it works on all platforms, has a GUI, and needs no extra setup. The ⭐ options below are faster alternatives once you're comfortable. macOS and Linux offer the best devcontainer experience — containers run with no extra VM layer and file I/O is fast. Windows works well too; this blueprint uses named container volumes (files live inside WSL2, not on the Windows drive) to keep performance acceptable.
+
+  | Option                                                                                                                   | 🍎 macOS | 🐧 Linux | 🪟 Windows | Notes                                                                                                                                                                                                                                     |
+  | ------------------------------------------------------------------------------------------------------------------------ | :------: | :------: | :--------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | [Docker Desktop](https://www.docker.com/products/docker-desktop/)                                                        |    ✅    |    ✅    |     ✅     | **Easiest starting point for all platforms.** GUI-based, well-documented, one installer. Uses WSL2 as default backend on Windows (Hyper-V also available). Installation requires admin rights; daily use does not. Free for personal use. |
+  | [OrbStack](https://orbstack.dev/) ⭐                                                                                     |    ✅    |    —     |     —      | **Recommended for macOS** once Docker Desktop feels slow. Starts in ~2s, much lighter on RAM/CPU, full Docker API compatibility. Free for personal use.                                                                                   |
+  | [Docker CE](https://docs.docker.com/engine/install/) (native) ⭐                                                         |    —     |    ✅    |     —      | **Recommended for Linux.** Install directly via your package manager — no VM, no GUI, no overhead. Free.                                                                                                                                  |
+  | [WSL2](https://learn.microsoft.com/windows/wsl/install) + [Docker CE](https://docs.docker.com/engine/install/ubuntu/) ⭐ |    —     |    —     |     ✅     | **Recommended for Windows** once you're comfortable with WSL2. Docker runs natively inside WSL2 — no GUI overhead. Requires one-time WSL2 setup. Free.                                                                                    |
+  | [Rancher Desktop](https://rancherdesktop.io/)                                                                            |    ✅    |    ✅    |     ✅     | Open source by SUSE. GUI-based, uses WSL2 on Windows. Good alternative to Docker Desktop. Free.                                                                                                                                           |
+  | [Colima](https://github.com/abiosoft/colima)                                                                             |    ✅    |    ✅    |     —      | CLI-only, very lightweight. Good for terminal-focused workflows. Free.                                                                                                                                                                    |
+
 - **VS Code** with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
-- **Git**
+- **Git** — macOS and Linux usually have it already; see below if not, or to get a newer version:
+  - **🍎 macOS:** The system Git (`xcode-select --install`) works fine. Recommended: `brew install git` ([Homebrew](https://brew.sh/)) for a current version.
+  - **🐧 Linux:** Usually pre-installed. If not: `sudo apt install git` (or your distro's equivalent).
+  - **🪟 Windows + WSL2 ⭐:** Install Git _inside WSL2_ with `sudo apt install git`. Git on Windows itself is not needed — VS Code clones and operates entirely within WSL2.
+  - **🪟 Windows + Docker Desktop:** Install via `winget install Git.Git` or download [Git for Windows](https://git-scm.com/download/win).
+
+- **Hardware** — the devcontainer runs a full Home Assistant instance including Python tooling:
+
+  |          | Minimum    | Recommended                           |
+  | -------- | ---------- | ------------------------------------- |
+  | **RAM**  | 8 GB       | 16 GB or more                         |
+  | **CPU**  | 4 cores    | 8 cores or more                       |
+  | **Disk** | 10 GB free | 20 GB free (SSD strongly recommended) |
+
+> [!NOTE]
+> **New to Dev Containers?** See the [VS Code Dev Containers documentation](https://code.visualstudio.com/docs/devcontainers/containers#_system-requirements) for system requirements and how to install the extension. **Once the extension is installed, you're done** — this blueprint already ships a complete devcontainer configuration. You don't need to follow the rest of the VS Code guide; the setup steps below are all that's needed.
 
 #### Setup Steps
 
 1. **Create your repository** from this template (click "Use this template" at the top)
 
-2. **Clone in a Dev Container**:
-   - In VS Code, press `F1` and select: **"Dev Containers: Clone Repository in Named Container Volume..."**
-   - Enter your repository URL
-   - Wait for the container to build (2-3 minutes first time)
+2. **Clone in a Dev Container:**
+
+   **🍎 macOS / 🐧 Linux:** Clone the repository and open the folder in VS Code → click **"Reopen in Container"** when prompted (or `F1` → **"Dev Containers: Reopen in Container"**).
+
+   **🪟 Windows:** In VS Code, press `F1` → **"Dev Containers: Clone Repository in Named Container Volume..."** and enter your repository URL. This keeps files inside WSL2 for best I/O performance.
+
+   Wait for the container to build (2-3 minutes first time).
 
 3. **Run `./initialize.sh`** in the terminal to configure your integration
 
@@ -139,7 +165,8 @@ You'll need these installed locally:
    script/develop  # Home Assistant runs at http://localhost:8123
    ```
 
-> **Note:** Both Codespaces and local DevContainer provide the exact same experience. After the container is ready, run `./initialize.sh` to customize your integration. The only difference is where the container runs (GitHub's cloud vs. your machine).
+> [!NOTE]
+> Both Codespaces and local DevContainer provide the exact same experience. After the container is ready, run `./initialize.sh` to customize your integration. The only difference is where the container runs (GitHub's cloud vs. your machine).
 
 Then customize the API client in [`api/client.py`](custom_components/ha_integration_domain/api/client.py) to connect to your actual device or service.
 
@@ -154,11 +181,13 @@ Creating a custom integration from scratch means figuring out config flows, coor
 **What makes this blueprint different:**
 
 - ✅ **Core-aligned development**: Follows Home Assistant Core patterns and tooling conventions
-- ✅ **Future-proof**: Compatible with Home Assistant 2025.7+ (including latest breaking changes)
-- ✅ **Modern Python**: Built for Python 3.13+ with `asyncio.timeout` (no deprecated `async_timeout`)
+- ✅ **Future-proof**: Compatible with Home Assistant 2026.4+ (including latest breaking changes)
+- ✅ **Modern Python**: Built for Python 3.14+ with `asyncio.timeout` (no deprecated `async_timeout`)
 - ✅ **Fast tooling**: Uses [uv](https://github.com/astral-sh/uv) for lightning-fast dependency management
 - ✅ **Complete test setup**: Includes `pytest-homeassistant-custom-component` for proper testing
 - ✅ **Developer-friendly**: Comprehensive scripts for development, testing, and maintenance
+- ✅ **Stays current**: Weekly automated PRs keep your project in sync with blueprint improvements — see [Customization Guide](docs/development/CUSTOMIZATION.md)
+- ✅ **Release ready**: Automated release workflow (Release Please) + AI-assisted release notes via `script/release-notes` — see [Release Guide](docs/development/RELEASE.md)
 
 By having a common structure, it's easier for developers to help each other and for users to understand integrations. This blueprint stays close to how Home Assistant Core itself is developed, making it easier to contribute to Core later or migrate your integration.
 
@@ -183,7 +212,7 @@ This blueprint demonstrates all the essential integration features:
 
 - Modern development tooling (Ruff for linting/formatting, Pyright for type checking)
 - Pre-commit hooks for automatic code quality checks
-- VS Code dev container with Python 3.13 and all extensions pre-configured
+- VS Code dev container with Python 3.14, Node.js LTS, and all extensions pre-configured
 - Comprehensive development scripts (based on "Scripts to Rule Them All" pattern)
 - Test infrastructure with pytest and Home Assistant test utilities
 - HACS integration support out of the box
@@ -204,7 +233,10 @@ For creating your own integration from this blueprint, see [Getting Started](#ge
 
 ## Development Guide
 
-### Initialization Script Options
+Everything you need to work with the blueprint day-to-day: script reference, keeping your fork up to date, and troubleshooting. The initialization script is a one-time setup step — expand it below if you need dry-run or unattended options.
+
+<details>
+<summary><strong>Initialization Script Options</strong></summary>
 
 The `initialize.sh` script supports both interactive and unattended modes:
 
@@ -239,6 +271,8 @@ The script will:
 - ✅ Update the LICENSE with your name and current year
 - ✅ Replace README.md with a customized version from README.template.md
 - ✅ Delete itself and the template files after completion
+
+</details>
 
 ### Development scripts
 
@@ -286,7 +320,10 @@ See [docs/development/MIGRATION.md](docs/development/MIGRATION.md) for an overvi
 
 ### Troubleshooting
 
-#### Many "Problems" showing after first devcontainer build?
+Expand a section below for solutions to common devcontainer issues.
+
+<details>
+<summary><strong>Many "Problems" showing after first devcontainer build?</strong></summary>
 
 When you first build and attach to the devcontainer, VS Code's Python extensions (especially Pylance) need time to fully index the workspace. You may see many false "Problems" in the Problems panel that don't actually exist.
 
@@ -298,11 +335,66 @@ When you first build and attach to the devcontainer, VS Code's Python extensions
 
 After the reload, the linters and language servers will be fully initialized and the false problems will disappear.
 
+> [!NOTE]
 > **Why does this happen?** When the devcontainer is first built, the `postCreateCommand` installs all dependencies and sets up the Python environment, but the VS Code extensions haven't finished indexing yet when you first attach. A window reload ensures all extensions are properly initialized with the completed environment.
 >
 > **Alternative:** Close VS Code completely and re-open the devcontainer. This has the same effect but takes longer.
 >
-> **This is normal!** This is a known limitation of how VS Code initializes extensions in devcontainers. It only happens on the first attach after building - subsequent sessions work perfectly.
+> **This is normal!** This is a known limitation of how VS Code initializes extensions in devcontainers. It only happens on the first attach after building — subsequent sessions work perfectly.
+
+</details>
+
+<details>
+<summary><strong>Docker disk usage keeps growing — how to reclaim space</strong></summary>
+
+When working on multiple devcontainer projects, Docker's disk footprint grows steadily: build cache accumulates with every rebuild, old image layers stack up, and volumes are left behind after containers are removed. Run this first to understand what's consuming space:
+
+```bash
+docker system df        # summary: images, containers, volumes, build cache
+docker system df -v     # detailed breakdown per image and volume
+```
+
+**Reclaim space — from safest to most aggressive:**
+
+```bash
+docker builder prune              # build cache only — often the largest contributor, safe to remove
+docker system prune               # stopped containers + dangling images + unused networks + build cache
+docker system prune -a            # same + all unused images (not just dangling ones)
+docker volume prune               # unused volumes — see warning below
+docker system prune -a --volumes  # everything — use when starting completely fresh
+```
+
+> [!CAUTION]
+> **`docker volume prune` deletes devcontainer volumes**, including the project files and the Python virtual environment inside the container. Only use it when you intend a clean rebuild. Re-opening the devcontainer in VS Code will recreate everything automatically.
+
+**Limit build cache size proactively:**
+
+```bash
+docker builder prune --keep-storage 5gb   # trim build cache to at most 5 GB
+```
+
+Run this periodically (e.g. as a weekly cron job) to keep disk usage bounded without losing everything.
+
+**macOS with Docker Desktop: the VM disk image problem**
+
+Docker Desktop on macOS runs inside a VM whose disk image (`Docker.raw`) grows as data is added — but _never automatically shrinks_ when data is deleted. Even after a thorough `docker system prune`, the host disk does not get space back.
+
+To reclaim host disk space:
+
+1. Open **Docker Desktop → Settings → Resources**
+2. Click **"Clean / Purge data"** — this rebuilds the VM image from scratch and returns all freed space to macOS
+3. Alternatively, lower the **"Disk image size"** slider — Docker Desktop will trim the image on next restart
+
+> [!TIP]
+> **OrbStack users don't have this problem.** OrbStack uses macOS APFS sparse files instead of a fixed VM image, so freed space is returned to the host automatically — no manual purge step needed.
+
+**RAM usage with multiple devcontainers open**
+
+Each open devcontainer runs VS Code Remote Server + Pylance + a full Home Assistant instance. That adds up to roughly 2–4 GB per container. If you develop multiple projects in parallel, RAM fills up quickly — not because of the AI tooling itself, but because of the language servers and the HA Python process.
+
+Practical approaches: keep only one devcontainer active at a time, or use VS Code's **"Dev Containers: Stop Container"** command to suspend containers you're not actively using.
+
+</details>
 
 #### Other common issues
 
@@ -312,7 +404,10 @@ For Codespaces-specific troubleshooting, see [docs/development/CODESPACES.md](do
 
 ## Architecture & Code Structure
 
-### Project structure
+This section documents the project layout and the reasoning behind the package-based structure. Expand the file tree below for a full reference, or read the package architecture overview for the design rationale.
+
+<details>
+<summary><strong>Project structure</strong></summary>
 
 ```text
 custom_components/ha_integration_domain/  # Your integration code
@@ -441,6 +536,8 @@ initialize.sh                  # One-time setup script  ⚑ removes itself after
 
 **Note for new integrations:** When you run `./initialize.sh`, it will automatically replace this `README.md` with the content from `README.template.md`, customized with your integration's details.
 
+</details>
+
 ### Package-based architecture
 
 This blueprint uses a **package-based structure** where each major component is organized into its own package (directory with `__init__.py`):
@@ -466,6 +563,8 @@ Each platform (sensor, binary_sensor, switch, etc.) is a package containing:
 - **`entity_utils/`** - Shared entity helpers (device info, state calculations)
 - **`service_actions/`** - Service action registration and handlers (e.g., `example_service.py`)
 - **`utils/`** - General utility functions (string helpers, validators, etc.)
+
+See [docs/development/ARCHITECTURE.md](docs/development/ARCHITECTURE.md) for a detailed architecture overview and architectural decision records.
 
 ---
 
@@ -532,7 +631,8 @@ The [`diagnostics.py`](custom_components/ha_integration_domain/diagnostics.py) f
 
 Users can share this file when reporting issues without exposing passwords or tokens.
 
-### Entity platforms
+<details>
+<summary><strong>Entity platforms</strong></summary>
 
 The blueprint includes multiple entity types organized as packages to demonstrate different patterns:
 
@@ -581,13 +681,15 @@ The blueprint includes multiple entity types organized as packages to demonstrat
 
 Each platform package shows best practices for entity setup, naming, and data handling.
 
+</details>
+
 ### API client
 
 The API client is organized in the [`api/`](custom_components/ha_integration_domain/api/) package:
 
 **Modern patterns:**
 
-- Uses `asyncio.timeout` instead of deprecated `async_timeout` (required for HA 2025.7+)
+- Uses `asyncio.timeout` instead of deprecated `async_timeout` (required for HA 2026.4+)
 - Proper async/await throughout
 - Custom exception classes for different error types
 - Type hints for better IDE support
@@ -600,17 +702,18 @@ The API client is organized in the [`api/`](custom_components/ha_integration_dom
 
 Replace the dummy API calls in [`api/client.py`](custom_components/ha_integration_domain/api/client.py) with your actual device/service API.
 
-### Development container
+<details>
+<summary><strong>Development container</strong></summary>
 
 The [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json) configures a complete development environment:
 
 **What's included:**
 
-- Python 3.13 (matching Home Assistant Core requirements)
+- Python 3.14 (matching Home Assistant Core requirements)
 - Node.js LTS (for frontend development if needed)
 - GitHub CLI pre-installed
 - All VS Code extensions configured (Python, Ruff, YAML, etc.)
-- Home Assistant 2025.11+ automatically installed
+- Home Assistant 2026.4+ automatically installed
 - HACS pre-installed and configured
 - Automatic port forwarding for Home Assistant (port 8123)
 
@@ -626,7 +729,15 @@ The container runs `script/setup/setup` automatically, which:
 
 Just wait for the setup to complete (check the terminal), then run `script/develop`.
 
-### AI agent support
+> [!NOTE]
+> **Codespaces users:** See [docs/development/CODESPACES.md](docs/development/CODESPACES.md) for tips on developing in GitHub Codespaces.
+
+</details>
+
+<a id="ai-agent-support"></a>
+
+<details>
+<summary><strong>AI agent support</strong></summary>
 
 This blueprint is optimized for development with AI coding assistants like **GitHub Copilot**, **Claude**, and other AI agents.
 
@@ -663,7 +774,10 @@ See [`docs/development/ARCHITECTURE.md`](docs/development/ARCHITECTURE.md#ai-age
 
 As your integration evolves, keep these instruction files updated. They should reflect your actual patterns and decisions, not just theoretical guidelines. When you establish new conventions or change approaches, update the relevant instruction files so AI agents stay aligned with your project's direction.
 
-### Pre-commit hooks
+</details>
+
+<details>
+<summary><strong>Pre-commit hooks</strong></summary>
 
 The repository uses [pre-commit](https://pre-commit.com/) to automatically check code before commits:
 
@@ -682,7 +796,10 @@ Hooks are installed automatically by `script/setup/bootstrap`. Run manually with
 pre-commit run --all-files
 ```
 
-### Testing infrastructure
+</details>
+
+<details>
+<summary><strong>Testing infrastructure</strong></summary>
 
 The blueprint includes a complete test setup:
 
@@ -709,7 +826,10 @@ async def test_setup_entry(hass: HomeAssistant) -> None:
 
 Run tests with `script/test` or `script/test --cov` for coverage.
 
-### Type checking and linting
+</details>
+
+<details>
+<summary><strong>Type checking and linting</strong></summary>
 
 This blueprint uses the same tools as Home Assistant Core:
 
@@ -729,6 +849,8 @@ This blueprint uses the same tools as Home Assistant Core:
 
 Both tools are integrated into pre-commit hooks and the dev container.
 
+</details>
+
 ---
 
 ## Comparison & Next Steps
@@ -737,20 +859,20 @@ Both tools are integrated into pre-commit hooks and the dev container.
 
 While this blueprint is inspired by the original, it includes significant enhancements:
 
-| Feature                    | This Blueprint                                              | Original Blueprint                         |
-| -------------------------- | ----------------------------------------------------------- | ------------------------------------------ |
-| **Home Assistant version** | 2025.7+ (latest)                                            | Older versions (may not work with 2025.7+) |
-| **Python version**         | 3.13+                                                       | 3.12                                       |
-| **Timeout handling**       | `asyncio.timeout` (modern)                                  | `async_timeout` (deprecated)               |
-| **Package manager**        | uv (fast)                                                   | pip (standard)                             |
-| **Development scripts**    | Comprehensive Scripts to Rule Them All                      | Basic scripts                              |
-| **Test infrastructure**    | `pytest-homeassistant-custom-component`                     | Manual test setup needed                   |
-| **Type checking**          | Pyright configured                                          | Not included                               |
-| **Linting**                | Ruff (Core-aligned config)                                  | Ruff (basic config)                        |
-| **HACS integration**       | Auto-installed in dev container                             | Manual setup                               |
-| **VS Code tasks**          | Pre-configured tasks for common operations                  | Not included                               |
-| **Package architecture**   | Organized into packages for scalability                     | Single-file platforms                      |
-| **AI agent support**       | Comprehensive instructions for GitHub Copilot, Claude, etc. | Not included                               |
+| Feature                    | This Blueprint                                              | Original Blueprint           |
+| -------------------------- | ----------------------------------------------------------- | ---------------------------- |
+| **Home Assistant version** | 2026.4+ (Python 3.14 native)                                | 2026.3.x                     |
+| **Timeout handling**       | `asyncio.timeout` (modern)                                  | `async_timeout` (deprecated) |
+| **Package manager**        | uv (fast)                                                   | pip (standard)               |
+| **Development scripts**    | Comprehensive Scripts to Rule Them All                      | Basic scripts                |
+| **Test infrastructure**    | Preconfigured `pytest-homeassistant-custom-component`       | Manual test setup needed     |
+| **Type checking**          | Pyright configured                                          | Not included                 |
+| **HACS integration**       | Auto-installed in dev container                             | Manual setup                 |
+| **VS Code tasks**          | Pre-configured tasks for common operations                  | Not included                 |
+| **Package architecture**   | Organized into packages for scalability                     | Single-file platforms        |
+| **AI agent support**       | Comprehensive instructions for GitHub Copilot, Claude, etc. | Not included                 |
+| **Blueprint updates**      | Weekly PRs keep your project in sync with upstream          | No update mechanism          |
+| **Release workflow**       | Release Please + AI-assisted `script/release-notes`         | Not included                 |
 
 Both blueprints share the same core concepts (config flow, coordinator, entity platforms), but this one is more closely aligned with how Home Assistant Core is developed today.
 
@@ -766,9 +888,9 @@ Once you have the blueprint working with your device or service:
 
 #### Branding & distribution
 
-- **Add brand images**: Submit logo and icon to [home-assistant/brands](https://github.com/home-assistant/brands)
+- **Add brand images**: Place logo (`logo.png`) and icon (`icon.png`) in the `brand/` directory — Home Assistant picks them up automatically for custom integrations (see [docs](https://developers.home-assistant.io/docs/creating_integration_file_structure/#brand-images---brand))
 - **Write documentation**: Update this README with your integration's specific features
-- **Create releases**: Tag versions and publish releases on GitHub
+- **Create releases**: Use the included Release Please workflow and `script/release-notes` for AI-assisted changelogs — see [docs/development/RELEASE.md](docs/development/RELEASE.md)
 
 #### Share & Connect
 
@@ -779,6 +901,15 @@ Once you have the blueprint working with your device or service:
 ---
 
 ## Resources & Support
+
+### This blueprint's documentation
+
+- [docs/development/ARCHITECTURE.md](docs/development/ARCHITECTURE.md) - Architecture overview and decision records
+- [docs/development/CUSTOMIZATION.md](docs/development/CUSTOMIZATION.md) - Extending scripts and staying up to date
+- [docs/development/RELEASE.md](docs/development/RELEASE.md) - Release process and versioning
+- [docs/development/CODESPACES.md](docs/development/CODESPACES.md) - GitHub Codespaces setup and tips
+- [docs/development/COPILOT_AGENT.md](docs/development/COPILOT_AGENT.md) - Using GitHub Copilot Coding Agent
+- [docs/development/MIGRATION.md](docs/development/MIGRATION.md) - Migrating an existing integration
 
 ### Home Assistant documentation
 
