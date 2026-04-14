@@ -175,13 +175,12 @@
     }
   },
   "mounts": [
+    // Named volume for node_modules: keeps it on Container FS (not bind mount) for performance.
+    // Docker manages this volume separately from the workspace — npm ci runs fast on overlay FS.
+    "source=ha_integration_domain_node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
     // Mount host gitconfig for local development (ignored in Codespaces)
     // In Codespaces, GitHub automatically configures Git with your account
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/vscode/.gitconfig.host,type=bind,consistency=cached,readonly",
-    // Mount host gh CLI config so 'gh' is authenticated without re-login (macOS/Linux only)
-    // Windows users have gh config at %APPDATA%\GitHub CLI\ — run 'gh auth login' once in the container
-    // In Codespaces, GITHUB_TOKEN is set automatically and gh uses that instead
-    "source=${localEnv:HOME}/.config/gh,target=/home/vscode/.config/gh,type=bind,consistency=cached,readonly"
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/vscode/.gitconfig.host,type=bind,consistency=cached,readonly"
   ],
   "remoteUser": "vscode"
 }

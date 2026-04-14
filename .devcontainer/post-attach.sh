@@ -122,6 +122,14 @@ elif [[ ! -f "initialize.sh" ]]; then
     :
 fi
 
+# Ensure node_modules is populated — the named Docker volume may have been pruned
+# while the container was stopped. postCreateCommand only runs on container creation,
+# so we must check here (on every attach) and reinstall if the volume is empty.
+if command -v npm >/dev/null 2>&1 && [[ -f package.json ]] && [[ -z "$(ls -A node_modules 2>/dev/null)" ]]; then
+    print_color "$YELLOW" "⚠ node_modules is empty — running npm ci to restore packages..."
+    npm ci --silent
+fi
+
 # Run user post-attach hook if present (lives in .devcontainer/hooks/post-attach.post.sh)
 _hook_file="$(cd "$(dirname "$0")" && pwd)/hooks/post-attach.post.sh"
 if [[ -f "$_hook_file" ]]; then

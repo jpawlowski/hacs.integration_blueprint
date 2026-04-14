@@ -177,20 +177,11 @@ set -e
 
 log_header "Installing Node.js dependencies"
 if command -v npm >/dev/null 2>&1; then
-    # DevContainer/Codespaces: move node_modules off bind mount to Container FS
-    # Same strategy as the venv: symlink from workspace into $HOME/.local (fast overlay FS)
-    if [[ "${VENV_IS_EXTERNAL:-false}" == "true" ]]; then
-        NODE_MODULES_PATH="$HOME/.local/node_modules"
-        if [[ ! -d "$NODE_MODULES_PATH" ]]; then
-            log_step "Creating external node_modules at $NODE_MODULES_PATH"
-            mkdir -p "$NODE_MODULES_PATH"
-        fi
-        if [[ -d node_modules && ! -L node_modules ]]; then
-            log_warning "Skipping node_modules symlink: directory already exists (not a symlink)"
-        else
-            ln -sfn "$NODE_MODULES_PATH" node_modules
-            log_step "node_modules → $NODE_MODULES_PATH (Container FS, off bind mount)"
-        fi
+    # node_modules is kept off the bind mount via a named Docker volume (devcontainer.json).
+    # Docker creates named volumes owned by root — fix ownership before npm ci writes into it.
+    if [[ -d node_modules && "$(stat -c %U node_modules 2>/dev/null)" == "root" ]]; then
+        log_step "Fixing node_modules ownership (Docker volume created as root)"
+        sudo chown "$(id -un):$(id -gn)" node_modules
     fi
     npm ci --silent
 else
