@@ -5,7 +5,7 @@
 # Validates the integration against Home Assistant's official validation rules
 # using hassfest from the Home Assistant Core repository.
 #
-# On first run, clones HA Core (~27 MB) to .local/ha-core
+# On first run, clones HA Core (~27 MB) to .local/ha-core (or $HOME/.local/ha-core in DevContainer)
 # Subsequent runs reuse the cached version (use --no-update to skip updates).
 #
 # Usage:
@@ -31,7 +31,13 @@ source "$SCRIPT_DIR/.lib/output.sh"
 source "$SCRIPT_DIR/.lib/ha_version.sh"
 
 # Configuration
-HA_CORE_DIR=".local/ha-core"
+# In DevContainer/Codespaces: clone to $HOME/.local/ha-core (Container FS, off bind mount)
+# Local development / CI: clone to .local/ha-core (workspace)
+if [[ -n "${REMOTE_CONTAINERS:-}" || -n "${CODESPACES:-}" ]]; then
+    HA_CORE_DIR="$HOME/.local/ha-core"
+else
+    HA_CORE_DIR=".local/ha-core"
+fi
 HA_CORE_REPO="https://github.com/home-assistant/core.git"
 INTEGRATION_PATH="custom_components/ha_integration_domain"
 
@@ -106,8 +112,10 @@ run_hook "hassfest" "pre"
 log_header "Home Assistant hassfest validation"
 log_info "Target version: $HA_VERSION_TAG"
 
-# Check if HA Core is already cloned
-if [ ! -d "$HA_CORE_DIR" ]; then
+# Check if HA Core is already cloned and contains a valid Git repository
+if [ ! -d "$HA_CORE_DIR" ] || [ ! -d "$HA_CORE_DIR/.git" ]; then
+    # Clean up any empty or broken directory before cloning
+    rm -rf "$HA_CORE_DIR"
     log_info "Cloning Home Assistant Core (sparse checkout, ~5 MB)..."
 
     # Initialize sparse checkout to only get script/ directory
@@ -166,8 +174,11 @@ if ! python3 -c "import voluptuous, awesomeversion, homeassistant.helpers.config
     exit 1
 fi
 
+# Resolve HA_CORE_DIR to an absolute path (may already be absolute in DevContainer)
+HA_CORE_ABS="$(cd "$HA_CORE_DIR" && pwd)"
+
 # Export PYTHONPATH to include HA Core
-export PYTHONPATH="$PWD/$HA_CORE_DIR:${PYTHONPATH:-}"
+export PYTHONPATH="$HA_CORE_ABS:${PYTHONPATH:-}"
 
 # Build hassfest command
 HASSFEST_CMD=(
