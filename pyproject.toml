@@ -7,7 +7,7 @@
 
 [project]
 name = "ha_integration_domain"
-version = "0.0.0"   # Version is managed in manifest.json only
+version = "0.0.0"              # Version is managed in manifest.json only
 requires-python = ">=3.14.2"
 
 [tool.setuptools]
@@ -16,14 +16,12 @@ packages = ["custom_components.ha_integration_domain"]
 [tool.pyright]
 include = ["custom_components/ha_integration_domain"]
 exclude = [
-    "**/node_modules",
+    "**/.*",
     "**/__pycache__",
-    "**/.git",
-    "**/.github",
-    "**/docs",
-    "**/venv",
-    "**/.venv",
     "**/config",
+    "**/docs",
+    "**/node_modules",
+    "**/venv",
 ]
 # venvPath is relative to workspace root. A symlink is created by script/setup/bootstrap
 # This works in VSCode (uses .local/ha-venv) and GitHub Actions (uses active venv)
@@ -271,8 +269,8 @@ split-on-trailing-comma = false
 
 [tool.ruff.lint.per-file-ignores]
 "script/*" = [
-    "T20",     # print() allowed in scripts
-    "INP001",  # Implicit namespace package (scripts are not a package)
+    "T20",    # print() allowed in scripts
+    "INP001", # Implicit namespace package (scripts are not a package)
 ]
 "tests/*" = [
     "S101",    # assert is fine in tests

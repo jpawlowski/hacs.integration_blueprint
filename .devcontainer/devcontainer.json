@@ -38,6 +38,8 @@
     },
     "ghcr.io/devcontainers-extra/features/apt-packages:1": {
       "packages": [
+        "autoconf",
+        "automake",
         "bat",
         "eza",
         "fd-find",
@@ -50,9 +52,12 @@
         "jo",
         "jq",
         "libpcap-dev",
+        "libssl-dev",
+        "libtool",
         "libturbojpeg0",
         "miller",
         "moreutils",
+        "pipx",
         "ripgrep",
         "shellcheck",
         "shfmt",
@@ -81,7 +86,8 @@
         "ms-python.python",
         "ms-python.vscode-pylance",
         "ms-vscode-remote.remote-containers",
-        "redhat.vscode-yaml"
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml"
       ],
       // Please keep this file in sync with settings in .vscode/settings.default.jsonc
       "settings": {
