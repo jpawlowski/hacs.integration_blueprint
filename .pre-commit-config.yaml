@@ -83,6 +83,7 @@ repos:
         files: ^(custom_components/|tests/|script/|README\.md|CONTRIBUTING\.md|DEPENDENCIES\.md)
         pass_filenames: true
 
+      # yamllint disable rule:comments-indentation
       # Type checking with Pyright (optional, can be slow)
       # Uncomment to enable in pre-commit (recommended to use in IDE instead)
       # - id: pyright
@@ -93,3 +94,4 @@ repos:
       #   pass_filenames: true
       #   # Run manually with: pre-commit run pyright --all-files
       #   stages: [manual]
+      # yamllint enable rule:comments-indentation

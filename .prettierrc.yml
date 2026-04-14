@@ -34,4 +34,6 @@ overrides:
       tabWidth: 2
       trailingComma: "none"
 
-  # YAML would go here, but it's in .prettierignore (handled by redhat.vscode-yaml)
+# No YAML override here: Prettier has no built-in YAML formatter and ignores *.yaml/*.yml
+# by default. YAML style is enforced by yamllint (script/yaml-check) and formatted
+# interactively by the redhat.vscode-yaml VS Code extension.
