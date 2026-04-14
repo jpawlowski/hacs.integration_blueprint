@@ -41,6 +41,11 @@ if [[ -f "$_hook_file" ]]; then
 fi
 unset _hook_file
 
+# Re-install all Python dependencies whenever content changes.
+# This ensures Codespaces pre-builds have up-to-date packages after
+# requirements files or hacs.json changes are committed.
+script/setup/bootstrap
+
 # Run post-hook if present
 _hook_file="$(cd "$(dirname "$0")" && pwd)/hooks/update-content.post.sh"
 if [[ -f "$_hook_file" ]]; then

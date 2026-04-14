@@ -36,6 +36,10 @@ if [[ -f "$_hook_file" ]]; then
 fi
 unset _hook_file
 
+# Sync HACS-installed integrations to custom_components/ on every container start.
+# Refreshes symlinks in case HACS was updated or reinstalled while stopped.
+script/setup/sync-hacs
+
 # Run post-hook if present
 _hook_file="$(cd "$(dirname "$0")" && pwd)/hooks/post-start.post.sh"
 if [[ -f "$_hook_file" ]]; then
