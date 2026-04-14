@@ -25,6 +25,7 @@ from custom_components.ha_integration_domain.config_flow_handler.validators impo
 from custom_components.ha_integration_domain.const import DOMAIN, LOGGER
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.loader import async_get_loaded_integration
 
 if TYPE_CHECKING:
     from custom_components.ha_integration_domain.config_flow_handler.options_flow import IntegrationBlueprintOptionsFlow
@@ -110,12 +111,15 @@ class IntegrationBlueprintConfigFlowHandler(config_entries.ConfigFlow, domain=DO
                     data=user_input,
                 )
 
+        integration = async_get_loaded_integration(self.hass, DOMAIN)
+        assert integration.documentation is not None, "Integration documentation URL is not set in manifest.json"
+
         return self.async_show_form(
             step_id="user",
             data_schema=get_user_schema(user_input),
             errors=errors,
             description_placeholders={
-                "documentation_url": "https://github.com/jpawlowski/hacs.integration_blueprint",
+                "documentation_url": integration.documentation,
             },
         )
 
