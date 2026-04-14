@@ -347,7 +347,13 @@ custom_components/ha_integration_domain/  # Your integration code
 │   ├── options_flow.py        # Options flow (reconfigure)
 │   ├── subentry_flow.py       # Subentry flow (for multi-device setups)
 │   ├── schemas/               # Voluptuous schemas
+│   │   ├── __init__.py
+│   │   ├── config.py          # Config flow schemas
+│   │   └── options.py         # Options flow schemas
 │   └── validators/            # Input validators
+│       ├── __init__.py
+│       ├── credentials.py     # Credential validation
+│       └── sanitizers.py      # Input sanitizers
 │
 ├── entity_utils/              # Entity utilities package
 │   ├── __init__.py
@@ -355,14 +361,18 @@ custom_components/ha_integration_domain/  # Your integration code
 │   └── state_helpers.py       # State calculation helpers
 │
 ├── service_actions/           # Service action handlers package
-│   └── __init__.py            # Service action registration and handlers
+│   ├── __init__.py            # Service action registration and handlers
+│   └── example_service.py     # Example: Service action implementation
 │
 ├── utils/                     # General utilities package
-│   └── __init__.py            # Utility functions
+│   ├── __init__.py            # Utility functions
+│   ├── string_helpers.py      # String formatting utilities
+│   └── validators.py          # General validation utilities
 │
 ├── sensor/                    # Sensor platform package
 │   ├── __init__.py            # Platform setup
 │   ├── air_quality.py         # Example: Air quality sensor
+│   ├── diagnostic.py          # Example: Diagnostic sensor
 │   └── ...                    # Additional sensor entities
 │
 ├── binary_sensor/             # Binary sensor platform package
@@ -373,7 +383,8 @@ custom_components/ha_integration_domain/  # Your integration code
 │
 ├── switch/                    # Switch platform package
 │   ├── __init__.py            # Platform setup
-│   └── ...                    # Switch entities
+│   ├── example_switch.py      # Example: Switch entity
+│   └── ...                    # Additional switch entities
 │
 ├── select/                    # Select platform package
 │   ├── __init__.py            # Platform setup
@@ -401,20 +412,31 @@ custom_components/ha_integration_domain/  # Your integration code
 
 config/                        # Home Assistant configuration for development
 script/                        # Development scripts
+├── hooks/                     # Your custom pre/post hook scripts (see docs/development/CUSTOMIZATION.md)
+│   └── setup/                 # Hooks for script/setup/* scripts
+└── setup/                     # Setup & maintenance scripts
 tests/                         # Your test files (add your own!)
 .devcontainer/                 # VS Code dev container configuration
+├── hooks/                     # Your custom pre/post hook scripts (see docs/development/CUSTOMIZATION.md)
+└── post-attach.sh             # Auto-initialization trigger  ⚑ removed by initialize.sh
 docs/                          # Documentation
 ├── development/               # Developer documentation
 │   ├── ARCHITECTURE.md        # Architecture overview
 │   ├── CODESPACES.md          # Codespaces setup guide
-│   └── DECISIONS.md           # Architectural decisions
+│   ├── COPILOT_AGENT.md       # GitHub Copilot agent setup
+│   ├── CUSTOMIZATION.md       # Customization guide
+│   ├── DECISIONS.md           # Architectural decisions
+│   ├── MIGRATION.md           # Migration guide  ⚑ removed by initialize.sh
+│   └── RELEASE.md             # Release process
 └── user/                      # User documentation
-    ├── GETTING_STARTED.md     # Installation guide
-    └── CONFIGURATION.md       # Configuration guide
+    ├── CONFIGURATION.md       # Configuration guide
+    ├── EXAMPLES.md            # Usage examples
+    └── GETTING_STARTED.md     # Installation guide
 pyproject.toml                 # Python project configuration (Ruff, Pyright, pytest)
 requirements*.txt              # Python dependencies
-README.md                      # This file (blueprint documentation)
-README.template.md             # Template for your integration's README (used by initialize.sh)
+README.md                      # This file (blueprint documentation)  ⚑ replaced by initialize.sh
+README.template.md             # Template for your integration's README  ⚑ removed by initialize.sh
+initialize.sh                  # One-time setup script  ⚑ removes itself after completion
 ```
 
 **Note for new integrations:** When you run `./initialize.sh`, it will automatically replace this `README.md` with the content from `README.template.md`, customized with your integration's details.
