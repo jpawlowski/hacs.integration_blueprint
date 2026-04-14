@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Setup shell configuration for DevContainer
 # This script is idempotent and can be run multiple times safely.
 

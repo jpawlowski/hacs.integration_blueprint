@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # .devcontainer/motd: Display Message of the Day for development environment
 #

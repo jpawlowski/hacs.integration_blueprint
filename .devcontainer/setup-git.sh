@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Setup Git configuration from host (local dev) or GitHub (Codespaces)
 # This script is idempotent and can be run multiple times safely.
 
@@ -14,6 +14,12 @@ set -e
 echo "Setting up Git configuration..."
 
 _devcontainer_dir="$(cd "$(dirname "$0")" && pwd)"
+
+# Load DevContainer environment overrides (.env → .env.local, later wins).
+# Makes HA_VERSION and other vars available in this script and user hooks.
+# shellcheck source=.devcontainer/_load_env.sh
+source "$_devcontainer_dir/_load_env.sh"
+
 if [[ -f "$_devcontainer_dir/hooks/setup-git.pre.sh" ]]; then
     echo "ℹ Running hook: .devcontainer/hooks/setup-git.pre.sh"
     # shellcheck source=/dev/null
