@@ -1,6 +1,6 @@
 {
   "name": "HA ha_integration_domain Dev Container",
-  "image": "mcr.microsoft.com/devcontainers/python:3.13",
+  "image": "mcr.microsoft.com/devcontainers/base:debian",
   "postCreateCommand": "bash .devcontainer/setup-shell.sh && bash .devcontainer/setup-git.sh && script/setup/setup",
   "postAttachCommand": "bash .devcontainer/post-attach.sh",
   "containerEnv": {
@@ -26,6 +26,9 @@
     "APT_UPDATE": "0"
   },
   "features": {
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.14"
+    },
     "ghcr.io/devcontainers/features/node:1": {
       "version": "lts"
     },
