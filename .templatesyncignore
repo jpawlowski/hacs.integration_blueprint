@@ -67,6 +67,11 @@ GEMINI.md
 script/hooks/
 .devcontainer/hooks/
 
+# ── DevContainer environment overrides ───────────────────────
+# .env contains your project's HA_VERSION pin and other settings.
+# Both are user-owned; upstream changes would silently revert your pin or docs.
+.devcontainer/.env
+
 # ── Release management ───────────────────────────────────────
 # Release Please configuration is project-specific
 release-please-config.json

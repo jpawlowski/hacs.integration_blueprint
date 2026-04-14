@@ -1,29 +1,41 @@
 {
-  "name": "HA ha_integration_domain Dev Container",
+  "name": "HA ${localWorkspaceFolderBasename} Dev Container",
   "image": "mcr.microsoft.com/devcontainers/base:debian",
-  "postCreateCommand": "bash .devcontainer/setup-shell.sh && bash .devcontainer/setup-git.sh && script/setup/setup",
+  // Lifecycle hooks — execution order on first creation:
+  //   onCreateCommand → updateContentCommand → postCreateCommand → postStartCommand → postAttachCommand
+  // On subsequent starts (container stopped/restarted):
+  //   postStartCommand → postAttachCommand
+  // On client re-attach (container already running):
+  //   postAttachCommand only
+  //
+  // Each hook script sources .devcontainer/hooks/<name>.{pre,post}.sh when present.
+  //
+  // Runs once at container creation — fixes Docker volume mount point ownership.
+  "onCreateCommand": "bash .devcontainer/on-create.sh",
+  // Runs at creation and on Codespaces pre-build refreshes — use for content-dependent setup.
+  "updateContentCommand": "bash .devcontainer/update-content.sh",
+  // Runs on every container start (not on every attach) — use for per-start actions.
+  "postStartCommand": "bash .devcontainer/post-start.sh",
+  // Runs on every container creation — installs all dependencies.
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  // Runs on every client attach — detects fresh blueprints and triggers initialization.
   "postAttachCommand": "bash .devcontainer/post-attach.sh",
   "containerEnv": {
-    // Home Assistant version to install in the devcontainer.
-    // Supported values:
-    //   "latest"       → newest stable release
-    //   "beta"         → newest pre-release (alpha/beta/RC)
-    //   "YEAR.MONTH"   → latest patch for that month (e.g. "2026.4")
-    //   "YEAR.MONTH.0" → same as above (hacs.json minimum → resolved to latest patch)
-    //   "YEAR.MONTH.N" → exact stable version (e.g. "2026.4.2")
-    //   "YEAR.MONTH.NbM" → exact pre-release (e.g. "2026.4.0b1")
-    // If not set, defaults to the version in hacs.json (resolved to latest patch).
-    // "HA_VERSION": "2026.4.0",
-    // Install HACS in the Home Assistant installation
-    "HA_INSTALL_HACS": "1",
+    // Python runtime variables — must be set for ALL Python processes, including those spawned
+    // by VS Code extensions (Pylance, test runner, Ruff) that never go through our shell scripts.
+    //
+    // NOTE: .devcontainer/.env is NOT available here. containerEnv is applied by the Docker runtime
+    // at container start, while .env is sourced by lifecycle hook scripts (onCreateCommand etc.).
+    // Variables that only need to reach setup scripts belong in .devcontainer/.env, not here.
+    // Variables from .env also cannot influence DevContainer features — features are installed
+    // during image build, before the container starts and before any lifecycle hook runs.
+    //
     // Enable asyncio debug mode for easier debugging of async code
     "PYTHONASYNCIODEBUG": "1",
     // Ensure Python output is sent straight to terminal (e.g. for logging)
     "PYTHONUNBUFFERED": "1",
     // Prevent Python from writing .pyc files to disk
-    "PYTHONDONTWRITEBYTECODE": "1",
-    // Optionally update apt package lists after container creation
-    "APT_UPDATE": "0"
+    "PYTHONDONTWRITEBYTECODE": "1"
   },
   "features": {
     "ghcr.io/devcontainers/features/python:1": {
@@ -111,6 +123,9 @@
         "python.linting.pylintEnabled": false,
         "python.terminal.activateEnvironment": true,
         "python.terminal.activateEnvInCurrentTerminal": true,
+        // .devcontainer/.env uses Bash syntax (sourced by setup scripts) — not a Python dotenv file.
+        // Disable VS Code's env file injection to avoid parse errors and unexpected variable leakage.
+        "python.terminal.useEnvFile": false,
         "python.testing.pytestArgs": ["--no-cov"],
         "terminal.integrated.profiles.linux": {
           "zsh": {
@@ -175,9 +190,18 @@
     }
   },
   "mounts": [
+    // Named volume for HA Python venv: survives container rebuilds (but not "Rebuild and Clean Volumes").
+    // bootstrap already skips venv creation if the directory exists; uv pip install is fast for already-installed packages.
+    // Run "Dev Containers: Rebuild and Clean Volumes" after upgrading HA_VERSION to force a fresh install.
+    // Ownership is fixed by onCreateCommand (Docker initializes volume mount points as root).
+    // Volume name uses ${localWorkspaceFolderBasename} so each project on the host gets its own volume.
+    "source=${localWorkspaceFolderBasename}_ha_venv,target=/home/vscode/.local/ha-venv,type=volume",
+    // Named volume for uv package cache: avoids re-downloading packages when the venv is recreated (e.g. after HA upgrade).
+    // Ownership is fixed by onCreateCommand (Docker initializes volume mount points as root).
+    "source=${localWorkspaceFolderBasename}_uv_cache,target=/home/vscode/.cache/uv,type=volume",
     // Named volume for node_modules: keeps it on Container FS (not bind mount) for performance.
     // Docker manages this volume separately from the workspace — npm ci runs fast on overlay FS.
-    "source=ha_integration_domain_node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
+    "source=${localWorkspaceFolderBasename}_node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
     // Mount host gitconfig for local development (ignored in Codespaces)
     // In Codespaces, GitHub automatically configures Git with your account
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/vscode/.gitconfig.host,type=bind,consistency=cached,readonly"

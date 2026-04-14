@@ -24,6 +24,25 @@ source "$SCRIPT_DIR/../.lib/download.sh"
 # shellcheck source=script/.lib/ha_version.sh
 source "$SCRIPT_DIR/../.lib/ha_version.sh"
 
+# Load environment overrides in two layers (later layers win):
+#   .devcontainer/.env       — project-level defaults, committed to the repo
+#   .devcontainer/.env.local — user/machine-specific overrides, gitignored
+# See .devcontainer/.env.local.example for available options.
+_env_file=".devcontainer/.env"
+if [[ -f "$_env_file" ]]; then
+    log_info "Loading project overrides from .devcontainer/.env"
+    # shellcheck source=/dev/null
+    source "$_env_file"
+fi
+unset _env_file
+_env_local=".devcontainer/.env.local"
+if [[ -f "$_env_local" ]]; then
+    log_info "Loading local overrides from .devcontainer/.env.local"
+    # shellcheck source=/dev/null
+    source "$_env_local"
+fi
+unset _env_local
+
 run_hook "setup/bootstrap" "pre"
 
 if [[ ${APT_UPDATE:-"0"} == "1" ]]; then
@@ -65,9 +84,11 @@ if [[ ! -d "$VENV_PATH" ]]; then
     log_info "Creating virtual environment at $VENV_PATH"
     uv venv "$VENV_PATH"
 elif [[ ! -x "$VENV_PATH/bin/python3" ]]; then
-    # Venv exists but python3 is broken (broken symlink or missing)
+    # Venv exists but python3 is broken (broken symlink or missing).
+    # Use find instead of rm -rf: the path may be a named Docker volume mount point
+    # which cannot be removed itself — only its contents can be deleted.
     log_warning "Existing venv has broken Python interpreter - recreating"
-    rm -rf "$VENV_PATH"
+    find "$VENV_PATH" -mindepth 1 -delete
     log_info "Creating virtual environment at $VENV_PATH"
     uv venv "$VENV_PATH"
 fi
@@ -114,11 +135,40 @@ if [[ "$VENV_IS_EXTERNAL" == "true" ]]; then
             log_step "Configuring Bash to auto-activate virtual environment"
             echo "source $VENV_PATH/bin/activate" >>"$HOME/.bashrc" || log_warning "Failed to update .bashrc"
         fi
+        # Source .env files so their variables are available in every interactive terminal,
+        # equivalent to containerEnv variables set in devcontainer.json.
+        # .env.local is sourced after .env so user overrides win.
+        if ! grep -q "devcontainer/.env" "$HOME/.bashrc" 2>/dev/null; then
+            log_step "Configuring Bash to source DevContainer environment files"
+            cat >>"$HOME/.bashrc" <<'EOF'
+# DevContainer environment overrides (.env → .env.local, later wins)
+# set -a auto-exports all variables so child processes (hass, pytest, uv) see them too.
+if [ -n "$WORKSPACE_ROOT" ]; then
+    set -a
+    [ -f "$WORKSPACE_ROOT/.devcontainer/.env" ] && source "$WORKSPACE_ROOT/.devcontainer/.env"
+    [ -f "$WORKSPACE_ROOT/.devcontainer/.env.local" ] && source "$WORKSPACE_ROOT/.devcontainer/.env.local"
+    set +a
+fi
+EOF
+        fi
     fi
     if [[ -f $HOME/.zshrc ]]; then
         if ! grep -q "source $VENV_PATH/bin/activate" "$HOME/.zshrc"; then
             log_step "Configuring ZSH to auto-activate virtual environment"
             echo "source $VENV_PATH/bin/activate" >>"$HOME/.zshrc" || log_warning "Failed to update .zshrc"
+        fi
+        if ! grep -q "devcontainer/.env" "$HOME/.zshrc" 2>/dev/null; then
+            log_step "Configuring ZSH to source DevContainer environment files"
+            cat >>"$HOME/.zshrc" <<'EOF'
+# DevContainer environment overrides (.env → .env.local, later wins)
+# set -a auto-exports all variables so child processes (hass, pytest, uv) see them too.
+if [ -n "$WORKSPACE_ROOT" ]; then
+    set -a
+    [ -f "$WORKSPACE_ROOT/.devcontainer/.env" ] && source "$WORKSPACE_ROOT/.devcontainer/.env"
+    [ -f "$WORKSPACE_ROOT/.devcontainer/.env.local" ] && source "$WORKSPACE_ROOT/.devcontainer/.env.local"
+    set +a
+fi
+EOF
         fi
     fi
     set -e
@@ -135,6 +185,11 @@ if [[ -s requirements.txt ]] && grep -qv '^#' requirements.txt | grep -q '[^[:sp
     uv pip install --requirement requirements.txt
 else
     log_info "No runtime dependencies defined (this is normal for blueprints)"
+fi
+
+if [[ -f requirements.local.txt ]]; then
+    log_header "Installing local extra dependencies (requirements.local.txt)"
+    uv pip install --requirement requirements.local.txt
 fi
 
 if [[ -n "${HA_VERSION:-}" ]]; then
@@ -156,6 +211,24 @@ fi
 
 HA_CORE_BASE_URL="https://raw.githubusercontent.com/home-assistant/core/${HA_VERSION}"
 
+# Recreate the venv if the installed HA version no longer matches the target.
+# This handles the cached-volume case: the venv persists across rebuilds, so without
+# this check an HA version bump would silently run on the old installation.
+# The marker file ($VENV_PATH/.ha-version) is written after a successful install below.
+HA_VERSION_MARKER="$VENV_PATH/.ha-version"
+if [[ -f "$HA_VERSION_MARKER" ]]; then
+    CACHED_HA_VERSION=$(cat "$HA_VERSION_MARKER")
+    if [[ "$CACHED_HA_VERSION" != "$HA_VERSION" ]]; then
+        log_warning "HA version changed ($CACHED_HA_VERSION → $HA_VERSION) — recreating virtual environment"
+        # Use find instead of rm -rf: the path may be a named Docker volume mount point
+        # which cannot be removed itself — only its contents can be deleted.
+        find "$VENV_PATH" -mindepth 1 -delete
+        uv venv "$VENV_PATH"
+        # shellcheck source=/dev/null
+        source "$VENV_PATH/bin/activate"
+    fi
+fi
+
 log_header "Installing Home Assistant ${HA_VERSION} runtime dependencies"
 mkdir -p "/tmp/homeassistant"
 _download "${HA_CORE_BASE_URL}/homeassistant/package_constraints.txt" "/tmp/homeassistant/package_constraints.txt" # constraints for requirements files
@@ -170,6 +243,9 @@ uv pip install --requirement "/tmp/requirements_test.txt"
 
 log_header "Installing Home Assistant ${HA_VERSION} core"
 uv pip install "homeassistant==${HA_VERSION}"
+
+# Record the installed HA version so bootstrap can detect version changes on subsequent runs.
+echo "$HA_VERSION" >"$HA_VERSION_MARKER"
 
 set +e
 rm -rf /tmp/requirements*.txt /tmp/homeassistant/ || log_warning "Failed to clean up temporary files"
@@ -203,6 +279,11 @@ else
         log_info "Skipping pre-commit hooks (not a Git repository)"
     fi
 fi
+
+log_header "Pruning uv package cache"
+# Remove cache entries that are no longer referenced by any installed environment.
+# Safe to run after every install; avoids unbounded cache growth on the named Docker volume.
+uv cache prune --quiet
 
 run_hook "setup/bootstrap" "post"
 log_success "Bootstrap complete"

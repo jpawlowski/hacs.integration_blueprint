@@ -21,6 +21,24 @@ source "$SCRIPT_DIR/.lib/output.sh"
 # shellcheck source=script/.lib/download.sh
 source "$SCRIPT_DIR/.lib/download.sh"
 
+# Load environment overrides in two layers (later layers win):
+#   .devcontainer/.env       — project-level defaults, committed to the repo
+#   .devcontainer/.env.local — user/machine-specific overrides, gitignored
+# bootstrap also sources these files, but as a subprocess its env changes don't propagate back.
+# Sourcing here ensures HA_INSTALL_HACS and other vars are available in this script too.
+_env_file=".devcontainer/.env"
+if [[ -f "$_env_file" ]]; then
+    # shellcheck source=/dev/null
+    source "$_env_file"
+fi
+unset _env_file
+_env_local=".devcontainer/.env.local"
+if [[ -f "$_env_local" ]]; then
+    # shellcheck source=/dev/null
+    source "$_env_local"
+fi
+unset _env_local
+
 "$SCRIPT_DIR/setup/bootstrap"
 
 ensure_command_alias() {

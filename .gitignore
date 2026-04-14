@@ -20,6 +20,12 @@ node_modules/
 # AI agent temporary scratch files and planning notes
 .ai-scratch/
 
+# Local DevContainer environment overrides (user-specific, see .devcontainer/.env.local.example)
+.devcontainer/.env.local
+
+# Local extra Python dependencies (user-specific, see requirements.txt for project deps)
+requirements.local.txt
+
 # Created by https://www.toptal.com/developers/gitignore/api/linux,macos,windows,virtualenv,pythonvanilla,visualstudiocode,homeassistant
 # Edit at https://www.toptal.com/developers/gitignore?templates=linux,macos,windows,virtualenv,pythonvanilla,visualstudiocode,homeassistant
 

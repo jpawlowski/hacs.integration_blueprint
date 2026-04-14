@@ -104,6 +104,20 @@ check_if_needs_initialization() {
     return 0 # Needs initialization
 }
 
+# Load DevContainer environment overrides (.env → .env.local, later wins).
+# Makes HA_VERSION and other vars available in this script and user hooks.
+# shellcheck source=.devcontainer/_load_env.sh
+source "$(cd "$(dirname "$0")" && pwd)/_load_env.sh"
+
+# Run pre-hook if present
+_hook_file="$(cd "$(dirname "$0")" && pwd)/hooks/post-attach.pre.sh"
+if [[ -f "$_hook_file" ]]; then
+    print_info "Running hook: .devcontainer/hooks/post-attach.pre.sh"
+    # shellcheck source=/dev/null
+    source "$_hook_file"
+fi
+unset _hook_file
+
 # Main logic
 if check_if_needs_initialization; then
     print_welcome_header "🚀 Welcome to your new Home Assistant Integration!"

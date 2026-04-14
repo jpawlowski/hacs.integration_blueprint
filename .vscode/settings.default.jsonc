@@ -20,6 +20,9 @@
   "python.linting.pylintEnabled": false,
   "python.terminal.activateEnvironment": true,
   "python.terminal.activateEnvInCurrentTerminal": true,
+  // .devcontainer/.env uses Bash syntax (sourced by setup scripts) — not a Python dotenv file.
+  // Disable VS Code's env file injection to avoid parse errors and unexpected variable leakage.
+  "python.terminal.useEnvFile": false,
   "python.testing.pytestArgs": ["--no-cov"],
   "python.testing.pytestEnabled": false,
   "terminal.integrated.profiles.linux": {
