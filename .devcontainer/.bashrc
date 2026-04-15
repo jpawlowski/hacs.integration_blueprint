@@ -1,26 +1,23 @@
 # shellcheck shell=bash disable=SC2139
-# Show MOTD only once per container session
-SESSION_MARKER="/tmp/.motd_shown_$(cat /proc/sys/kernel/random/boot_id 2>/dev/null || echo 'session')"
+# Show MOTD once per container lifecycle (new container or rebuild).
+WORKSPACE_DIR=""
+if [[ -n "${VSCODE_GIT_IPC_HANDLE:-}" || -n "${CODESPACES:-}" ]]; then
+    for dir in /workspaces/* /workspace; do
+        if [[ -d "$dir" ]]; then
+            WORKSPACE_DIR="$dir"
+            break
+        fi
+    done
+fi
 
-if [ ! -f "$SESSION_MARKER" ]; then
-    # First terminal in this container session
-    touch "$SESSION_MARKER"
-
-    # Find workspace directory
-    WORKSPACE_DIR=""
-    if [ -n "$VSCODE_GIT_IPC_HANDLE" ] || [ -n "$CODESPACES" ]; then
-        # We're in VS Code/Codespaces - find workspace
-        for dir in /workspaces/* /workspace; do
-            if [ -d "$dir" ]; then
-                WORKSPACE_DIR="$dir"
-                break
-            fi
-        done
-    fi
-
-    # Show MOTD if script exists
-    if [ -n "$WORKSPACE_DIR" ] && [ -f "$WORKSPACE_DIR/.devcontainer/motd" ]; then
+if [[ -n "$WORKSPACE_DIR" && -f "$WORKSPACE_DIR/.devcontainer/motd" ]]; then
+    HOST_TOKEN="${HOSTNAME:-unknown}"
+    MOTD_MARKER_DIR="$HOME/.config/ha-devcontainer"
+    MOTD_MARKER_FILE="$MOTD_MARKER_DIR/motd-shown-${HOST_TOKEN}"
+    if [[ ! -f "$MOTD_MARKER_FILE" ]]; then
+        mkdir -p "$MOTD_MARKER_DIR"
         "$WORKSPACE_DIR/.devcontainer/motd" 2>/dev/null || true
+        touch "$MOTD_MARKER_FILE"
     fi
 fi
 

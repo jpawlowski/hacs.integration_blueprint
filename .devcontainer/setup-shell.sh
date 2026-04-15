@@ -22,10 +22,16 @@ add_custom_config() {
         return
     fi
 
-    # Check if our custom section is already added
+    # Refresh managed custom section if already present.
     if grep -q "$marker" "$rc_file" 2>/dev/null; then
-        echo "✓ Custom configuration already present in $rc_file"
-        return
+        local tmp_file
+        tmp_file=$(mktemp)
+        awk -v marker="$marker" '
+            index($0, marker) {exit}
+            {print}
+        ' "$rc_file" >"$tmp_file"
+        mv "$tmp_file" "$rc_file"
+        echo "✓ Refreshed custom configuration in $rc_file"
     fi
 
     # Add custom configuration

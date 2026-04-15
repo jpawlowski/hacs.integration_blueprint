@@ -40,6 +40,10 @@ unset _hook_file
 # Refreshes symlinks in case HACS was updated or reinstalled while stopped.
 script/setup/sync-hacs
 
+# Hide the default Codespaces first-run notice so project MOTD is the primary greeting.
+mkdir -p "$HOME/.config/vscode-dev-containers"
+touch "$HOME/.config/vscode-dev-containers/first-run-notice-already-displayed"
+
 # Run post-hook if present
 _hook_file="$(cd "$(dirname "$0")" && pwd)/hooks/post-start.post.sh"
 if [[ -f "$_hook_file" ]]; then

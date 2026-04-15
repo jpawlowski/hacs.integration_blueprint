@@ -118,6 +118,10 @@ if [[ -f "$_hook_file" ]]; then
 fi
 unset _hook_file
 
+# Hide the default Codespaces first-run notice so project MOTD stays primary.
+mkdir -p "$HOME/.config/vscode-dev-containers"
+touch "$HOME/.config/vscode-dev-containers/first-run-notice-already-displayed"
+
 # Main logic
 if check_if_needs_initialization; then
     print_welcome_header "🚀 Welcome to your new Home Assistant Integration!"
