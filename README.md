@@ -184,6 +184,7 @@ Creating a custom integration from scratch means figuring out config flows, coor
 - ✅ **Future-proof**: Compatible with Home Assistant 2026.4+ (including latest breaking changes)
 - ✅ **Modern Python**: Built for Python 3.14+ with `asyncio.timeout` (no deprecated `async_timeout`)
 - ✅ **Fast tooling**: Uses [uv](https://github.com/astral-sh/uv) for lightning-fast dependency management
+- ✅ **Fast rebuilds**: Named Docker volumes keep the Python venv _and_ uv's package cache alive across container rebuilds — no re-downloading on every `Rebuild Container`
 - ✅ **Complete test setup**: Includes `pytest-homeassistant-custom-component` for proper testing
 - ✅ **Developer-friendly**: Comprehensive scripts for development, testing, and maintenance
 - ✅ **Stays current**: Weekly automated PRs keep your project in sync with blueprint improvements — see [Customization Guide](docs/development/CUSTOMIZATION.md)
@@ -859,20 +860,21 @@ Both tools are integrated into pre-commit hooks and the dev container.
 
 While this blueprint is inspired by the original, it includes significant enhancements:
 
-| Feature                    | This Blueprint                                              | Original Blueprint           |
-| -------------------------- | ----------------------------------------------------------- | ---------------------------- |
-| **Home Assistant version** | 2026.4+ (Python 3.14 native)                                | 2026.3.x                     |
-| **Timeout handling**       | `asyncio.timeout` (modern)                                  | `async_timeout` (deprecated) |
-| **Package manager**        | uv (fast)                                                   | pip (standard)               |
-| **Development scripts**    | Comprehensive Scripts to Rule Them All                      | Basic scripts                |
-| **Test infrastructure**    | Preconfigured `pytest-homeassistant-custom-component`       | Manual test setup needed     |
-| **Type checking**          | Pyright configured                                          | Not included                 |
-| **HACS integration**       | Auto-installed in dev container                             | Manual setup                 |
-| **VS Code tasks**          | Pre-configured tasks for common operations                  | Not included                 |
-| **Package architecture**   | Organized into packages for scalability                     | Single-file platforms        |
-| **AI agent support**       | Comprehensive instructions for GitHub Copilot, Claude, etc. | Not included                 |
-| **Blueprint updates**      | Weekly PRs keep your project in sync with upstream          | No update mechanism          |
-| **Release workflow**       | Release Please + AI-assisted `script/release-notes`         | Not included                 |
+| Feature                     | This Blueprint                                                                           | Original Blueprint             |
+| --------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------ |
+| **Home Assistant version**  | 2026.4+ (Python 3.14 native)                                                             | 2026.3.x                       |
+| **Timeout handling**        | `asyncio.timeout` (modern)                                                               | `async_timeout` (deprecated)   |
+| **Package manager**         | uv (fast)                                                                                | pip (standard)                 |
+| **Container rebuild speed** | Named Docker volumes keep venv + uv cache alive across rebuilds — near-instant re-attach | Fresh install on every rebuild |
+| **Development scripts**     | Comprehensive Scripts to Rule Them All                                                   | Basic scripts                  |
+| **Test infrastructure**     | Preconfigured `pytest-homeassistant-custom-component`                                    | Manual test setup needed       |
+| **Type checking**           | Pyright configured                                                                       | Not included                   |
+| **HACS integration**        | Auto-installed in dev container                                                          | Manual setup                   |
+| **VS Code tasks**           | Pre-configured tasks for common operations                                               | Not included                   |
+| **Package architecture**    | Organized into packages for scalability                                                  | Single-file platforms          |
+| **AI agent support**        | Comprehensive instructions for GitHub Copilot, Claude, etc.                              | Not included                   |
+| **Blueprint updates**       | Weekly PRs keep your project in sync with upstream                                       | No update mechanism            |
+| **Release workflow**        | Release Please + AI-assisted `script/release-notes`                                      | Not included                   |
 
 Both blueprints share the same core concepts (config flow, coordinator, entity platforms), but this one is more closely aligned with how Home Assistant Core is developed today.
 
