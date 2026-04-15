@@ -258,6 +258,36 @@ cp .devcontainer/.env.local.example .devcontainer/.env.local
 
 ---
 
+## VS Code Settings Overrides
+
+The blueprint ships with `.vscode/settings.default.jsonc` as the shared baseline for workspace settings.
+
+If you want personal or project-local overrides without changing the devcontainer definition, copy it once to
+`.vscode/settings.json` and edit only what you want to override:
+
+```bash
+cp .vscode/settings.default.jsonc .vscode/settings.json
+```
+
+How this works in practice:
+
+- `settings.default.jsonc` stays template-managed and documents the recommended defaults.
+- `settings.json` is your override layer (for example different formatter behavior, Python path, or terminal profile).
+- This lets you customize editor behavior without having to modify `.devcontainer/devcontainer.json` for most cases.
+
+### Git and template sync behavior
+
+`settings.json` is already ignored by Git via `.gitignore` (`.vscode/*` with explicit allowlist for selected files), so it is not committed by default.
+
+You do **not** need to add `.vscode/settings.json` to `.templatesyncignore`:
+
+- Template sync only operates on tracked files in the repository.
+- Your local `settings.json` remains an untracked personal file and will not be deleted by template sync.
+
+If you intentionally want to share a tracked workspace settings file with collaborators, use `settings.default.jsonc` for that purpose.
+
+---
+
 ## Python Dependencies
 
 ### Integration runtime dependencies (`requirements.txt`)
