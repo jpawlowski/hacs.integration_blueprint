@@ -119,6 +119,9 @@ You'll need these installed locally:
   | [Rancher Desktop](https://rancherdesktop.io/)                                                                            |    ✅    |    ✅    |     ✅     | Open source by SUSE. GUI-based, uses WSL2 on Windows. Good alternative to Docker Desktop. Free.                                                                                                                                           |
   | [Colima](https://github.com/abiosoft/colima)                                                                             |    ✅    |    ✅    |     —      | CLI-only, very lightweight. Good for terminal-focused workflows. Free.                                                                                                                                                                    |
 
+  > [!NOTE]
+  > **Remote development via SSH (VS Code Remote SSH) is not supported.** Running the devcontainer on a remote host requires that host to be fully compatible with Docker devcontainers — for example, AppArmor must not restrict container operations, and the Docker daemon must be configured without restrictive security policies. These requirements are hard to guarantee on shared or managed servers. Use one of the options above instead.
+
 - **VS Code** with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
 - **Git** — macOS and Linux usually have it already; see below if not, or to get a newer version:
   - **🍎 macOS:** The system Git (`xcode-select --install`) works fine. Recommended: `brew install git` ([Homebrew](https://brew.sh/)) for a current version.
