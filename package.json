@@ -1,7 +1,7 @@
 {
-  "name": "ha-integration-blueprint-tools",
+  "name": "ha-integration-tools",
   "version": "1.0.0",
-  "description": "Development tools for the Home Assistant integration blueprint",
+  "description": "Development tools for the Home Assistant integration",
   "private": true,
   "devDependencies": {
     "@github/copilot": "1.0.24",
