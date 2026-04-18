@@ -25,6 +25,8 @@ jobs:
     # Skip when running inside the template repository itself
     if: github.repository != 'jpawlowski/hacs.integration_blueprint'
     runs-on: ubuntu-latest
+    env:
+      TEMPLATE_SYNC_TARGET_PAT: ${{ secrets.TEMPLATE_SYNC_TARGET_PAT }}
     permissions:
       contents: write
       pull-requests: write
@@ -32,12 +34,41 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          # Use PAT when configured; otherwise fall back to github.token.
+          # persist-credentials=false is recommended by actions-template-sync
+          # when a custom token is used for push operations.
+          token: ${{ env.TEMPLATE_SYNC_TARGET_PAT || github.token }}
+          persist-credentials: false
+
+      - name: Prepare runtime ignore file
+        run: |
+          cp .templatesyncignore .templatesyncignore.runtime
+
+          if [[ -z "${TEMPLATE_SYNC_TARGET_PAT:-}" ]]; then
+            {
+              echo ".github/workflows/*.yml"
+              echo ".github/workflows/*.yaml"
+            } >> .templatesyncignore.runtime
+
+            {
+              echo "### Template sync notice"
+              echo
+              echo "TEMPLATE_SYNC_TARGET_PAT is not configured."
+              echo "Workflow file updates (.github/workflows/*) are skipped for this run."
+              echo "All other template changes are still synced."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Sync from blueprint template
         uses: AndreasAugustin/actions-template-sync@v2
         with:
+          # Needed only for changes in .github/workflows/*.yml.
+          # Falls back to github.token for normal syncs.
+          target_gh_token: ${{ env.TEMPLATE_SYNC_TARGET_PAT || github.token }}
           source_repo_path: jpawlowski/hacs.integration_blueprint
           upstream_branch: main
+          template_sync_ignore_file_path: .templatesyncignore.runtime
           pr_labels: template-sync
           pr_title: "chore: sync updates from integration blueprint template"
           pr_commit_msg: "chore(template): sync blueprint updates :up:"

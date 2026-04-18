@@ -12,6 +12,43 @@ Every Monday at 07:00 UTC, the workflow checks whether the upstream blueprint (`
 
 You review the PR and merge anything you want to adopt. Changes you don't want can simply be dismissed or partially merged.
 
+### Prerequisites (important)
+
+This blueprint includes workflow files, and they are intended to sync like other template-managed files.
+Updating files under `.github/workflows/` requires extra GitHub permissions (`workflows: write`).
+Without that permission, this workflow skips only workflow-file updates for that run and still syncs all other changes.
+
+By default, this blueprint handles that gracefully:
+
+- If `TEMPLATE_SYNC_TARGET_PAT` is **not** configured, the workflow creates a temporary ignore file for that run and skips only `.github/workflows/*` updates. All other file updates are still synced.
+- If `TEMPLATE_SYNC_TARGET_PAT` **is** configured, workflow-file updates are included as well.
+
+Make sure the target repository has:
+
+- **Settings → Actions → General → Workflow permissions** set to **Read and write permissions**
+- **Allow GitHub Actions to create and approve pull requests** enabled
+- A repository secret named `TEMPLATE_SYNC_TARGET_PAT` with a PAT that has at least: `contents: write`, `pull requests: write`, `workflows: write`, `metadata: read`
+
+The template sync workflow in this blueprint is already configured to use that secret when present and to fall back to `github.token` otherwise.
+
+### Troubleshooting: workflows permission error
+
+If a sync run fails with an error like:
+
+```text
+refusing to allow a GitHub App to create or update workflow
+'.github/workflows/<file>.yml' without 'workflows' permission
+```
+
+it means the run tried to update workflow files without a token that has `workflows` permission.
+
+You have two options:
+
+1. Configure `TEMPLATE_SYNC_TARGET_PAT` as described above (recommended).
+2. Keep running without PAT and let this blueprint skip workflow-file updates automatically.
+
+When skipping happens, the workflow writes a short notice to the run summary so it is visible why workflow-file changes are not part of the sync PR.
+
 ### How conflicts are handled
 
 The sync workflow uses `-X theirs` when preparing the PR branch — **the template version always wins** when both you and upstream changed the same file. The PR is always clean and mergeable; there are no conflict markers to resolve.
