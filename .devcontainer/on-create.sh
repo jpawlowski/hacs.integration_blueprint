@@ -35,15 +35,14 @@ if [[ -f "$_hook_file" ]]; then
 fi
 unset _hook_file
 
-# Fix ownership of named volume mount points and their parent directories.
-# Docker creates both the volume mount point AND any missing parent directories
-# as root:root. This must run before postCreateCommand so pipx/uv can write.
+# Fix ownership of named volume mount points.
+# Docker creates each volume mount point as root:root when the container starts.
+# Volumes are now mounted directly under $HOME (ha-venv and uv-cache) so Docker
+# does NOT create ~/.local or ~/.cache as root — VS Code server can write there freely.
 print_info "Fixing ownership of Docker volume mount points..."
 sudo chown vscode:vscode \
-    /home/vscode/.local \
-    /home/vscode/.local/ha-venv \
-    /home/vscode/.cache \
-    /home/vscode/.cache/uv
+    /home/vscode/ha-venv \
+    /home/vscode/uv-cache
 
 # Run post-hook if present
 _hook_file="$(cd "$(dirname "$0")" && pwd)/hooks/on-create.post.sh"

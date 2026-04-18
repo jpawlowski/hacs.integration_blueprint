@@ -16,7 +16,7 @@
   "markdown.validate.fragmentLinks.enabled": "ignore",
   "python.analysis.autoImportCompletions": true,
   "python.analysis.diagnosticMode": "workspace",
-  "python.defaultInterpreterPath": "/home/vscode/.local/ha-venv/bin/python",
+  "python.defaultInterpreterPath": "/home/vscode/ha-venv/bin/python",
   "python.linting.pylintEnabled": false,
   "python.terminal.activateEnvironment": true,
   "python.terminal.activateEnvInCurrentTerminal": true,

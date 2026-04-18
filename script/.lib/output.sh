@@ -96,12 +96,14 @@ activate_venv() {
     fi
     log_header "Activating virtual environment"
     # shellcheck source=/dev/null
-    if [[ -f "$PWD/.local/ha-venv/bin/activate" ]]; then
+    if [[ -f "$HOME/ha-venv/bin/activate" ]]; then
+        source "$HOME/ha-venv/bin/activate"
+    elif [[ -f "$PWD/.local/ha-venv/bin/activate" ]]; then
         source "$PWD/.local/ha-venv/bin/activate"
     elif [[ -f "$HOME/.local/ha-venv/bin/activate" ]]; then
         source "$HOME/.local/ha-venv/bin/activate"
     else
-        log_error "Virtual environment not found in $PWD/.local/ha-venv or $HOME/.local/ha-venv"
+        log_error "Virtual environment not found. Run: script/setup/bootstrap"
         exit 1
     fi
 }

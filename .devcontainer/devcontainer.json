@@ -35,7 +35,10 @@
     // Ensure Python output is sent straight to terminal (e.g. for logging)
     "PYTHONUNBUFFERED": "1",
     // Prevent Python from writing .pyc files to disk
-    "PYTHONDONTWRITEBYTECODE": "1"
+    "PYTHONDONTWRITEBYTECODE": "1",
+    // Point uv to the named volume cache mount (avoids Docker creating ~/.cache as root).
+    // Must be set here so it reaches every process (extensions, uv, hass) from container start.
+    "UV_CACHE_DIR": "/home/vscode/uv-cache"
   },
   "features": {
     "ghcr.io/devcontainers/features/python:1": {
@@ -119,7 +122,7 @@
         "markdown.validate.fragmentLinks.enabled": "ignore",
         "python.analysis.autoImportCompletions": true,
         "python.analysis.diagnosticMode": "workspace",
-        "python.defaultInterpreterPath": "/home/vscode/.local/ha-venv/bin/python",
+        "python.defaultInterpreterPath": "/home/vscode/ha-venv/bin/python",
         "python.linting.pylintEnabled": false,
         "python.terminal.activateEnvironment": true,
         "python.terminal.activateEnvInCurrentTerminal": true,
@@ -193,12 +196,16 @@
     // Named volume for HA Python venv: survives container rebuilds (but not "Rebuild and Clean Volumes").
     // bootstrap already skips venv creation if the directory exists; uv pip install is fast for already-installed packages.
     // Run "Dev Containers: Rebuild and Clean Volumes" after upgrading HA_VERSION to force a fresh install.
+    // Mounted directly under $HOME (not ~/.local/ha-venv) so Docker does NOT create ~/.local as root,
+    // which would race with VS Code server trying to write ~/.cache/Microsoft at container start.
     // Ownership is fixed by onCreateCommand (Docker initializes volume mount points as root).
     // Volume name uses ${localWorkspaceFolderBasename} so each project on the host gets its own volume.
-    "source=${localWorkspaceFolderBasename}_ha_venv,target=/home/vscode/.local/ha-venv,type=volume",
+    "source=${localWorkspaceFolderBasename}_ha_venv,target=/home/vscode/ha-venv,type=volume",
     // Named volume for uv package cache: avoids re-downloading packages when the venv is recreated (e.g. after HA upgrade).
+    // Mounted directly under $HOME (not ~/.cache/uv) so Docker does NOT create ~/.cache as root,
+    // which would cause EACCES when VS Code server tries to mkdir ~/.cache/Microsoft at startup.
     // Ownership is fixed by onCreateCommand (Docker initializes volume mount points as root).
-    "source=${localWorkspaceFolderBasename}_uv_cache,target=/home/vscode/.cache/uv,type=volume",
+    "source=${localWorkspaceFolderBasename}_uv_cache,target=/home/vscode/uv-cache,type=volume",
     // Named volume for node_modules: keeps it on Container FS (not bind mount) for performance.
     // Docker manages this volume separately from the workspace — npm ci runs fast on overlay FS.
     "source=${localWorkspaceFolderBasename}_node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",

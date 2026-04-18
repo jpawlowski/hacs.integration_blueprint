@@ -89,7 +89,7 @@ ensure_workspace_binary_link "pyright"
 if [[ -z ${VIRTUAL_ENV:-} ]]; then
     log_header "Activating virtual environment"
     # shellcheck source=/dev/null
-    source "$HOME/.local/ha-venv/bin/activate"
+    source "$HOME/ha-venv/bin/activate"
 fi
 
 if [[ ${HA_INSTALL_HACS:-"0"} == "1" ]]; then
