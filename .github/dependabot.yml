@@ -47,7 +47,9 @@ updates:
       # Bundle all minor/patch Python dep updates into a single PR; major updates stay separate.
       # pytest-homeassistant-custom-component is intentionally excluded: it tracks HA Core releases
       # (patch = new HA version) and always gets its own PR so the coupling to hacs.json is visible.
-      # When merging its PR, also update the "homeassistant" key in hacs.json accordingly.
+      # PRs for this package are automatically closed by the dependabot-ha-stability-check workflow
+      # when the corresponding HA version is a pre-release (alpha/beta/RC). Only stable HA releases
+      # are merged. When merging its PR, also update the "homeassistant" key in hacs.json accordingly.
       python-dependencies:
         applies-to: version-updates
         update-types:

@@ -1,0 +1,101 @@
+name: Dependabot HA Stability Check
+
+# Automatically closes Dependabot PRs that bump pytest-homeassistant-custom-component
+# to a version that depends on a Home Assistant pre-release (alpha, beta, or RC).
+# Dependabot will open a new PR once a stable HA release becomes available.
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - requirements_test.txt
+
+permissions: {}
+
+jobs:
+  check-ha-stability:
+    name: Skip if HA dependency is pre-release
+    # Only run for Dependabot PRs — human PRs are never auto-closed
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Check if HA dependency is a pre-release
+        id: check
+        run: |
+          # Anchor to line start to avoid matching partial/prefixed package names
+          VERSION=$(grep -oP '^pytest-homeassistant-custom-component==\K[^\s#]+' requirements_test.txt || true)
+          if [[ -z "${VERSION}" ]]; then
+            echo "pytest-homeassistant-custom-component not found in requirements_test.txt — skipping"
+            exit 0
+          fi
+          echo "pkg_version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "Package version: ${VERSION}"
+
+          # Query PyPI and extract both the HA version and whether it is a pre-release.
+          # pytest-homeassistant-custom-component always pins homeassistant with == (exact version),
+          # so we look for that operator specifically. The pre-release check uses a lookbehind to
+          # require the PEP 440 pre-release marker (a/b/rc) to follow a digit, and allows for the
+          # optional separator (. - _) that PEP 440 permits before the marker.
+          PYPI_RESULT=$(curl -sf "https://pypi.org/pypi/pytest-homeassistant-custom-component/${VERSION}/json" \
+            | python3 -c "
+          import json, re, sys
+          data = json.load(sys.stdin)
+          reqs = data['info'].get('requires_dist') or []
+          for req in reqs:
+              # Match only pinned exact-version specifiers (PEP 508 'homeassistant==X.Y.Z...')
+              m = re.match(r'^homeassistant==(.+)', req)
+              if m:
+                  ha_version = m.group(1).strip()
+                  # PEP 440: pre-release markers (optional separator + a/b/rc + digits, or dev)
+                  is_pre = bool(re.search(r'(?<=[0-9])[._-]?(a|b|rc)[0-9]+|[._-]?dev[0-9]+', ha_version))
+                  print(ha_version)
+                  print('true' if is_pre else 'false')
+                  break
+          " || true)
+
+          HA_VERSION=$(echo "${PYPI_RESULT}" | head -1)
+          IS_PRERELEASE=$(echo "${PYPI_RESULT}" | tail -1)
+
+          if [[ -z "${HA_VERSION}" || "${HA_VERSION}" == "${IS_PRERELEASE}" ]]; then
+            echo "::warning::Could not determine HA version for pytest-homeassistant-custom-component==${VERSION} — skipping stability check"
+            exit 0
+          fi
+          echo "ha_version=${HA_VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "HA version dependency: ${HA_VERSION}"
+
+          if [[ "${IS_PRERELEASE}" == "true" ]]; then
+            echo "is_prerelease=true" >> "${GITHUB_OUTPUT}"
+            echo "Pre-release detected — PR will be closed"
+          else
+            echo "Stable release — PR may proceed"
+          fi
+
+      - name: Close PR — HA pre-release dependency detected
+        if: steps.check.outputs.is_prerelease == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HA_VERSION: ${{ steps.check.outputs.ha_version }}
+          PKG_VERSION: ${{ steps.check.outputs.pkg_version }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          {
+            printf '## ⏸️ Skipping — Home Assistant pre-release dependency\n\n'
+            printf '`pytest-homeassistant-custom-component==%s` requires **Home Assistant %s**,' \
+              "${PKG_VERSION}" "${HA_VERSION}"
+            printf ' which is a pre-release version.\n\n'
+            printf 'This PR is automatically closed to avoid pinning the integration to a beta or\n'
+            printf 'release-candidate build of Home Assistant. Dependabot will open a new PR once\n'
+            printf 'a stable Home Assistant release is available.\n\n'
+            printf '> To test against **%s** intentionally, reopen this PR manually.\n' "${HA_VERSION}"
+          } > /tmp/pr-comment.md
+
+          gh pr comment "${PR_NUMBER}" --body-file /tmp/pr-comment.md
+          gh pr close "${PR_NUMBER}"
