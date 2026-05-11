@@ -37,19 +37,19 @@ updates:
     ignore:
       # homeassistant is a transitive dependency pulled in by pytest-homeassistant-custom-component.
       # Its version must stay in sync with the "homeassistant" key in hacs.json — update that manually
-      # when bumping pytest-homeassistant-custom-component (see below).
+      # when bumping pytest-homeassistant-custom-component manually.
       - dependency-name: "homeassistant"
+      # pytest-homeassistant-custom-component releases track Home Assistant closely.
+      # Keep this pinned and bump it manually together with hacs.json "homeassistant".
+      - dependency-name: "pytest-homeassistant-custom-component"
     # Let patch releases settle 3 days, minor releases 7 days before opening a PR
     cooldown:
       semver-patch-days: 3
       semver-minor-days: 7
     groups:
       # Bundle all minor/patch Python dep updates into a single PR; major updates stay separate.
-      # pytest-homeassistant-custom-component is intentionally excluded: it tracks HA Core releases
-      # (patch = new HA version) and always gets its own PR so the coupling to hacs.json is visible.
-      # PRs for this package are automatically closed by the dependabot-ha-stability-check workflow
-      # when the corresponding HA version is a pre-release (alpha/beta/RC). Only stable HA releases
-      # are merged. When merging its PR, also update the "homeassistant" key in hacs.json accordingly.
+      # pytest-homeassistant-custom-component is intentionally excluded and ignored above,
+      # because it is updated manually together with hacs.json "homeassistant".
       python-dependencies:
         applies-to: version-updates
         update-types:

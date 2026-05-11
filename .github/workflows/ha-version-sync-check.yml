@@ -1,0 +1,30 @@
+name: HA Version Sync Check
+
+on:
+  pull_request:
+    paths:
+      - hacs.json
+      - requirements_test.txt
+      - .devcontainer/.env
+  push:
+    branches:
+      - main
+    paths:
+      - hacs.json
+      - requirements_test.txt
+      - .devcontainer/.env
+
+permissions: {}
+
+jobs:
+  check-ha-version-sync:
+    name: Ensure HA version sources are in sync
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Validate HA version sync
+        run: ./script/ha-version-sync

@@ -39,6 +39,17 @@ repos:
         files: ^(custom_components/ha_integration_domain/|schemas/yaml/|\.github/|\.pre-commit-config\.yaml|\.prettierrc\.yml)
         pass_filenames: true
 
+      # Keep HA release train in sync across all three version sources:
+      #   requirements_test.txt (pytest-homeassistant-custom-component pin)
+      #   hacs.json (homeassistant minimum)
+      #   .devcontainer/.env (HA_VERSION override, if set)
+      - id: ha-version-sync
+        name: homeassistant/pytest-homeassistant-custom-component sync
+        entry: ./script/ha-version-sync
+        language: system
+        files: ^(hacs\.json|requirements_test\.txt|\.devcontainer/\.env)$
+        pass_filenames: false
+
       # Shell script linting
       - id: shellcheck
         name: shellcheck
