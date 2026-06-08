@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
         with:
           # Use PAT when configured; otherwise fall back to github.token.
           # persist-credentials=false is recommended by actions-template-sync
