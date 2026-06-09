@@ -19,6 +19,8 @@ cd "$SCRIPT_DIR/.."
 
 # shellcheck source=script/.lib/output.sh
 source "$SCRIPT_DIR/.lib/output.sh"
+# shellcheck source=script/.lib/integration.sh
+source "$SCRIPT_DIR/.lib/integration.sh"
 
 activate_venv
 
@@ -26,7 +28,7 @@ run_hook "yaml-check" "pre"
 
 log_header "Checking YAML with yamllint"
 yamllint -c .yamllint.yml \
-    custom_components/ha_integration_domain/ \
+    "$INTEGRATION_PATH"/ \
     schemas/yaml/ \
     .github/ \
     .pre-commit-config.yaml \

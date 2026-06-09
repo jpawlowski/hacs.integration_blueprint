@@ -34,9 +34,11 @@ SCRATCH_DIR=".ai-scratch"
 COPILOT_MODEL="${COPILOT_MODEL:-claude-sonnet-4.6}"
 DIFF_MAX_BYTES="${RELEASE_NOTES_DIFF_MAX:-8000}"
 
-# Integration domain — used for path filtering
-DOMAIN="ha_integration_domain"
-COMPONENT_DIR="custom_components/$DOMAIN"
+# Integration domain — auto-detected from custom_components/
+# shellcheck source=script/.lib/integration.sh
+source "$SCRIPT_DIR/.lib/integration.sh"
+DOMAIN="$INTEGRATION_DOMAIN"
+COMPONENT_DIR="$INTEGRATION_PATH"
 
 # User-facing paths (changes here are most relevant for release notes)
 USER_FACING_PATHS=(

@@ -28,6 +28,8 @@ cd "$SCRIPT_DIR/.."
 
 # shellcheck source=script/.lib/output.sh
 source "$SCRIPT_DIR/.lib/output.sh"
+# shellcheck source=script/.lib/integration.sh
+source "$SCRIPT_DIR/.lib/integration.sh"
 
 if [[ -z ${VIRTUAL_ENV:-} ]]; then
     log_header "Activating virtual environment"
@@ -51,11 +53,11 @@ PYTEST_ARGS=()
 while [[ $# -gt 0 ]]; do
     case $1 in
     --cov)
-        COVERAGE_ARGS+=("--cov=custom_components/ha_integration_domain" "--cov-report=term-missing")
+        COVERAGE_ARGS+=("--cov=$INTEGRATION_PATH" "--cov-report=term-missing")
         shift
         ;;
     --cov-html)
-        COVERAGE_ARGS+=("--cov=custom_components/ha_integration_domain" "--cov-report=html")
+        COVERAGE_ARGS+=("--cov=$INTEGRATION_PATH" "--cov-report=html")
         shift
         ;;
     *)

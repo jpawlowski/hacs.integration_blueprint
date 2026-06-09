@@ -20,8 +20,10 @@ cd "$SCRIPT_DIR/.."
 
 # shellcheck source=script/.lib/output.sh
 source "$SCRIPT_DIR/.lib/output.sh"
+# shellcheck source=script/.lib/integration.sh
+source "$SCRIPT_DIR/.lib/integration.sh"
 
-MANIFEST="custom_components/ha_integration_domain/manifest.json"
+MANIFEST="$INTEGRATION_PATH/manifest.json"
 RP_MANIFEST=".release-please-manifest.json"
 
 require_command jq "apt-get install jq"

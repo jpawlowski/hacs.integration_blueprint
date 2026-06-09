@@ -29,6 +29,8 @@ cd "$SCRIPT_DIR/.."
 source "$SCRIPT_DIR/.lib/output.sh"
 # shellcheck source=script/.lib/ha_version.sh
 source "$SCRIPT_DIR/.lib/ha_version.sh"
+# shellcheck source=script/.lib/integration.sh
+source "$SCRIPT_DIR/.lib/integration.sh"
 
 # Configuration
 # In DevContainer/Codespaces: clone to $HOME/.local/ha-core (Container FS, off bind mount)
@@ -39,7 +41,6 @@ else
     HA_CORE_DIR=".local/ha-core"
 fi
 HA_CORE_REPO="https://github.com/home-assistant/core.git"
-INTEGRATION_PATH="custom_components/ha_integration_domain"
 
 # Kill a stalled git fetch if it transfers < 1 KB/s for 30 s
 export GIT_HTTP_LOW_SPEED_LIMIT=1024
