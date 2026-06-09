@@ -6,6 +6,9 @@ on:
       - hacs.json
       - requirements_test.txt
       - .devcontainer/.env
+      - .github/workflows/*.yml
+      - script/ha-version-sync
+      - script/setup/bootstrap
   push:
     branches:
       - main
@@ -13,6 +16,9 @@ on:
       - hacs.json
       - requirements_test.txt
       - .devcontainer/.env
+      - .github/workflows/*.yml
+      - script/ha-version-sync
+      - script/setup/bootstrap
 
 permissions: {}
 

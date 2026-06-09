@@ -5,6 +5,8 @@
 # Checks that pytest-homeassistant-custom-component (requirements_test.txt),
 # the homeassistant minimum in hacs.json, and HA_VERSION in .devcontainer/.env
 # (when explicitly set) all target the same Home Assistant release train (YYYY.M).
+# Also ensures CI workflows do not hardcode HA_VERSION pins, which could drift from
+# the canonical sources above.
 #
 # Exits non-zero when a mismatch is detected so that pre-commit and CI jobs can
 # surface the inconsistency before it reaches the main branch.
@@ -42,6 +44,21 @@ def release_train(version: str) -> str:
     """Return YYYY.M from any HA version string (stable, pre-release, or train-only)."""
     parts = version.split(".")
     return f"{parts[0]}.{parts[1]}" if len(parts) >= 2 else version  # noqa: SIM210
+
+
+def assert_no_hardcoded_ha_version(path: str) -> None:
+    """Fail when a workflow file contains a hardcoded numeric HA_VERSION assignment."""
+    text = Path(path).read_text(encoding="utf-8")
+    pinned_patterns = (
+        r"\bHA_VERSION\s*=\s*\"?\d{4}\.\d+(?:\.\d+)?(?:[ab]\d+|rc\d+)?\"?",
+        r"\bHA_VERSION\s*:\s*\"?\d{4}\.\d+(?:\.\d+)?(?:[ab]\d+|rc\d+)?\"?",
+    )
+    for pattern in pinned_patterns:
+        if re.search(pattern, text):
+            fail(
+                f"{path} contains a hardcoded HA_VERSION pin. "
+                "Read the value from hacs.json instead."
+            )
 
 
 # ── pytest-homeassistant-custom-component ───────────────────────────────────
@@ -97,12 +114,18 @@ sources: dict[str, tuple[str, str]] = {
 if env_ha is not None:
     sources[".devcontainer/.env HA_VERSION"] = (env_ha, release_train(env_ha))
 
+# ── Workflow guards ───────────────────────────────────────────────────────────
+# Keep workflows aligned by disallowing hardcoded HA_VERSION values there.
+for workflow_file in sorted(Path(".github/workflows").glob("*.yml")):
+    assert_no_hardcoded_ha_version(str(workflow_file))
+
 unique_trains = {t for _, t in sources.values()}
 if len(unique_trains) > 1:
     lines = "\n".join(f"  {name}: {ver} (train {t})" for name, (ver, t) in sources.items())
     print(
         f"HA version sync FAILED — release train mismatch:\n{lines}\n\n"
-        "Update hacs.json, requirements_test.txt, and .devcontainer/.env together.",
+        "Update hacs.json, requirements_test.txt, and .devcontainer/.env together. "
+        "If CI workflows were edited, avoid hardcoded HA_VERSION values there.",
         file=sys.stderr,
     )
     raise SystemExit(1)
