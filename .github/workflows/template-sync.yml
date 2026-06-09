@@ -30,6 +30,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      repository-projects: read # required by is_force_push_pr (gh pr edit)
 
     steps:
       - name: Checkout
@@ -72,4 +73,6 @@ jobs:
           pr_labels: template-sync
           pr_title: "chore: sync updates from integration blueprint template"
           pr_commit_msg: "chore(template): sync blueprint updates :up:"
-          is_pr_cleanup: true
+          # Reuse/update existing template-sync PRs instead of closing and recreating them.
+          is_force_push_pr: true
+          is_pr_cleanup: false
