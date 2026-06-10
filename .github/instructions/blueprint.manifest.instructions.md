@@ -4,7 +4,7 @@ applyTo: "**/manifest.json"
 
 # Manifest Instructions
 
-**Applies to:** `custom_components/ha_integration_domain/manifest.json`
+**Applies to:** `custom_components/<your_domain>/manifest.json`
 
 ## Schema Validation
 
@@ -16,14 +16,14 @@ This schema combines Home Assistant's official manifest requirements with HACS-s
 
 ```json
 {
-  "domain": "ha_integration_domain",
-  "name": "Integration Blueprint",
-  "codeowners": ["@jpawlowski"],
+  "domain": "your_domain",
+  "name": "Your Integration Title",
+  "codeowners": ["@your_github_username"],
   "config_flow": true,
-  "documentation": "https://github.com/jpawlowski/hacs.integration_blueprint",
+  "documentation": "https://github.com/your_org/your_repo",
   "integration_type": "device",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/jpawlowski/hacs.integration_blueprint/issues",
+  "issue_tracker": "https://github.com/your_org/your_repo/issues",
   "requirements": [],
   "version": "0.0.0"
 }

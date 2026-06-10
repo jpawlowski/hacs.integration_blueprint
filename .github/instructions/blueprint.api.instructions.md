@@ -59,9 +59,9 @@ applyTo: "custom_components/**/api/**/*.py, custom_components/**/coordinator/**/
 
 Define in `api/__init__.py`:
 
-- `IntegrationBlueprintApiClientError` (Base)
-- `IntegrationBlueprintApiClientCommunicationError` (Network, timeout, HTTP errors)
-- `IntegrationBlueprintApiClientAuthenticationError` (401, 403, invalid credentials)
+- `{ClassPrefix}ApiClientError` (Base)
+- `{ClassPrefix}ApiClientCommunicationError` (Network, timeout, HTTP errors)
+- `{ClassPrefix}ApiClientAuthenticationError` (401, 403, invalid credentials)
 - Optional: `ApiClientRateLimitError(retry_after)` for rate limiting
 
 **Mapping:** HTTP 401/403 → Auth, HTTP 429 → RateLimit, Timeout/ClientError → Communication

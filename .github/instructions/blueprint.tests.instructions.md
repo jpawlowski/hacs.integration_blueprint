@@ -40,7 +40,7 @@ tests/
 
 - `hass` - Mock Home Assistant instance
 - `config_entry` - `MockConfigEntry` from `pytest-homeassistant-custom-component`
-- `coordinator` - IntegrationBlueprintDataUpdateCoordinator
+- `coordinator` - The project's `DataUpdateCoordinator` instance
 - `mock_api_client` - Mocked API client
 
 **Define fixtures in `conftest.py`:** Use `MockConfigEntry` from `pytest-homeassistant-custom-component`

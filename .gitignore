@@ -20,6 +20,9 @@ node_modules/
 # AI agent temporary scratch files and planning notes
 .ai-scratch/
 
+# Runtime artifact created by the template-sync workflow (never commit)
+.templatesyncignore.runtime
+
 # Local DevContainer environment overrides (user-specific, see .devcontainer/.env.local.example)
 .devcontainer/.env.local
 

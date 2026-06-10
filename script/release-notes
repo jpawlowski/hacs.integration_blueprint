@@ -168,6 +168,10 @@ log_header "Gathering release context"
 CURRENT_VERSION=$("$SCRIPT_DIR/version")
 log_info "Current version: $CURRENT_VERSION"
 
+# Integration display name from manifest
+INTEGRATION_TITLE=$(python3 -c "import json; print(json.load(open('$COMPONENT_DIR/manifest.json')).get('name', '$DOMAIN'))" 2>/dev/null || echo "$DOMAIN")
+log_info "Integration title: $INTEGRATION_TITLE"
+
 # Find last tag (fallback to initial commit if none exists)
 LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
 if [[ -n "$LAST_TAG" ]]; then
@@ -258,7 +262,7 @@ Write: "You can now...", "Your automations will...", "The setup wizard now..."
   ✅ "Fixed: Sensor data could show incorrect values when switching to/from daylight saving time"
 
 **Rule 4 — New features: lead with what the user can DO.**
-  ❌ "Add IntegrationBlueprintFanSpeedSensor with EntityDescription"
+  ❌ "Add {ClassPrefix}FanSpeedSensor with EntityDescription"
   ✅ "New sensor shows your device's current fan speed on your dashboard"
 
 **Rule 5 — Refactoring without user impact: omit completely.**
@@ -322,7 +326,7 @@ PROMPT_HEADER
 
 ## Context
 
-This is a Home Assistant custom integration called 'Integration Blueprint'.
+This is a Home Assistant custom integration called '${INTEGRATION_TITLE:-${DOMAIN}}'.
 Domain: $DOMAIN
 Current version: $CURRENT_VERSION
 

@@ -74,7 +74,7 @@ Understanding the relationship between these components is essential:
 2. User enters host/credentials → **Data Entry Flow** validates and collects input
 3. `ConfigEntry` created with data/options → stored in `.storage/core.config_entries`
 4. `async_setup_entry()` runs → creates runtime objects (client, coordinator)
-5. `entry.runtime_data = IntegrationBlueprintData(...)` → stores runtime objects (from `data.py`)
+5. `entry.runtime_data = {ClassPrefix}Data(...)` → stores runtime objects (from `data.py`)
 6. Integration operates using `entry.runtime_data.coordinator`, `entry.runtime_data.client`
 
 ## Data Entry Flow Fundamentals

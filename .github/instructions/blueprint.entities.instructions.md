@@ -8,19 +8,19 @@ applyTo: "custom_components/**/alarm_control_panel/**/*.py, custom_components/**
 
 ## Shared Infrastructure
 
-- **`entity/`** - Base entity classes (inherit `IntegrationBlueprintEntity` from `entity/base.py`)
+- **`entity/`** - Base entity classes (inherit the integration's base entity class from `entity/base.py`)
 - **`entity_utils/`** - Shared utilities (device info, state helpers) used by 3+ entity classes
 - **`coordinator/`** - Data fetching (entities never call API directly)
 
 ## Base Entity Inheritance
 
-**MUST inherit from:** `(PlatformEntity, IntegrationBlueprintEntity)` - order matters for MRO
+**MUST inherit from:** `(PlatformEntity, {ClassPrefix}Entity)` — the integration's base entity class from `..entity`, order matters for MRO
 
 **Base class provides:** Coordinator integration, device info, unique ID (`{entry_id}_{description.key}`), attribution, entity naming
 
 **You implement:** Platform-specific properties/methods (`native_value`, `is_on`, `async_press`, etc.)
 
-**Imports pattern:** `from homeassistant.components.PLATFORM import PlatformEntity, PlatformEntityDescription` + `from ..entity import IntegrationBlueprintEntity`
+**Imports pattern:** `from homeassistant.components.PLATFORM import PlatformEntity, PlatformEntityDescription` + `from ..entity import {ClassPrefix}Entity`
 
 **Constructor:** Call `super().__init__(coordinator, entity_description)` - base handles setup
 
@@ -106,7 +106,7 @@ applyTo: "custom_components/**/alarm_control_panel/**/*.py, custom_components/**
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from ..coordinator import IntegrationBlueprintDataUpdateCoordinator
+    from ..coordinator import {ClassPrefix}DataUpdateCoordinator
 ```
 
 ## PARALLEL_UPDATES
