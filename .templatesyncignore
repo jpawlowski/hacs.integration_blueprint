@@ -60,6 +60,7 @@ DEPENDENCIES.md
 # URL, etc.). The path-specific *.instructions.md files under .github/instructions/
 # use generic placeholders and ARE safely synced from the template.
 AGENTS.md
+CODEX.md
 CLAUDE.md
 GEMINI.md
 .github/copilot-instructions.md
