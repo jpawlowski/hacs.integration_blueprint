@@ -220,9 +220,22 @@ if [[ -f "$HA_VERSION_MARKER" ]]; then
     CACHED_HA_VERSION=$(cat "$HA_VERSION_MARKER")
     if [[ "$CACHED_HA_VERSION" != "$HA_VERSION" ]]; then
         log_warning "HA version changed ($CACHED_HA_VERSION → $HA_VERSION) — recreating virtual environment"
+        # Leave the environment before deleting it. Otherwise Bash may keep the
+        # venv's uv executable cached and try to run it after it has been removed.
+        if declare -F deactivate >/dev/null 2>&1; then
+            deactivate
+        fi
         # Use find instead of rm -rf: the path may be a named Docker volume mount point
         # which cannot be removed itself — only its contents can be deleted.
         find "$VENV_PATH" -mindepth 1 -delete
+        hash -r
+        # uv may previously have existed only inside the removed venv (for
+        # example when bootstrap was started from an activated local venv).
+        if ! command -v uv >/dev/null 2>&1; then
+            log_info "UV not found outside the removed venv, installing..."
+            pipx install uv
+            hash -r
+        fi
         uv venv "$VENV_PATH"
         # shellcheck source=/dev/null
         source "$VENV_PATH/bin/activate"
