@@ -14,7 +14,7 @@
 # HA Core uses mypy; this blueprint uses the Node.js pyright package via package.json
 
 # Better logging for development scripts
-colorlog==6.10.1
+colorlog==6.11.0
 
 # Performance optimizations (optional but recommended for faster development)
 # These speed up Home Assistant's startup and runtime
