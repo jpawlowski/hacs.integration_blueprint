@@ -34,3 +34,5 @@ Consult the relevant instruction file when working on specific file types:
 - `blueprint.api.instructions.md` — API client, exception hierarchy
 - `blueprint.services_yaml.instructions.md` — Service action definitions
 - `blueprint.translations.instructions.md` — Translation file structure
+- `blueprint.commit-message.instructions.md` — Conventional Commits format (applies to
+  every commit, not to a file glob)
