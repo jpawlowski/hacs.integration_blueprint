@@ -6,6 +6,11 @@
       "always",
       ["feat", "fix", "chore", "refactor", "docs", "test", "ci", "perf"]
     ],
+    "scope-enum": [
+      2,
+      "never",
+      ["feat", "fix", "chore", "refactor", "docs", "test", "ci", "perf"]
+    ],
     "header-max-length": [2, "always", 72],
     "subject-full-stop": [2, "never", "."],
     "subject-case": [
