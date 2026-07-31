@@ -9,6 +9,11 @@
 # to the standard location at $HOME/.local/ha-venv.
 # Node hooks use ./node_modules/.bin/ (installed via npm install).
 #
+# Install both hook types with a plain `pre-commit install` — without this,
+# the commit-msg hook below would need an explicit --hook-type flag and would
+# silently never run for anyone who forgot it.
+default_install_hook_types: [pre-commit, commit-msg]
+
 repos:
   - repo: local
     hooks:
@@ -92,6 +97,16 @@ repos:
         types_or: [python, markdown, rst]
         exclude_types: [csv, json, html]
         files: ^(custom_components/|tests/|script/|README\.md|CONTRIBUTING\.md|DEPENDENCIES\.md)
+        pass_filenames: true
+
+      # Commit message linting (Conventional Commits)
+      # release-please derives the version bump and CHANGELOG from these
+      # subjects, so a malformed message produces a wrong release.
+      - id: commitlint
+        name: commitlint
+        entry: bash -c 'if [[ -x "./node_modules/.bin/commitlint" ]]; then ./node_modules/.bin/commitlint --edit "$1"; exit $?; fi; echo "⚠️  Skipping commitlint (npm not ready)"; exit 0' --
+        language: system
+        stages: [commit-msg]
         pass_filenames: true
 
       # yamllint disable rule:comments-indentation

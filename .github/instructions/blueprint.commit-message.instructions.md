@@ -1,4 +1,5 @@
 ---
+applyTo: "**"
 name: "Commit Message Conventions"
 description: "Conventional Commits format for this Home Assistant integration project"
 ---
@@ -44,6 +45,14 @@ Scope is optional but clarifies the affected component. Use the name of the affe
 - **Layers:** `coordinator`, `api`, `entity`, `config-flow`, `service-actions`, `entity-utils`
 - **System:** `diagnostics`, `repairs`, `manifest`, `translations`, `deps`, `devcontainer`, `tests`
 
+A scope names the affected _component_, never a change _category_. Using a type
+name as a scope is rejected by commitlint (`scope-enum`), because it publishes
+the change in the wrong changelog section: `feat(ci): …` lands under "Features"
+as if it were user-facing, while the `ci` **type** is `hidden` in
+`release-please-config.json`. Pipeline and tooling work takes the `ci` or
+`chore` type — `ci: enable brands validation`, not
+`feat(ci): enable brands validation`.
+
 ## Rules
 
 1. **Always analyze the full staged diff** — every modified file must be accounted for
@@ -53,6 +62,7 @@ Scope is optional but clarifies the affected component. Use the name of the affe
 5. Body: blank line between subject and body; use bullet points, not prose
 6. Breaking changes: add `BREAKING CHANGE:` footer **and** warn the developer before implementing
 7. Multiple unrelated changes → separate commits, not one large commit
+8. **Never use a type name as a scope** — `ci: …`, not `feat(ci): …` (see Scopes)
 
 ## Examples
 
