@@ -22,7 +22,7 @@
 pre-commit==4.6.1
 
 # Better logging for development scripts
-colorlog==6.11.0
+colorlog==6.12.0
 
 # Performance optimizations (optional but recommended for faster development)
 # These speed up Home Assistant's startup and runtime
