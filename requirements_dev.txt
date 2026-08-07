@@ -5,7 +5,6 @@
 #   - ruff (linting and formatting) via requirements_test_pre_commit.txt
 #   - mypy-dev (type checking - we use pyright instead)
 #   - codespell (spell checking) via requirements_test_pre_commit.txt
-#   - pre-commit (hook framework)
 #   - pylint (linting)
 #
 # Install with: uv pip install -r requirements_dev.txt
@@ -13,8 +12,17 @@
 # Type Checking
 # HA Core uses mypy; this blueprint uses the Node.js pyright package via package.json
 
+# Git hook framework
+# Declared explicitly on purpose: HA Core does NOT ship pre-commit. As of
+# HA 2026.4 its requirements_test.txt pins `prek` (a Rust reimplementation)
+# instead, so relying on HA to provide the hook framework silently left
+# `pre-commit install` failing in script/setup/bootstrap and no hooks
+# installed at all. .pre-commit-config.yaml targets pre-commit, so the
+# blueprint owns this dependency itself.
+pre-commit==4.6.1
+
 # Better logging for development scripts
-colorlog==6.10.1
+colorlog==6.12.0
 
 # Performance optimizations (optional but recommended for faster development)
 # These speed up Home Assistant's startup and runtime

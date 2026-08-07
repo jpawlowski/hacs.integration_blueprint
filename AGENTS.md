@@ -186,6 +186,7 @@ As an AI agent, **aim for Silver or Gold Quality Scale** when generating code:
 - `.github/instructions/blueprint.yaml.instructions.md` - YAML structure and HA-specific patterns
 - `.github/instructions/blueprint.json.instructions.md` - JSON formatting and schema validation
 - `.github/instructions/blueprint.shell.instructions.md` - Shell script style, shfmt, shellcheck
+- `.github/instructions/blueprint.commit-message.instructions.md` - Conventional Commits, enforced by the commitlint hook
 
 **GitHub Copilot users:** These instruction files are automatically provided based on file type.
 
