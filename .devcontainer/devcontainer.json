@@ -144,6 +144,10 @@
         "chat.agent.sandbox.enabled": "off",
         // Keep explicit compatibility with terminal-tool specific setting variants.
         "chat.tools.terminal.sandbox.enabled": false,
+        // Default to "Allow all" style permissions for chat tools in this devcontainer.
+        "chat.tools.global.autoApprove": true,
+        // Claude Code extension-specific equivalent of broad auto permissions.
+        "claudeCode.initialPermissionMode": "bypassPermissions",
         "yaml.customTags": [
           "!secret scalar",
           "!include scalar",
