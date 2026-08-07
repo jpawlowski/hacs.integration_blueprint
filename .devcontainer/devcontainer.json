@@ -67,6 +67,7 @@
         "ipython3",
         "jo",
         "jq",
+        "just",
         "libpcap-dev",
         "libssl-dev",
         "libtool",
