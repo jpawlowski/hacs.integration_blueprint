@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from custom_components.ha_integration_domain.entity import IntegrationBlueprintEntity
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorEntityDescription, SensorStateClass
-from homeassistant.const import CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+from homeassistant.const import UnitOfDensity
 
 if TYPE_CHECKING:
     from custom_components.ha_integration_domain.coordinator import IntegrationBlueprintDataUpdateCoordinator
@@ -28,8 +28,8 @@ ENTITY_DESCRIPTIONS = (
         icon="mdi:molecule",
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.PM25,
-        native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
-        suggested_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+        native_unit_of_measurement=UnitOfDensity.MICROGRAMS_PER_CUBIC_METER,
+        suggested_unit_of_measurement=UnitOfDensity.MICROGRAMS_PER_CUBIC_METER,
         suggested_display_precision=1,
         has_entity_name=True,
     ),

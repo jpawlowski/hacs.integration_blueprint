@@ -14,7 +14,7 @@
 
 # Git hook framework
 # Declared explicitly on purpose: HA Core does NOT ship pre-commit. As of
-# HA 2026.4 its requirements_test.txt pins `prek` (a Rust reimplementation)
+# Current HA test requirements pin `prek` (a Rust reimplementation)
 # instead, so relying on HA to provide the hook framework silently left
 # `pre-commit install` failing in script/setup/bootstrap and no hooks
 # installed at all. .pre-commit-config.yaml targets pre-commit, so the

@@ -1,13 +1,13 @@
 # Home Assistant Integration Blueprint
 
-[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.4%2B-blue.svg)](https://www.home-assistant.io/)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.8%2B-blue.svg)](https://www.home-assistant.io/)
 [![Python](https://img.shields.io/badge/python-3.14%2B-blue.svg)](https://www.python.org/)
 [![AI Agent Ready](https://img.shields.io/badge/AI%20Agent-Ready-purple.svg)](#ai-agent-support)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A modern blueprint for creating Home Assistant custom integrations, based on [ludeeus/integration_blueprint](https://github.com/ludeeus/integration_blueprint) but closely aligned with **Home Assistant Core development practices**.
 
-This blueprint is designed to work with **Home Assistant 2026.4+** and includes all the patterns and tooling you need to build a professional integration without reinventing the wheel.
+This blueprint is designed to work with **Home Assistant 2026.8+** and includes all the patterns and tooling you need to build a professional integration without reinventing the wheel.
 
 > [!IMPORTANT]
 > **Use the template — don't fork!**
@@ -184,7 +184,7 @@ Creating a custom integration from scratch means figuring out config flows, coor
 **What makes this blueprint different:**
 
 - ✅ **Core-aligned development**: Follows Home Assistant Core patterns and tooling conventions
-- ✅ **Future-proof**: Compatible with Home Assistant 2026.4+ (including latest breaking changes)
+- ✅ **Future-proof**: Compatible with Home Assistant 2026.8+ (including latest breaking changes)
 - ✅ **Modern Python**: Built for Python 3.14+ with `asyncio.timeout` (no deprecated `async_timeout`)
 - ✅ **Fast tooling**: Uses [uv](https://github.com/astral-sh/uv) for lightning-fast dependency management
 - ✅ **Fast rebuilds**: Named Docker volumes keep the Python venv _and_ uv's package cache alive across container rebuilds — no re-downloading on every `Rebuild Container`
@@ -693,7 +693,7 @@ The API client is organized in the [`api/`](custom_components/ha_integration_dom
 
 **Modern patterns:**
 
-- Uses `asyncio.timeout` instead of deprecated `async_timeout` (required for HA 2026.4+)
+- Uses `asyncio.timeout` instead of deprecated `async_timeout`
 - Proper async/await throughout
 - Custom exception classes for different error types
 - Type hints for better IDE support
@@ -717,7 +717,7 @@ The [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json) configu
 - Node.js LTS (for frontend development if needed)
 - GitHub CLI pre-installed
 - All VS Code extensions configured (Python, Ruff, YAML, etc.)
-- Home Assistant 2026.4+ automatically installed
+- Home Assistant 2026.8+ automatically installed
 - HACS pre-installed and configured
 - Automatic port forwarding for Home Assistant (port 8123)
 
@@ -866,7 +866,7 @@ While this blueprint is inspired by the original, it includes significant enhanc
 
 | Feature                     | This Blueprint                                                                           | Original Blueprint             |
 | --------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------ |
-| **Home Assistant version**  | 2026.4+ (Python 3.14 native)                                                             | 2026.3.x                       |
+| **Home Assistant version**  | 2026.8+ (Python 3.14 native)                                                             | 2026.3.x                       |
 | **Timeout handling**        | `asyncio.timeout` (modern)                                                               | `async_timeout` (deprecated)   |
 | **Package manager**         | uv (fast)                                                                                | pip (standard)                 |
 | **Container rebuild speed** | Named Docker volumes keep venv + uv cache alive across rebuilds — near-instant re-attach | Fresh install on every rebuild |

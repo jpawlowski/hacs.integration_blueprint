@@ -12,8 +12,8 @@
 #   "latest"          → newest stable release on PyPI
 #   "beta"            → newest pre-release (alpha/beta/RC) on PyPI
 #   "YEAR.MONTH"      → latest stable patch for that month on PyPI
-#   "YEAR.MONTH.N"    → returned as-is (explicit stable pin, e.g. 2026.4.0, 2026.4.2)
-#   "YEAR.MONTH.NbM"  → returned as-is (explicit pre-release pin, e.g. 2026.4.0b1)
+#   "YEAR.MONTH.N"    → returned as-is (explicit stable pin, e.g. 2026.8.0, 2026.8.2)
+#   "YEAR.MONTH.NbM"  → returned as-is (explicit pre-release pin, e.g. 2026.8.0b1)
 #   "YEAR.MONTH.NrcM" → returned as-is (explicit release-candidate pin)
 #
 # Note: Callers that wish to treat YEAR.MONTH.0 as "latest patch" (e.g. when
@@ -88,12 +88,12 @@ print(sorted(versions, key=key)[-1] if versions else "")
 # Returns 1 and logs an error if PyPI resolution fails.
 #
 # Usage:
-#   resolve_ha_version HA_VERSION "2026.4"      # → e.g., "2026.4.3"
-#   resolve_ha_version HA_VERSION "2026.4.0"    # → "2026.4.0" (no-op, explicit pin)
+#   resolve_ha_version HA_VERSION "2026.8"      # → e.g., "2026.8.3"
+#   resolve_ha_version HA_VERSION "2026.8.0"    # → "2026.8.0" (no-op, explicit pin)
 #   resolve_ha_version HA_VERSION "latest"      # → newest stable release
 #   resolve_ha_version HA_VERSION "beta"        # → newest pre-release (a/b/rc)
-#   resolve_ha_version HA_VERSION "2026.4.3"    # → "2026.4.3" (no-op)
-#   resolve_ha_version HA_VERSION "2026.4.0b1"  # → "2026.4.0b1" (no-op)
+#   resolve_ha_version HA_VERSION "2026.8.3"    # → "2026.8.3" (no-op)
+#   resolve_ha_version HA_VERSION "2026.8.0b1"  # → "2026.8.0b1" (no-op)
 resolve_ha_version() {
     # shellcheck disable=SC2178  # intentional nameref assignment
     local -n _rha_result="$1"
@@ -137,7 +137,7 @@ sys.stdout.write("\n".join(pre))
     # "YEAR.MONTH" (no patch component) → latest stable patch for that minor
     if [[ "$version" =~ ^[0-9]{4}\.[0-9]+$ ]]; then
         local minor_prefix
-        minor_prefix="${version}." # "2026.4" → "2026.4."
+        minor_prefix="${version}." # "2026.8" → "2026.8."
         log_info "Resolving latest patch for Home Assistant ${minor_prefix%.} via PyPI..."
         _pypi_populate_cache || return 1
         resolved=$(printf '%s' "$_PYPI_JSON_CACHE" |
@@ -160,6 +160,6 @@ print(versions[-1] if versions else "")
     fi
 
     # Explicit version (pinned stable or pre-release) → pass through unchanged
-    # Examples: "2026.4.3", "2026.4.0b1", "2026.4.0rc2"
+    # Examples: "2026.8.3", "2026.8.0b1", "2026.8.0rc2"
     _rha_result="$version"
 }

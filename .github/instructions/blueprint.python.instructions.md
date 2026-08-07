@@ -134,7 +134,7 @@ See [Integration Setup Failures](https://developers.home-assistant.io/docs/integ
 **Units of Measurement:**
 
 - Always use constants from `homeassistant.const` - Never hardcode strings
-- Examples: `CONCENTRATION_MICROGRAMS_PER_CUBIC_METER`, `PERCENTAGE`, `UnitOfTime.HOURS`
+- Examples: `UnitOfDensity.MICROGRAMS_PER_CUBIC_METER`, `PERCENTAGE`, `UnitOfTime.HOURS`
 - Construct compound units if no combined constant exists: `f"{UnitOfLength.METERS}/{UnitOfTime.SECONDS}"`
 
 **Time and Timestamps:**

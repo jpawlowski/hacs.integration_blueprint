@@ -262,7 +262,7 @@ The devcontainer setup can be customized through environment variable files with
 Values in `.env.local` always win over `.env`. Both files use standard shell variable syntax:
 
 ```bash
-HA_VERSION=2026.4
+HA_VERSION=2026.8
 HA_INSTALL_HACS=1
 APT_UPDATE=0
 ```
@@ -273,7 +273,7 @@ After changing either file, run **Dev Containers: Rebuild Container** to apply.
 
 | Variable          | Default                  | Description                                                                                                     |
 | ----------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| `HA_VERSION`      | version from `hacs.json` | Home Assistant version to install. Accepts `latest`, `beta`, `YEAR.MONTH`, or an exact version like `2026.4.2`. |
+| `HA_VERSION`      | version from `hacs.json` | Home Assistant version to install. Accepts `latest`, `beta`, `YEAR.MONTH`, or an exact version like `2026.8.2`. |
 | `HA_INSTALL_HACS` | `1`                      | Set to `0` to skip HACS installation (speeds up first-time setup).                                              |
 | `APT_UPDATE`      | `0`                      | Set to `1` to run `apt-get update && apt-get upgrade` during setup.                                             |
 

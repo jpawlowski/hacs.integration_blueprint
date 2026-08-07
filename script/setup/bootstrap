@@ -204,7 +204,7 @@ else
         exit 1
     fi
     if [[ "$HA_VERSION" =~ ^[0-9]{4}\.[0-9]+\.0$ ]]; then
-        HA_VERSION="${HA_VERSION%.*}" # "2026.4.0" → "2026.4" → latest patch
+        HA_VERSION="${HA_VERSION%.*}" # "2026.8.0" → "2026.8" → latest patch
     fi
     resolve_ha_version HA_VERSION "$HA_VERSION"
 fi
