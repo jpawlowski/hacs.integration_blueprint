@@ -65,6 +65,12 @@ CLAUDE.md
 GEMINI.md
 .github/copilot-instructions.md
 
+# ── Project governance ────────────────────────────────────────
+# Shipped once with the blueprint, then owned by the integration maintainer.
+# Template sync must not silently change contribution or AI policies.
+AI_POLICY.md
+.github/pull_request_template.md
+
 # ── GitHub project settings ──────────────────────────────────
 # Ownership, funding, and other per-project settings
 .github/CODEOWNERS

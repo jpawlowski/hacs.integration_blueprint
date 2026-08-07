@@ -21,6 +21,7 @@ Fixes #(issue)
 ## Checklist
 
 - [ ] I have read the `CONTRIBUTING.md` document
+- [ ] I have accurately described the extent of human review, automated testing, and real-world testing
 - [ ] My code follows the code style of this project (run `script/lint`)
 - [ ] I have updated the documentation accordingly
 - [ ] I have updated the translations if needed
@@ -28,6 +29,16 @@ Fixes #(issue)
 ## Testing
 
 <!-- Please describe how you tested your changes -->
+
+### Verification context
+
+<!-- Complete this section for AI-assisted, experimental, or behavior-changing contributions. -->
+
+- AI assistance: none / limited / substantial / predominant
+- Human review: complete / partial / spot-checked / not performed
+- Automated tests: [describe or state "not performed"]
+- Real-device or service testing: [describe or state "not performed"]
+- Known untested areas or limitations: [describe or state "none known"]
 
 ## Screenshots (if applicable)
 

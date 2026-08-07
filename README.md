@@ -53,7 +53,7 @@ Both options use the same DevContainer setup, so your code and workflow are iden
 
 **🤖 Optional: Initialize with Copilot Coding Agent**
 
-After clicking "Create repository", GitHub may offer an optional prompt field for **[Copilot Coding Agent](https://github.com/copilot/agents)**. You can use this to automatically initialize your integration (500 character limit):
+After clicking "Create repository", GitHub may offer an optional prompt field for **[Copilot Coding Agent](https://github.com/copilot/agents)**. You can use this to have an agent prepare the initial changes for your review (500 character limit):
 
 ```markdown
 Run ./initialize.sh with: --domain <domain> --title "<Title>" --namespace "<Prefix>" --repo <owner/repo> --author "<Name>" --force
@@ -72,6 +72,7 @@ Verify: custom_components/<domain>/ exists, manifest.json correct, README.md upd
 **Example:** `--domain my_device --title "My Device" --repo user/hacs-my-device --author "John Doe" --force`
 
 The agent uses `AGENTS.md` and `.github/copilot-instructions.md` for guidance and runs `./script/check` for validation.
+Its pull request is a draft: review the diff and accurately document automated and real-device testing before merging.
 
 **Manual initialization?** Continue with Option 1 or Option 2 below.
 
@@ -757,7 +758,7 @@ This blueprint is optimized for development with AI coding assistants like **Git
 - ✅ **Home Assistant patterns** - Follows Core development standards automatically
 - ✅ **Context-aware** - File-specific instructions ensure appropriate patterns
 - ✅ **Faster development** - Less iteration, more productive sessions
-- ✅ **Autonomous initialization** - Copilot Coding Agent can initialize projects from template
+- ✅ **Agent-assisted initialization** - Copilot Coding Agent prepares a project for human review
 
 **Using Copilot Coding Agent:**
 
@@ -765,7 +766,8 @@ When creating a new repository from this template, you can provide initializatio
 
 1. Click "Use this template" on GitHub
 2. In the optional prompt field, provide your integration details (domain, title, repository)
-3. The agent will run `initialize.sh` in unattended mode and create a pull request
+3. The agent will run `initialize.sh` in unattended mode and create a draft pull request
+4. Review the changes and record what was checked, automatically tested, and tested with a real device or service
 
 See [`docs/development/COPILOT_AGENT.md`](docs/development/COPILOT_AGENT.md) for detailed instructions and example prompts.
 
@@ -956,9 +958,14 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Built with AI
 
-This blueprint was developed with significant assistance from AI coding assistants (GitHub Copilot, Claude). We believe in transparency about AI usage in open-source projects. The comprehensive AI agent instructions included in this repository ([`AGENTS.md`](AGENTS.md), `.github/instructions/`) reflect our experience and best practices for AI-assisted development.
+This blueprint was developed with significant assistance from AI coding assistants (GitHub Copilot, Claude). We believe
+that community integrations may benefit from extensive AI assistance when their actual review, testing, limitations,
+and maturity are communicated honestly. See our [`AI_POLICY.md`](AI_POLICY.md) for the distinction between community
+custom integrations and contributions to Home Assistant Core.
 
-If you're using AI assistants for your integration, these instructions will help ensure consistent, high-quality code generation that follows Home Assistant Core patterns.
+The comprehensive AI agent instructions included in this repository ([`AGENTS.md`](AGENTS.md),
+`.github/instructions/`) help humans and agents produce inspectable code using Home Assistant Core patterns and
+automated quality checks. These safeguards improve verifiability but do not guarantee correctness.
 
 ---
 

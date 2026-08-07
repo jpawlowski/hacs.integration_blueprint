@@ -383,7 +383,20 @@ You'll need these installed locally:
 ## 🤖 AI-Assisted Development
 
 > [!NOTE]
-> **Transparency Notice:** This integration was developed with assistance from AI coding agents (GitHub Copilot, Claude, and others). While the codebase follows Home Assistant Core standards, AI-generated code may not be reviewed or tested to the same extent as manually written code. AI tools were used to generate boilerplate code, implement standard integration features (config flow, coordinator, entities), ensure code quality and type safety, and write documentation. If you encounter unexpected behavior, please [open an issue](../../issues) on GitHub.
+> **Transparency Notice:** This integration was developed with assistance from AI coding agents (GitHub Copilot,
+> Claude, and others). AI assistance by itself neither guarantees nor rules out software quality. To make an informed
+> installation decision, review the project's stated maturity, known limitations, automated test coverage, real-device
+> testing, and the extent of human review. The maintainer should replace the fields below with accurate project-specific
+> details rather than implying checks that were not performed. See the blueprint's [`AI_POLICY.md`](AI_POLICY.md) for
+> guidance.
+>
+> - **AI assistance:** limited / substantial / predominant
+> - **Human review:** complete / partial / spot-checked / not performed
+> - **Automated tests:** [describe or state "not performed"]
+> - **Real-device or service testing:** [describe or state "not performed"]
+> - **Maturity and known limitations:** [describe]
+>
+> If you encounter unexpected behavior, please [open an issue](../../issues) on GitHub.
 >
 > _This section can be removed or modified if AI assistance was not used in your integration's development._
 

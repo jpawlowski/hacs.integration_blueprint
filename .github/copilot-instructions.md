@@ -4,6 +4,10 @@
 >
 > **Why two files?** This file is loaded automatically by GitHub Copilot. `AGENTS.md` serves non-Copilot agents (Claude Code, Cursor, etc.) who don't read this file. Some overlap is intentional. Path-specific `*.instructions.md` files provide detailed patterns per file type — avoid duplicating their content here.
 
+> **AI policy:** Read [`AI_POLICY.md`](../AI_POLICY.md). Extensive AI assistance is permitted, but never overstate human
+> review, automated coverage, or real-device testing. Treat publication material as a draft for human review and follow
+> the rules of the destination repository.
+
 ## Project Identity
 
 - **Domain:** `ha_integration_domain`
@@ -65,7 +69,9 @@ Generate code that passes these checks on first run. As an AI agent, you should 
 5. **Validation:** run `script/check` before considering task complete
 6. **File size:** keep files at ~200-400 lines. Split large modules into smaller ones when needed.
 
-**Important: Do NOT write tests unless explicitly requested.** Focus on implementing functionality. The developer decides when and if tests are needed.
+**Testing expectation:** For behavioral changes and regressions, assess the need for proportionate automated tests and add
+them where they provide meaningful verification. If tests are impractical or intentionally omitted, document the reason
+and remaining risk. Documentation-only, formatting-only, and other non-runtime changes do not require new tests.
 
 **Translation strategy:**
 

@@ -69,6 +69,13 @@ If you're using GitHub Copilot, path-specific instructions in `.github/instructi
 
 **For workflow basics (small changes, translations, tests, session management):** See `.github/copilot-instructions.md` for quick-reference guidance.
 
+### Community AI Policy
+
+Read and follow [`AI_POLICY.md`](AI_POLICY.md). This custom-integration blueprint permits extensive AI assistance, but
+agents must not overstate human review, maintainer understanding, automated coverage, or real-device testing. Prepare
+publication material as drafts for human review and follow the policy of any destination repository. Contributions to
+Open Home Foundation repositories are additionally governed by the official OHF AI Policy.
+
 ### When Instructions Conflict With Requests
 
 If a developer requests something that contradicts these instructions:
@@ -588,7 +595,10 @@ See `.github/instructions/blueprint.tests.instructions.md` for comprehensive tes
 - Propose a plan first before starting implementation
 - Get explicit confirmation from developer
 
-**Important: Do NOT create or modify tests unless explicitly requested.** Focus on implementing functionality. The developer decides when and if tests are needed.
+**Testing expectation:** For behavioral changes, bug fixes, and regressions, assess the need for proportionate automated
+tests and add them where they provide meaningful verification. If tests are impractical or intentionally omitted,
+document the reason and remaining risk. Documentation-only, formatting-only, and other changes that cannot affect runtime
+behavior do not require new tests. Automated tests supplement rather than replace human review and real-device testing.
 
 **Translation strategy:**
 

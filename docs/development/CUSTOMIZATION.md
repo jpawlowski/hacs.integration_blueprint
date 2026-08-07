@@ -111,6 +111,7 @@ Files already excluded by default:
 | `.vscode/launch.json`, `.vscode/tasks.json`                                    | Contain your domain in debugger/task arguments                           |
 | `README.md`, `LICENSE`, etc.                                                   | Replaced by `initialize.sh`                                              |
 | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`       | Contain domain-specific references                                       |
+| `AI_POLICY.md`, `.github/pull_request_template.md`                             | Project-specific governance and contribution process                     |
 | `.github/CODEOWNERS`, `.github/FUNDING.yml`, `.github/COPILOT_CODING_AGENT.md` | Per-project GitHub settings                                              |
 | `config/`                                                                      | Local HA instance (credentials, test data)                               |
 | `docs/`                                                                        | Your project documentation                                               |

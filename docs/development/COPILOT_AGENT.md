@@ -88,6 +88,17 @@ The blueprint has example entities - remove what's not needed, keep and adapt wh
 
 Let the Copilot Agent analyze the blueprint and determine the best structure.
 
+## Human Review and Transparency
+
+The Coding Agent prepares a draft; it does not establish that the integration is understood, tested, or ready to
+publish. Before merging, review the diff and accurately record which checks, automated tests, and real-device tests were
+performed. If review is partial or some behavior could not be tested, document that limitation instead of implying full
+verification.
+
+Extensive AI assistance is acceptable for a community custom integration. See [`AI_POLICY.md`](../../AI_POLICY.md) for
+the project's approach to AI use, transparency, and informed user choice. Do not use this workflow for autonomous
+contributions to an Open Home Foundation repository, where the official OHF AI Policy applies.
+
 ## Testing Copilot's Changes
 
 After Copilot creates a draft pull request:
@@ -103,6 +114,7 @@ After Copilot creates a draft pull request:
    - Click the forwarded port URL to open HA in browser
 
 3. **Test the integration**
+   - Run the relevant automated tests using `script/test`
    - Add the integration via Home Assistant UI
    - Verify entities appear correctly
    - Test functionality with your actual device/service
@@ -122,6 +134,7 @@ For detailed Codespaces usage, troubleshooting, and resource management, see [CO
 
 - Start simple - get a working prototype first
 - Use `@copilot` in PR comments to iterate
+- Review every iteration before merging and keep the PR's verification context accurate
 - Break large changes into multiple PRs
 
 ## Resources

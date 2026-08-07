@@ -13,12 +13,17 @@ GitHub is used to host code, to track issues and feature requests, as well as ac
 
 Pull requests are the best way to propose changes to the codebase.
 
+AI-assisted contributions are welcome, including substantially AI-generated work. Read the
+[`AI_POLICY.md`](AI_POLICY.md) before contributing. Be accurate about what you reviewed and tested, and do not present
+automated checks as human review or real-device testing.
+
 1. Fork the repo and create your branch from `main`.
 2. Run `script/setup/bootstrap` to install dependencies and pre-commit hooks.
 3. If you've changed something, update the documentation.
 4. Make sure your code passes all checks (using `script/check` for linting and type checking).
 5. Test your contribution.
-6. Issue that pull request!
+6. Review the resulting diff and describe its verification accurately.
+7. Issue that pull request!
 
 ## Any contributions you make will be under the MIT Software License
 
