@@ -31,6 +31,11 @@
     }
   },
   "terminal.integrated.defaultProfile.linux": "zsh",
+  // Devcontainer already isolates execution; disable agent terminal sandbox to
+  // avoid double-sandbox namespace/prerequisite issues in chat tooling.
+  "chat.agent.sandbox.enabled": "off",
+  // Keep explicit compatibility with terminal-tool specific setting variants.
+  "chat.tools.terminal.sandbox.enabled": false,
   "yaml.customTags": [
     "!secret scalar",
     "!include scalar",
