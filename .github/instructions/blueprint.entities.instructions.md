@@ -98,6 +98,27 @@ applyTo: "custom_components/**/alarm_control_panel/**/*.py, custom_components/**
 
 **Import pattern:** `from ..entity_utils.module import function`
 
+## Device Registry Ownership
+
+Home Assistant Core 2026.8 and newer assigns every device to exactly one config entry and at most one config subentry.
+
+**MUST:**
+
+- Return `DeviceInfo` for a device owned by the entity's own config entry.
+- Create a separate device for each config subentry; never share one device across subentries.
+- Use `via_device_id` when linking a subentry device to a separate hub/account device.
+- Use `self.device_entry` inside an entity when the registered device is needed.
+- Scope explicit registry lookups with `async_get_device_by_identifier(identifier, config_entry_id)` or
+  `async_get_device_by_connection(connection, config_entry_id)`.
+
+**NEVER:**
+
+- Use the deprecated unscoped `async_get_device()` lookup.
+- Use `via_device`, because identifiers are not globally unique across config entries.
+- Add this integration's config entry to a device owned by another integration. Helper entities link to the source
+  device by assigning `self.device_entry` instead of copying its identifiers or connections into `DeviceInfo`.
+- Depend on a device being shared or merged across config entries.
+
 ## Type Hints
 
 **Avoid circular imports:** Use `TYPE_CHECKING` block for coordinator imports

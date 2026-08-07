@@ -9,6 +9,14 @@ Example use case:
 - Weather integration: Main entry for API credentials, subentries for locations
 - Multi-device integration: Main entry for hub/account, subentries for devices
 
+Device registry ownership rules (Home Assistant Core 2026.8+):
+- A device belongs to exactly one config entry and at most one config subentry.
+- Create a separate device for every subentry; never share a device across subentries.
+- Keep the hub/account as a separate parent-entry device and link subentry devices
+  with via_device_id when a parent relationship is needed.
+- Scope identifier/connection lookups to the owning config entry. Do not use the
+  deprecated async_get_device() or via_device APIs.
+
 This file is currently a template/example. Uncomment and adapt when implementing
 subentry support.
 

@@ -64,9 +64,16 @@ tests/
 
 **Registry Testing:**
 
-- Device: `dr.async_get(hass).async_get_device(identifiers={(DOMAIN, id)})` - Verify manufacturer, model, identifiers
+- Device: `dr.async_get(hass).async_get_device_by_identifier((DOMAIN, id), config_entry.entry_id)` - Verify
+  manufacturer, model, identifiers, and ownership by `config_entry_id`
 - Entity: `er.async_get(hass).async_get("sensor.x")` - Verify unique_id, disabled state
 - Lifecycle: Test `async_setup()` → `LOADED`, `async_unload()` → `NOT_LOADED`
+- Multiple entries: When two entries expose the same identifier or connection, verify that each entry owns a separate
+  device and that entry-scoped lookups return the correct one
+- Subentries: Verify that each subentry owns a separate device; never assert or depend on a device shared by subentries
+
+**Never use in new tests:** The deprecated unscoped `async_get_device()` lookup or the plural
+`DeviceEntry.config_entries` / `DeviceEntry.config_entries_subentries` compatibility properties.
 
 ## Mocking
 

@@ -307,6 +307,15 @@ Every step method must return one of these result types (see [Data Entry Flow do
 
 **NEVER:** Support discovery/reauth in subentries
 
+**Device ownership (Home Assistant 2026.8+):**
+
+- A device belongs to exactly one config entry and to at most one config subentry.
+- Create one device per subentry. Multiple subentries must never attach entities to a shared device.
+- Keep a hub/account device on the parent config entry without a subentry. Create separate devices for subentries and,
+  when a parent relationship is needed, link them with `via_device_id`.
+- Migrations that previously shared a device across subentries must create the per-subentry devices and relink their
+  entities. Do not rely on Home Assistant's temporary composite-device compatibility behavior.
+
 ## Options Flow
 
 **MUST:** Return via `async_get_options_flow()`, implement `async_step_init()`, pre-fill with existing options

@@ -252,6 +252,27 @@ This integration uses the following identifiers consistently:
 
 All entities should provide consistent device info via the base entity class (manufacturer, model, serial number, configuration URL, firmware version).
 
+### Device Registry Ownership (Home Assistant 2026.8+)
+
+Every device is owned by exactly one config entry and by at most one config subentry. Identifiers and connections are
+unique only within their owning config entry; never rely on them being globally unique.
+
+- Scope registry lookups to the owning entry with `async_get_device_by_identifier()` or
+  `async_get_device_by_connection()`; do not use the deprecated `async_get_device()`.
+- Inside an entity, prefer `self.device_entry` over looking the device up again.
+- Never attach this integration's config entry to a device owned by another integration. Helper entities must link to
+  the source device through `self.device_entry` instead.
+- Create a separate device for every config subentry. Multiple subentries must never share one device.
+- Model a hub/account parent and its subentry devices as separate devices. When a parent relationship is needed, use
+  `via_device_id`, not the deprecated `via_device` identifier lookup.
+- Move a device with `async_update_device(new_config_entry_id=..., new_config_subentry_id=...)`; do not use the
+  deprecated add/remove config-entry parameters. Remove it with `async_remove_device()`.
+- Read `DeviceEntry.config_entry_id` and `DeviceEntry.config_subentry_id`; do not use the deprecated plural or primary
+  config-entry properties for ordinary devices.
+
+These rules also apply to migrations, repairs, diagnostics, registry event listeners, and tests. Do not rely on the
+temporary composite-device compatibility shims, which are scheduled for removal in Home Assistant Core 2027.8.
+
 ### Integration Manifest
 
 **Key fields in `manifest.json`:**
