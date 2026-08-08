@@ -92,6 +92,8 @@ if [[ -z ${VIRTUAL_ENV:-} ]]; then
     source "$HOME/ha-venv/bin/activate"
 fi
 
+"$SCRIPT_DIR/setup/seed-http-config"
+
 if [[ ${HA_INSTALL_HACS:-"0"} == "1" ]]; then
     # Install HACS for testing with other custom components
     echo ""
