@@ -62,7 +62,6 @@ If you're using GitHub Copilot, path-specific instructions in `.github/instructi
 
 - **Claude Code:** See [`CLAUDE.md`](CLAUDE.md) (pointer to this file)
 - **ChatGPT Codex:** See [`CODEX.md`](CODEX.md) (pointer to this file)
-- **Gemini:** See [`GEMINI.md`](GEMINI.md) (pointer to this file)
 - **GitHub Copilot:** See [`.github/copilot-instructions.md`](.github/copilot-instructions.md) (compact version of this file)
 
 ## Working With Developers

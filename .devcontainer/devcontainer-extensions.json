@@ -1,4 +1,4 @@
 {
-  "recommendations": ["anthropic.claude-code", "google.geminicodeassist", "openai.chatgpt"],
+  "recommendations": ["anthropic.claude-code", "openai.chatgpt"],
   "unwantedRecommendations": ["ms-python.pylint"]
 }

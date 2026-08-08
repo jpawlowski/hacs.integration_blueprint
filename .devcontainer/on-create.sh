@@ -40,9 +40,17 @@ unset _hook_file
 # Volumes are now mounted directly under $HOME (ha-venv and uv-cache) so Docker
 # does NOT create ~/.local or ~/.cache as root — VS Code server can write there freely.
 print_info "Fixing ownership of Docker volume mount points..."
-sudo chown vscode:vscode \
+for _volume_mount in \
     /home/vscode/ha-venv \
-    /home/vscode/uv-cache
+    /home/vscode/uv-cache \
+    /home/vscode/.claude \
+    /home/vscode/.codex \
+    /home/vscode/.cache; do
+    if [[ -e "$_volume_mount" ]]; then
+        sudo chown -R vscode:vscode "$_volume_mount"
+    fi
+done
+unset _volume_mount
 
 # Install Claude Code managed settings from the repository when present.
 # This keeps blueprint defaults versioned while allowing easy project-level

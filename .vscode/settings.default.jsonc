@@ -51,11 +51,6 @@
     "script/release-notes": false,
     "script/version": false
   },
-  // Gemini Code Assist: keep repo-level defaults explicit and stable.
-  "geminicodeassist.enable": true,
-  "geminicodeassist.agentYoloMode": true,
-  "geminicodeassist.contextExclusionGitignore": true,
-  "geminicodeassist.contextExclusionFile": ".aiexclude",
   "yaml.customTags": [
     "!secret scalar",
     "!include scalar",

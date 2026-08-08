@@ -160,11 +160,6 @@
           "script/release-notes": false,
           "script/version": false
         },
-        // Gemini Code Assist: keep repo-level defaults explicit and stable.
-        "geminicodeassist.enable": true,
-        "geminicodeassist.agentYoloMode": true,
-        "geminicodeassist.contextExclusionGitignore": true,
-        "geminicodeassist.contextExclusionFile": ".aiexclude",
         "yaml.customTags": [
           "!secret scalar",
           "!include scalar",
@@ -238,6 +233,12 @@
     // Named volume for node_modules: keeps it on Container FS (not bind mount) for performance.
     // Docker manages this volume separately from the workspace — npm ci runs fast on overlay FS.
     "source=${localWorkspaceFolderBasename}_node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
+    // Persist Claude CLI home data (sessions/history/auth) across container rebuilds.
+    // Useful when using Claude Code locally inside the DevContainer.
+    "source=${localWorkspaceFolderBasename}_claude_home,target=/home/vscode/.claude,type=volume",
+    // Persist Codex CLI data (sessions/history/config) across container rebuilds.
+    // Config bootstrap in on-create continues to work because this directory stays writable.
+    "source=${localWorkspaceFolderBasename}_codex_home,target=/home/vscode/.codex,type=volume",
     // Mount host gitconfig for local development (ignored in Codespaces)
     // In Codespaces, GitHub automatically configures Git with your account
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/vscode/.gitconfig.host,type=bind,consistency=cached,readonly"
