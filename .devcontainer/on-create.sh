@@ -44,41 +44,80 @@ sudo chown vscode:vscode \
     /home/vscode/ha-venv \
     /home/vscode/uv-cache
 
-# Disable Claude Code's built-in Bash sandbox inside the devcontainer.
-# The devcontainer's own Docker/OrbStack runtime blocks unprivileged user
-# namespace creation entirely (not just the fresh /proc mount bubblewrap's
-# "weaker nested sandbox" mode works around), so bubblewrap cannot start
-# here at all. The devcontainer itself is already the isolation boundary,
-# which Anthropic documents as an equivalent alternative to the built-in
-# sandbox — see https://code.claude.com/docs/en/sandbox-environments.
-#
-# Written to /etc/claude-code/managed-settings.json (not a repo file) so it
-# only applies inside this container: that path lives on the container's own
-# filesystem, not the bind-mounted workspace, so opening this repo outside
-# the devcontainer never picks it up.
-print_info "Disabling Claude Code's Bash sandbox (devcontainer is the isolation boundary)..."
-sudo mkdir -p /etc/claude-code
-sudo tee /etc/claude-code/managed-settings.json >/dev/null <<'EOF'
-{
-  "sandbox": {
-    "enabled": false
-  }
-}
-EOF
+# Install Claude Code managed settings from the repository when present.
+# This keeps blueprint defaults versioned while allowing easy project-level
+# customization without modifying this script.
+_claude_managed_settings_source="$(cd "$(dirname "$0")" && pwd)/claude-code/managed-settings.json"
+if [[ -f "$_claude_managed_settings_source" ]]; then
+    print_info "Installing Claude Code managed settings from .devcontainer/claude-code/managed-settings.json..."
+    sudo mkdir -p /etc/claude-code
+    sudo install -m 0644 "$_claude_managed_settings_source" /etc/claude-code/managed-settings.json
+else
+    print_info "No .devcontainer/claude-code/managed-settings.json found; skipping Claude Code managed settings install."
+fi
+unset _claude_managed_settings_source
 
-# Disable Codex CLI's built-in sandbox inside the devcontainer, for the same
-# reason as Claude Code above: bubblewrap/seccomp can't create the namespaces
-# it needs here, and the devcontainer itself is already the isolation boundary.
-#
-# Written to ~/.codex/config.toml (user scope, not a repo file) so it only
-# applies inside this container's home directory, never on the bare host.
-# A project-scoped .codex/config.toml (if one is ever added to the repo) can
-# override this per-key, but only by explicitly setting sandbox_mode itself.
-print_info "Disabling Codex CLI's sandbox (devcontainer is the isolation boundary)..."
-mkdir -p /home/vscode/.codex
-tee /home/vscode/.codex/config.toml >/dev/null <<'EOF'
-sandbox_mode = "danger-full-access"
-EOF
+# Install Codex CLI config from the repository when present.
+# This keeps blueprint defaults versioned while allowing easy project-level
+# customization without modifying this script.
+_codex_config_source="$(cd "$(dirname "$0")" && pwd)/codex/config.toml"
+if [[ -f "$_codex_config_source" ]]; then
+    print_info "Installing Codex CLI config from .devcontainer/codex/config.toml..."
+    mkdir -p /home/vscode/.codex
+    install -m 0644 "$_codex_config_source" /home/vscode/.codex/config.toml
+else
+    print_info "No .devcontainer/codex/config.toml found; skipping Codex CLI config install."
+fi
+unset _codex_config_source
+
+# Bootstrap Copilot CLI wrapper/defaults from the repository when present.
+# GitHub CLI (and its Copilot CLI command) is provided by devcontainer features;
+# this block does NOT install gh or Copilot binaries.
+# It only installs project-managed files under ~/.copilot and ~/.local/bin.
+# Optional env overrides (from .devcontainer/.env and .env.local):
+#   COPILOT_CLI_INSTALL=0                                    -> disable Copilot wrapper/defaults bootstrap block
+#   COPILOT_CLI_DEFAULT_FLAGS_SOURCE=/absolute/or/relative   -> custom flags source file
+#   COPILOT_CLI_WRAPPER_SOURCE=/absolute/or/relative         -> custom wrapper source file
+_copilot_cli_install="${COPILOT_CLI_INSTALL:-1}"
+
+if [[ "$_copilot_cli_install" == "0" ]]; then
+    print_info "COPILOT_CLI_INSTALL=0; skipping Copilot CLI defaults and wrapper install."
+else
+    _copilot_default_flags_rel=".devcontainer/copilot/default-flags.txt"
+    _copilot_wrapper_rel=".devcontainer/copilot/copilot-safe"
+
+    _copilot_flags_source="${COPILOT_CLI_DEFAULT_FLAGS_SOURCE:-$_copilot_default_flags_rel}"
+    if [[ "$_copilot_flags_source" != /* ]]; then
+        _copilot_flags_source="$(pwd)/$_copilot_flags_source"
+    fi
+
+    if [[ -f "$_copilot_flags_source" ]]; then
+        print_info "Installing Copilot CLI default flags from ${_copilot_flags_source}..."
+        mkdir -p /home/vscode/.copilot
+        install -m 0644 "$_copilot_flags_source" /home/vscode/.copilot/default-flags.txt
+    else
+        print_info "No Copilot CLI flags file found at ${_copilot_flags_source}; skipping default flags install."
+    fi
+
+    _copilot_wrapper_source="${COPILOT_CLI_WRAPPER_SOURCE:-$_copilot_wrapper_rel}"
+    if [[ "$_copilot_wrapper_source" != /* ]]; then
+        _copilot_wrapper_source="$(pwd)/$_copilot_wrapper_source"
+    fi
+
+    if [[ -f "$_copilot_wrapper_source" ]]; then
+        print_info "Installing Copilot CLI wrapper from ${_copilot_wrapper_source}..."
+        mkdir -p /home/vscode/.local/bin
+        install -m 0755 "$_copilot_wrapper_source" /home/vscode/.local/bin/copilot-safe
+    else
+        print_info "No Copilot CLI wrapper found at ${_copilot_wrapper_source}; skipping wrapper install."
+    fi
+
+    unset _copilot_default_flags_rel
+    unset _copilot_wrapper_rel
+fi
+unset _copilot_flags_source
+unset _copilot_wrapper_source
+unset _copilot_cli_install
 
 # Run post-hook if present
 _hook_file="$(cd "$(dirname "$0")" && pwd)/hooks/on-create.post.sh"

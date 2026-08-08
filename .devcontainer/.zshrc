@@ -49,6 +49,11 @@ if [ -n "$WORKSPACE_ROOT" ]; then
     alias ha-t="$WORKSPACE_ROOT/script/test"
     alias ha-l="$WORKSPACE_ROOT/script/lint"
     alias ha-d="$WORKSPACE_ROOT/script/develop"
+
+    # Copilot CLI wrapper (project-managed defaults).
+    if command -v copilot-safe >/dev/null 2>&1; then
+        alias copilot='copilot-safe'
+    fi
 fi
 
 # Change to workspace directory if we're in /home/vscode
