@@ -147,10 +147,24 @@
         "chat.agent.sandbox.enabled": "off",
         // Keep explicit compatibility with terminal-tool specific setting variants.
         "chat.tools.terminal.sandbox.enabled": false,
-        // Default to "Allow all" style permissions for chat tools in this devcontainer.
-        "chat.tools.global.autoApprove": true,
-        // Claude Code extension-specific equivalent of broad auto permissions.
-        "claudeCode.initialPermissionMode": "bypassPermissions",
+        // Disallow global auto-approval; use workspace/session scoped approvals instead.
+        "chat.tools.global.autoApprove": false,
+        // Always require manual approval for sensitive paths, even when broader auto-approve is enabled.
+        "chat.tools.edits.autoApprove": {
+          "**/.env": false,
+          "**/.env.*": false,
+          "**/.git/**": false,
+          ".github/workflows/**": false,
+          ".github/actions/**": false,
+          "release-please-config.json": false,
+          "script/release-notes": false,
+          "script/version": false
+        },
+        // Gemini Code Assist: keep repo-level defaults explicit and stable.
+        "geminicodeassist.enable": true,
+        "geminicodeassist.agentYoloMode": true,
+        "geminicodeassist.contextExclusionGitignore": true,
+        "geminicodeassist.contextExclusionFile": ".aiexclude",
         "yaml.customTags": [
           "!secret scalar",
           "!include scalar",
