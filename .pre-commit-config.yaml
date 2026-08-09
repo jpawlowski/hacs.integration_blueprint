@@ -89,6 +89,16 @@ repos:
         types: [markdown]
         pass_filenames: true
 
+      # Agent skills validation (Agent Skills open standard + repo conventions)
+      # Broken frontmatter makes a skill silently invisible to every agent, so
+      # this must fail the commit rather than be noticed weeks later.
+      - id: skills-check
+        name: agent skills
+        entry: ./script/skills-check
+        language: system
+        files: ^\.agents/skills/
+        pass_filenames: false
+
       # Spell checking
       - id: codespell
         name: codespell
