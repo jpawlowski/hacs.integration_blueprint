@@ -1,4 +1,0 @@
-{
-  "recommendations": ["anthropic.claude-code", "openai.chatgpt"],
-  "unwantedRecommendations": ["ms-python.pylint"]
-}
