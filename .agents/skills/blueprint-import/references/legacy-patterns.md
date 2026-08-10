@@ -1,6 +1,6 @@
 # Patterns to expect in imported code
 
-Read this during phase 3. [`../../ha-modern-apis/SKILL.md`](../../ha-modern-apis/SKILL.md) is authoritative for
+Read this during phase 4. [`../../ha-modern-apis/SKILL.md`](../../ha-modern-apis/SKILL.md) is authoritative for
 what is current — verify against the installed Home Assistant source rather than this table, which is a starting
 point for what to look for.
 
@@ -35,7 +35,7 @@ That template and this one share ancestry, which creates two specific traps:
   name in a different module. Replace the generated `custom_components/<domain>/` wholesale; never merge the two
   file by file.
 - **The layout is flat.** `api.py`, `coordinator.py`, `entity.py`, `data.py` and one module per platform sit at the
-  top level. That is valid — it becomes the phase 4 restructuring work, and is not a reason to touch it in phase 2.
+  top level. That is valid — it becomes the phase 5 restructuring work, and is not a reason to touch it in phase 2.
 
 Depending on the vintage of the fork, also expect: `hass.data[DOMAIN]` instead of `runtime_data`, no `icons.json`,
 no `diagnostics.py`, no `repairs.py`, no `quality_scale` in the manifest, and no tests at all beyond the ones the

@@ -4,12 +4,13 @@ description: >-
   Migrate an existing Home Assistant custom integration into the blueprint's structure and tooling without
   breaking the installations already running it. Use when asked to "import my integration", "migrate my existing
   integration into the blueprint", "adopt the blueprint in my repository", "move my custom component over",
-  "restructure my integration to match this layout", or when a repository is being switched from another template
-  such as the upstream ludeeus one. Covers what must stay byte-identical, the git and repository strategy, the
-  phase order that keeps every step revertable, and how to apply this project's agent rules to code that
-  predates them. SYMPTOMS — load this if you are about to: change the integration's domain during the move; run
+  "restructure my integration to match this layout", or when switching from another template such as the upstream
+  ludeeus one. Covers what must stay byte-identical, the git and repository strategy, the phase order that keeps
+  every step revertable, the stock-taking audit that produces the backlog, and how to apply this project's rules
+  to legacy code. SYMPTOMS — load this if you are about to: change the integration's domain during the move; run
   the whole migration as one commit; restructure packages before the imported code is green; let an automated
-  rename touch unique IDs or translation keys; or start editing without a record of the current entity IDs.
+  rename touch unique IDs or translation keys; let the import become a rewrite; or start editing without a
+  record of the current entity IDs.
 ---
 
 # Import an existing integration
@@ -24,6 +25,12 @@ migration, not as an improvement, unless the developer explicitly asked for it.
 
 Without a record of the current behaviour, nothing in the later phases is verifiable.
 
+Two records are needed, and they are not the same thing. This phase captures what the code **does**.
+[`ha-grill`](../ha-grill/SKILL.md) captures what the maintainer **wants** — how many installations are at stake,
+what is deliberately unusual in there, what they already know is broken, and whether a breaking release is on the
+table at all. Run that interview first: its answers decide how much of phases 3 to 7 is affordable, and an import
+planned without them optimises for the wrong constraint.
+
 1. **Capture the identity of every entity.** From a running installation, export the entity IDs and unique IDs of the
    integration's entities (the entity registry, or the diagnostics download). If no live instance is available, derive
    them from the code and say so — a derived baseline is weaker.
@@ -37,7 +44,7 @@ Without a record of the current behaviour, nothing in the later phases is verifi
 3. **Note what the integration depends on**: `manifest.json` → `requirements`, the minimum Home Assistant version, and
    whether it uses discovery.
 
-This file is the acceptance test for phases 3 to 5. Nothing in it may change without an explicit decision under
+This file is the acceptance test for phases 4 to 6. Nothing in it may change without an explicit decision under
 [`ha-breaking-changes`](../ha-breaking-changes/SKILL.md).
 
 ## Phase 1 — Repository, then `initialize.sh`
@@ -84,7 +91,35 @@ old repository had that `initialize.sh` did not carry over ([`blueprint-tooling`
 **Verify against phase 0 and commit.** This checkpoint — old code, new tooling, everything green — is the fallback
 every later phase can be reverted to. Reaching it is the milestone worth reporting.
 
-## Phase 3 — Modernise the APIs, and nothing else
+## Phase 3 — Take stock, before deciding how much to fix
+
+The phase 2 checkpoint is the only moment where the whole integration is in front of you, running, with nothing
+changed yet. Audit it here and the result is an inventory of what you inherited; audit it at the end and it is a
+verdict on your own work.
+
+Run a full audit with [`ha-quality-review`](../ha-quality-review/SKILL.md) against the imported code. Then sort every
+finding — the sorting, not the audit, is what makes the result usable:
+
+| Bucket       | What lands in it                                                                                                   | What happens to it                                      |
+| ------------ | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
+| **Free**     | Nothing a user can observe: layering, typing, file structure, deprecated APIs, missing tests, absent diagnostics   | Folded into phases 4 to 6 as you reach them             |
+| **Costly**   | Anything on the phase 0 contract: entity names, `state_class`, units, unique ID format, renamed or removed options | Batched — one decision, one migration, one release      |
+| **Deferred** | Needs a real device, a vendor answer, or a decision nobody can make today                                          | Written down with what it blocks, never quietly dropped |
+
+**Costly findings are batched, not dripped.** Five releases that each rename a few entities cost users five
+interruptions; one release that renames them all, with a migration and a changelog entry they can act on, costs one.
+Collect them, present them together, and let the developer choose the release
+([`ha-breaking-changes`](../ha-breaking-changes/SKILL.md)).
+
+Turn the result into a phased plan in `.agents/scratch/` ([`ha-planning`](../ha-planning/SKILL.md)) — phases 4 to 7
+then execute it. Weigh it against what the interview established: an integration with thousands of installations whose
+maintainer does not want a major release has a Free-only backlog, and that is a legitimate outcome, not a failed
+import.
+
+**This phase changes no code.** A finding you fixed while cataloguing is a finding nobody reviewed, and it spends the
+phase 2 checkpoint you may still need to fall back to.
+
+## Phase 4 — Modernise the APIs, and nothing else
 
 Old integrations accumulate APIs that Home Assistant has since deprecated or removed. Fix those now, while the file
 layout is still familiar and a diff is easy to read. [`ha-modern-apis`](../ha-modern-apis/SKILL.md) carries the full
@@ -92,9 +127,9 @@ table; the ones that show up in nearly every legacy integration, together with t
 recognising, are in [`references/legacy-patterns.md`](references/legacy-patterns.md).
 
 This phase is strictly behaviour-preserving. Resist every improvement that changes what a user observes — note it for
-later instead. Commit separately from phase 4.
+later instead. Commit separately from phase 5.
 
-## Phase 4 — Restructure into the blueprint layout
+## Phase 5 — Restructure into the blueprint layout
 
 Only now move code into `api/`, `coordinator/`, `entity/`, `config_flow_handler/`, `<platform>/`, `service_actions/`,
 `utils/` as described in `docs/development/ARCHITECTURE.md` and the "Integration Structure" section of
@@ -109,7 +144,7 @@ This is file movement and import rewriting, not redesign. Two things to be delib
 After moving, re-run the full validation and re-verify the phase 0 contract. Unique IDs and translation keys are the
 things most easily lost in a bulk rename.
 
-## Phase 5 — Apply this project's rules to the imported code
+## Phase 6 — Apply this project's rules to the imported code
 
 The linters are mandatory but they only cover mechanics. What makes the import worthwhile is the guidance the linters
 cannot express — apply it as a review pass, file type by file type, using the matching instructions file and skill:
@@ -128,20 +163,27 @@ cannot express — apply it as a review pass, file type by file type, using the 
 name, and adding a missing `state_class` changes its statistics. Check every one against the phase 0 contract and
 raise it with the developer before implementing — see [`ha-breaking-changes`](../ha-breaking-changes/SKILL.md).
 
-Work through this in small commits, not one sweep. If the developer wants only the mandatory parts, phases 0 to 4
+The phase 3 backlog says which of these this repository actually has, and which bucket each one fell into — work from
+that. The table above is what to look for when no audit was run.
+
+Work through this in small commits, not one sweep. If the developer wants only the mandatory parts, phases 0 to 5
 already stand on their own.
 
-## Phase 6 — Tests, review, release
+## Phase 7 — Tests, review, release
 
 - Add tests for whatever the old repository had none of, starting with the config flow and one platform
   ([`ha-testing`](../ha-testing/SKILL.md)).
-- Run a full audit with [`ha-quality-review`](../ha-quality-review/SKILL.md).
+- Re-run [`ha-quality-review`](../ha-quality-review/SKILL.md). It now measures what the import produced rather than
+  what it inherited, so compare it against the phase 3 audit and say what moved.
 - Start Home Assistant with the **existing** `config/.storage` and confirm the entry loads, the entity IDs are
   unchanged and history is intact. A mocked suite cannot prove this.
 - Release under [`ha-release`](../ha-release/SKILL.md). If anything in the phase 0 contract did change, it needs a
   `BREAKING CHANGE:` footer and a migration note for users.
 
 Report which verification actually happened and which did not ([`AI_POLICY.md`](../../../AI_POLICY.md)).
+
+The first new feature after an import is the one most likely to be built on assumptions the old repository never
+stated. Run [`ha-grill`](../ha-grill/SKILL.md) before it, not after.
 
 ## Retire this skill when the import is done
 
@@ -155,9 +197,11 @@ Importing happens once. Afterwards this skill is dead weight in every session:
 ## Do not
 
 - Do not change the domain, and do not "tidy up" a unique ID format, entity ID, or action name in passing.
-- Do not apply the phase 5 rules as routine cleanup: swapping `name=` for a `translation_key` renames the entity in
+- Do not apply the phase 6 rules as routine cleanup: swapping `name=` for a `translation_key` renames the entity in
   every dashboard, and adding a missing `state_class` rewrites its long-term statistics. Both need approval.
-- Do not run phases 2 to 5 as one commit — a failure then has no revertable checkpoint.
+- Do not run phases 2 to 6 as one commit — a failure then has no revertable checkpoint.
+- Do not let the phase 3 audit turn into a rewrite. It produces a backlog the developer decides on; an import that
+  quietly became a redesign has no checkpoint left and no reviewer who can still tell the two apart.
 - Do not restructure before the imported code is green in its original layout.
 - Do not merge the blueprint's example entities with the imported ones.
 - Do not trust an automated class rename around `unique_id`, `translation_key`, storage keys, or anything else the

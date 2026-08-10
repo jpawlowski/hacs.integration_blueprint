@@ -7,8 +7,9 @@ description: >-
   whenever a change would touch more than about ten files or alter the integration's structure. Covers when a plan
   is mandatory, the phased plan format, where plans live, when a decision is worth recording, and the DECISIONS.md
   entry format used by this project. SYMPTOMS — load this if you are about to: start a refactor spanning more than
-  ten files without confirmation; write a plan whose phases name no files; create a planning markdown file outside
-  `.agents/scratch/`; or make a hard-to-reverse architectural choice without recording why.
+  ten files without confirmation; write a plan whose phases name no files; write one in prose nobody will finish
+  reading; create a planning markdown file outside `.agents/scratch/`; or make a hard-to-reverse architectural
+  choice without recording why.
 ---
 
 # Plan changes and record decisions
@@ -24,6 +25,9 @@ description: >-
 
 Do not start a large refactor because it seems obviously right. The developer decides scope.
 
+A plan can only be as good as the requirements under it. If you cannot state the goal back in one sentence, or the
+phases would encode a guess, run [`ha-grill`](../ha-grill/SKILL.md) first — its brief is the input this plan needs.
+
 ## Writing the plan
 
 Plans are working documents, not deliverables. Put them in `.agents/scratch/` — that directory is gitignored and exists for
@@ -36,15 +40,15 @@ Structure:
 
 ## Goal
 
-<What changes for the user when this is done. One paragraph.>
+<One line: what changes for the user when this is done.>
 
 ## Current state
 
-<What exists today, with concrete file references. What specifically is in the way.>
+<Bullets. What exists today, with file references, and what specifically is in the way.>
 
 ## Approach
 
-<The chosen approach in a few sentences, and what you deliberately did not choose.>
+<Bullets. The chosen approach, and what you deliberately did not choose.>
 
 ## Phases
 
@@ -63,8 +67,18 @@ Structure:
 
 ## Risks and open questions
 
-<What could go wrong, and what you need the developer to decide.>
+<Each one: the question, who answers it, and what it blocks. "None" is a valid section.>
 ```
+
+**Write it to be read, not to be complete.** A plan over ~10 files exists to be confirmed before implementation — and
+a plan nobody finishes reading gets confirmed anyway, which turns that gate into a formality and hands the agent a
+mandate the developer never actually gave.
+
+- Notes, not prose. Fragments beat sentences; drop the grammar that carries no information.
+- One screen per phase. If a phase needs more, it is two phases.
+- Do not restate the request, the repository, or the brief. When a [`ha-grill`](../ha-grill/SKILL.md) brief exists,
+  link it — its **Decided** and **Open** lists do not get copied in.
+- Concision is about wording, never about scope: what you are not doing still has to be written down.
 
 Rules that make a plan useful:
 
@@ -73,6 +87,10 @@ Rules that make a plan useful:
 - Order phases so the risky, uncertain part comes early. Discovering the approach is wrong in phase 1 is cheap; in
   phase 5 it is not.
 - Keep phases independently reviewable, ideally one commit each.
+- **Name the seams**, once, under Approach: the shapes one phase fixes and the later ones are then stuck with. Here
+  that is almost always the coordinator's data shape, the API client's exception types, and the unique ID scheme.
+  Together with what you are not doing, this is the part the developer should actually check — a wrong seam is
+  trivial to change while it is a line in a plan, and a migration once three phases have been built on it.
 - Say what you are **not** doing. Scope creep in a plan is scope creep in the implementation.
 
 Present the plan, wait for confirmation, then implement phase by phase. Report deviations from the plan as they happen
@@ -92,6 +110,10 @@ be lost:
 
 Do **not** record: routine implementation choices, anything the code already makes obvious, or a restatement of a Home
 Assistant convention.
+
+The bar is all three of: hard to reverse, a genuine trade-off rather than the one sensible option, and surprising to a
+reader who was not there. **Most sessions produce no entry, and that is the normal outcome** — a log padded with
+decisions that made themselves is one nobody reads when a real one is in it.
 
 ### Entry format
 
@@ -127,3 +149,9 @@ later reversed stay in the log — add a new entry that supersedes them and say 
 
 When a plan spans more than one session, leave the plan file in `.agents/scratch/` with phase checkboxes updated, so the
 next session can pick it up without re-deriving the context.
+
+**`.agents/scratch/` is gitignored**, so it survives the next session but not a fresh clone, a second machine, or a
+second contributor. Before the work stretches that far, move anything that must outlive it to its real home: a
+hard-to-reverse choice into the decision log above, the project's own vocabulary into
+`docs/development/GLOSSARY.md` ([`ha-grill`](../ha-grill/SKILL.md)), and everything else into the commit messages of
+the phases already shipped. What is left in the scratch file should be losable.

@@ -80,6 +80,7 @@ agent that implements it. If yours does not, read the `SKILL.md` before starting
 | anything that could break existing installs            | [`ha-breaking-changes`](.agents/skills/ha-breaking-changes/SKILL.md)   | —                                                      |
 | a Quality Scale audit or pre-release review            | [`ha-quality-review`](.agents/skills/ha-quality-review/SKILL.md)       | —                                                      |
 | deprecation warnings, verifying an API is current      | [`ha-modern-apis`](.agents/skills/ha-modern-apis/SKILL.md)             | —                                                      |
+| a request whose requirements are not settled yet       | [`ha-grill`](.agents/skills/ha-grill/SKILL.md)                         | —                                                      |
 | planning a large change, recording a decision          | [`ha-planning`](.agents/skills/ha-planning/SKILL.md)                   | —                                                      |
 | commit messages, versioning, changelog, release notes  | [`ha-release`](.agents/skills/ha-release/SKILL.md)                     | `blueprint.commit-message`                             |
 | validation scripts, dependencies, hooks, template sync | [`blueprint-tooling`](.agents/skills/blueprint-tooling/SKILL.md)       | `blueprint.shell`                                      |
@@ -98,7 +99,9 @@ Skills are validated by `script/skills-check` (part of `script/lint-check`, so C
 
 These are the ones an agent typically breaks _before_ it realises a skill or instructions file applies.
 
-- **Entities → Coordinator → API client.** Never skip a layer; entities read `coordinator.data` and never call the API.
+- **Entities → Coordinator → source.** Never skip a layer; entities read `coordinator.data` and never reach past it.
+  The source is usually an API client in `api/`, but it can equally be a state listener, a file, or a computation —
+  an integration that fetches nothing has no `api/` package, and the layering above it is unchanged.
 - **Register service actions in `async_setup()`**, not `async_setup_entry()` (Quality Scale rule `action-setup`).
 - **A unique ID is a serial number, MAC, device ID or account ID** — never an IP address, hostname, URL, or a name the
   user chose.
@@ -135,7 +138,7 @@ Full "do not use → use instead" table: [`ha-modern-apis`](.agents/skills/ha-mo
 
 **Package organization — do not create packages outside this list:**
 
-- `api/` — API client and exceptions
+- `api/` — API client and exceptions (absent when the integration fetches nothing)
 - `coordinator/` — data update coordinator
 - `config_flow_handler/` — config flow, options, `validators/`, `schemas/`
 - `entity/` — base entity classes
@@ -244,6 +247,26 @@ overstate human review, maintainer understanding, automated coverage, or real-de
 material as drafts for human review, and follow the policy of any destination repository. Contributions to Open Home
 Foundation repositories are additionally governed by the official OHF AI Policy.
 
+### Do not assume the developer speaks Home Assistant's vocabulary
+
+Coordinator, config entry, unique ID, entity registry, device class, state class, `iot_class`, subentry, repair
+issue — these are this project's words, not general knowledge. Someone can know their device or service perfectly
+and have met none of them. Writing a custom integration is often how a person meets them for the first time.
+
+- **Where a term is unavoidable, define it in one line at first use**, then keep using it — "the coordinator, the one
+  place that fetches the data so every entity reads the same copy" costs a clause and buys the rest of the paragraph.
+- **Where it is avoidable, avoid it.** Ask in the developer's terms and translate the answer yourself. "Does it tell
+  us when something changes, or do we have to ask it regularly?" gets an answer; "push or poll?" gets a guess.
+- **Explain in plain language whenever asked** — two or three sentences, no lecture, then back to the task.
+  [`docs/development/ARCHITECTURE.md`](docs/development/ARCHITECTURE.md) is the pointer when the structure itself is
+  the question.
+- **A question the developer cannot answer is your problem, not theirs.** An answer that comes back vague or
+  self-contradictory usually means the question was in the wrong language. Re-ask it differently before recording it
+  as a decision.
+
+This is about the conversation only. It licenses no unprompted tutorials, and it changes nothing in the code — file
+names, identifiers, commit messages and translation keys stay exact.
+
 ### Commits
 
 - **Never commit automatically** — only on an explicit request. A previous request is not standing permission; each
@@ -309,6 +332,23 @@ rule nobody follows.
 Say which instruction the request contradicts and restate what you understood, then follow the developer's decision.
 If it reflects a permanent change of approach, offer to update the instruction file — and propose updates whenever you
 notice repeated deviations, stale rules, or a new pattern worth standardising.
+
+### Leaving a task unfinished
+
+When a session ends mid-task — the developer stops, or the conversation has grown long enough to be summarised —
+write what the next session cannot re-derive to `.agents/scratch/`, and say in chat that you did. A plan or a grill
+brief already covers most of it; add only what is missing.
+
+The parts that are genuinely lost otherwise, and that a fresh session will otherwise guess wrong:
+
+- **What actually ran, and what did not.** Which of `script/lint`, `script/type-check`, `script/hassfest` and
+  `script/test` are green right now, and which were never run — never leave a claim the next agent will inherit as
+  fact ([`AI_POLICY.md`](AI_POLICY.md)).
+- **Uncommitted work, and why.** Commits need a fresh instruction, so unstaged changes are normal — but the next
+  session has to know they are deliberate and what they belong to.
+- **Whether you left the Home Assistant instance running.** Its state is never carried across steps anyway; the next
+  session re-checks with `script/ha status`.
+- **What the developer still owes an answer on**, and what it blocks.
 
 ### Documentation
 

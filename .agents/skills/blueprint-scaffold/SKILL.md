@@ -1,16 +1,16 @@
 ---
 name: blueprint-scaffold
 description: >-
-  Turn this freshly initialised blueprint into a working integration for one concrete device or service — decide
-  the manifest classification, write the API client, shape the coordinator payload, keep or delete each example
-  entity platform, and get the first end-to-end run green. Use when asked to "transform the blueprint", "make
-  this an integration for <device>", "implement the API client", "remove the example entities", "adapt the
-  template to my service", or when the repository still ships the blueprint's demo platforms and nobody has
-  written real code yet. Covers the facts to gather before writing anything, the order the layers must be built
-  in, and how to retire this skill afterwards. SYMPTOMS — load this if you are about to: invent a response
-  payload instead of asking for a real one; keep an example platform "for later"; write entities before the API
-  client and coordinator exist; pick `hub` because it sounds impressive; or start scaffolding in a repository
-  that already has real integration code.
+  Turn this freshly initialised blueprint into a working integration for one concrete device, service or computed
+  source — decide the manifest classification, write the API client if there is one, shape the coordinator
+  payload, keep or delete each example entity platform, and get the first end-to-end run green. Use when asked to
+  "transform the blueprint", "make this an integration for <device>", "implement the API client", "remove the
+  example entities", "adapt the template to my service", or when the repository still ships the demo platforms
+  and nobody has written real code yet. Covers the facts to gather first, the order the layers must be built in,
+  and how to retire this skill. SYMPTOMS — load this if you are about to: invent a payload instead of asking for
+  a real one; keep an example platform "for later"; write entities before the coordinator exists; build an API
+  client for something that fetches nothing; leave `integration_type` unset and inherit `hub`; or scaffold a
+  repository that already has real code.
 ---
 
 # Scaffold the blueprint into a real integration
@@ -26,17 +26,32 @@ device mean scaffolding already happened. Adding an entity to an existing integr
 
 ## 1. Gather the facts — do not start without them
 
-| Fact                            | Why it decides something                                            |
-| ------------------------------- | ------------------------------------------------------------------- |
-| What the device or service does | Which platforms survive step 4                                      |
-| Protocol and base URL           | API client shape; whether an existing library is the better call    |
-| Authentication                  | Config flow fields, and whether reauth is needed                    |
-| **A real response payload**     | The coordinator's data shape, and every entity's value accessor     |
-| Push or poll, and how often     | `iot_class`, `UPDATE_INTERVAL`, whether a listener replaces polling |
-| A stable per-install identifier | The config entry `unique_id`                                        |
+| Fact                                           | Why it decides something                                            |
+| ---------------------------------------------- | ------------------------------------------------------------------- |
+| What the integration exposes, and to whom      | Which platforms survive step 4                                      |
+| **Where its values come from**                 | Everything below; see the branch under it                           |
+| **A real payload, or the real source**         | The coordinator's data shape, and every entity's value accessor     |
+| What drives an update, and how often           | `iot_class`, `UPDATE_INTERVAL`, whether a listener replaces polling |
+| A stable per-install identifier, if one exists | The config entry `unique_id`                                        |
 
-The payload is the one that cannot be guessed. Ask for an actual captured response — a curl dump, a log line, a
-screenshot of the vendor docs. Entities built against an invented shape look finished and fail on first contact.
+**Where the values come from is the branch, and it decides which further facts you need.**
+
+- **A device or an endpoint** — HTTP, WebSocket, MQTT, Bluetooth, serial, a vendor SDK. Then you also need the
+  protocol and base URL, the authentication, and whether credentials expire.
+- **Produced rather than fetched** — computed from other entities, a local file or database, a calculation, the
+  clock. There is no API client and no credentials; what you need instead is which sources it reads, what it does
+  when one is missing or the wrong type, and whether the result has to survive a restart.
+- **Write-only** — the integration sends commands and cannot read back. Then the question is what the entity shows
+  in between, which is `assumed_state` and optimistic state.
+
+An integration may sit in more than one of these. Establish which apply rather than forcing it into one.
+
+Where something _is_ fetched, the payload is the fact that cannot be guessed. Ask for an actual captured response —
+a curl dump, a log line, a screenshot of the vendor docs. Entities built against an invented shape look finished and
+fail on first contact.
+
+This table is the minimum, not the whole interview. [`ha-grill`](../ha-grill/SKILL.md) is how to get it out of the
+developer — one question at a time, in dependency order — and it ends with a brief that steps 2 to 6 then execute.
 
 If a maintained PyPI library already wraps this API, weigh it against a small `aiohttp` client using the criteria in
 [`AGENTS.md`](../../../AGENTS.md) ("Custom Integration Flexibility"), and record the outcome in
@@ -48,11 +63,20 @@ expensive to revisit later.
 `integration_type` drives how Home Assistant presents the integration and how you model devices:
 
 - `device` — one physical thing per config entry. The common case.
-- `service` — one account or cloud service per config entry.
+- `service` — one account, cloud service or local daemon per config entry.
 - `hub` — a gateway that fans out to several devices. Only if a single entry really yields many devices.
+- `helper` — the integration produces its values from what Home Assistant already has, rather than fetching them.
+  It appears under Helpers in the UI instead of under Devices & services, which is where its users will look for it.
 
-Set `iot_class` to match reality (`local_polling`, `cloud_polling`, `local_push`, `cloud_push`). Add discovery
-matchers only when you will also implement the matching flow step
+`entity`, `system`, `hardware` and `virtual` also exist, but they describe Home Assistant's own building blocks and
+are not for a custom integration. **Omitting the key is not neutral** — Home Assistant reads a missing
+`integration_type` as `hub`.
+
+Set `iot_class` to match reality. Beyond `local_polling`, `cloud_polling`, `local_push` and `cloud_push` there is
+`calculated`, for an integration that derives its values instead of fetching them, and `assumed_state`, for one that
+sends commands it cannot read back.
+
+Add discovery matchers only when you will also implement the matching flow step
 ([`ha-config-flow`](../ha-config-flow/SKILL.md)); a matcher without a handler fails `script/hassfest`.
 
 Declare runtime dependencies in **both** `manifest.json` → `requirements` and the root `requirements.txt`
@@ -60,14 +84,17 @@ Declare runtime dependencies in **both** `manifest.json` → `requirements` and 
 
 ## 3. Build the layers bottom-up
 
-Entities → coordinator → API client. Build in the reverse of that order, because each layer is testable before the
-one above it exists.
+Entities → coordinator → source. Build in the reverse of that order, because each layer is testable before the one
+above it exists.
 
 1. **`api/`** — the client and its exception types. Nothing Home Assistant-specific in here: no `hass`, no entity
-   imports. Raise your own auth/connection/unknown exceptions and let the coordinator translate them.
+   imports. Raise your own auth/connection/unknown exceptions and let the coordinator translate them. **When nothing
+   is fetched, this package has nothing to hold — delete it** rather than leaving a client that wraps a calculation.
 2. **`coordinator/`** — replace `_async_update_data` with the real call and return the shape the entities will read.
    Translate API exceptions into `ConfigEntryAuthFailed` or `UpdateFailed` there and only there
-   ([`ha-coordinator-debug`](../ha-coordinator-debug/SKILL.md)).
+   ([`ha-coordinator-debug`](../ha-coordinator-debug/SKILL.md)). If the values are produced rather than fetched, this
+   is where the computation lives, driven by a state listener or a timer instead of a poll — and a coordinator that
+   would only re-run a local calculation on a timer should be replaced by the listener outright.
 3. **`data.py` / `const.py`** — the runtime data container and the constants the platforms share.
 
 Decide the coordinator's data shape deliberately: a parsed model or `TypedDict` beats passing raw JSON around,
@@ -76,7 +103,7 @@ because every entity would otherwise repeat the same defensive key lookups.
 ## 4. Keep, adapt, delete each platform
 
 The blueprint ships `binary_sensor`, `button`, `fan`, `number`, `select`, `sensor`, `switch` as worked examples. For
-each one: does the real device expose this?
+each one: does this integration have a real equivalent — a value it reads, computes, or a command it can send?
 
 - **Yes** → adapt it. Reuse the file layout and the `EntityDescription` pattern
   ([`ha-entity-platform`](../ha-entity-platform/SKILL.md)).

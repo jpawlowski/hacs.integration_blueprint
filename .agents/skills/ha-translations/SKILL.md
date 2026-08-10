@@ -104,6 +104,9 @@ raise HomeAssistantError(
 - Error messages say what happened and what to do, and never leak credentials, tokens, or raw stack traces.
 - Reuse Home Assistant's common strings where they exist instead of writing a new variant of "Failed to connect" — see
   the `[%key:…%]` section in the instructions file.
+- Use the word the project already settled on. If `docs/development/GLOSSARY.md` exists it decides the wording here,
+  because renaming an entity later is a breaking change ([`ha-grill`](../ha-grill/SKILL.md) is where those terms are
+  agreed).
 
 ## icons.json
 
