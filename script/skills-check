@@ -5,7 +5,7 @@
 # Checks every skill against the Agent Skills open standard
 # (https://agentskills.io/specification) and this repository's own conventions:
 # frontmatter fields, name/description limits, body length, reference depth,
-# resolvable links, placeholder usage, and the shape of evals/evals.json.
+# resolvable links, placeholder usage.
 #
 # When the optional `skills-ref` reference validator is installed, it runs in
 # addition to the built-in checks. It is not required.

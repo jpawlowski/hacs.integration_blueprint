@@ -11,5 +11,8 @@ CHANGELOG.md
 .claude/
 .github/instructions/
 
+# Agent scratch space — generated notes and reports, never committed
+.agents/scratch/
+
 # Ignore-style files (no recognized extension — Prettier would misparse them)
 *ignore

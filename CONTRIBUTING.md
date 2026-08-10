@@ -77,7 +77,6 @@ Two commands keep the skills honest:
 
 ```bash
 script/skills-check                     # structure — runs in CI and as a pre-commit hook
-script/skill-evals [skill-name]         # behaviour — costs model calls, run it manually
 ```
 
 **Companion skill for operating Home Assistant.** These skills cover _developing_ the integration. When you drive the

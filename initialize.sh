@@ -1117,6 +1117,53 @@ remove_blueprint_specific_files() {
     fi
 }
 
+# Replace the repository-role declaration in AGENTS.md with the initialized-repository text.
+#
+# MUST run after all replace_in_files calls: the replacement text links to the upstream
+# template, and replace_in_files would rewrite that URL to the user's own repository.
+# AGENTS.md is listed in .templatesyncignore, so this edit is never reverted by template sync.
+rewrite_repo_role() {
+    local file="AGENTS.md"
+    local marker_start="<!-- repo-role:start -->"
+    local marker_end="<!-- repo-role:end -->"
+
+    if [[ ! -f "$file" ]] || ! grep -qF "$marker_start" "$file"; then
+        return 0
+    fi
+
+    if $DRY_RUN; then
+        print_dryrun "Would rewrite the repository-role section in $file"
+        return 0
+    fi
+
+    local block
+    block=$(mktemp)
+    cat > "$block" << 'ROLE_BLOCK_EOF'
+<!-- repo-role:start -->
+
+## Which repository is this?
+
+**This is an initialised Home Assistant integration repository.** It was created from the
+[hacs.integration_blueprint](https://github.com/jpawlowski/hacs.integration_blueprint) template and personalised by
+`initialize.sh`, which has already run and removed itself. It is not a blueprint — the integration is the product, and
+guidance about maintaining the template does not apply here.
+
+Template sync still delivers upstream improvements to shared files; `.templatesyncignore` lists what it must never
+touch. See [`blueprint-tooling`](.agents/skills/blueprint-tooling/SKILL.md).
+
+<!-- repo-role:end -->
+ROLE_BLOCK_EOF
+
+    awk -v s="$marker_start" -v e="$marker_end" -v b="$block" '
+        $0 == s { while ((getline line < b) > 0) print line; close(b); skip = 1; next }
+        $0 == e { skip = 0; next }
+        !skip
+    ' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+
+    rm -f "$block"
+    print_success "Rewrote the repository-role section in $file"
+}
+
 # Display statistics
 show_statistics() {
     local header_text="Customization Complete - Statistics"
@@ -1480,6 +1527,9 @@ main() {
     # Replace year in LICENSE with current year
     local current_year=$(date +%Y)
     replace_in_files "(c) 2025" "(c) $current_year" "LICENSE year"
+
+    # Declare this repository as an initialized integration (must follow the replacements above)
+    rewrite_repo_role
 
     # Show statistics
     local stats_prefix=""

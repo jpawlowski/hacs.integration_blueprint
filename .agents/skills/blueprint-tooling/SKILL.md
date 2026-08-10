@@ -62,7 +62,6 @@ script/develop          # start Home Assistant on :8123 with debugpy on :5678
 script/hassfest         # official HA validation (first run downloads ~27 MB)
 script/test             # pytest
 script/skills-check     # validate .agents/skills/ (also part of lint / lint-check)
-script/skill-evals      # behavioural evals for the skills — costs model calls
 script/version          # read the canonical version from manifest.json
 script/ha-version-sync  # align the pinned Home Assistant version across config files
 script/clean            # remove caches, logs, build artifacts

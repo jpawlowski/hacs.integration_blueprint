@@ -118,7 +118,6 @@ rather than fixing it again each week.
 
 ```bash
 script/skills-check   # skills and instruction files — part of script/lint-check, so CI enforces it
-script/skill-evals    # behavioural evals for the skills — costs model calls, run it manually
 ```
 
 Writing and maintaining skills is documented in [`skills/README.md`](skills/README.md).

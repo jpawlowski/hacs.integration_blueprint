@@ -220,7 +220,7 @@ To add new functionality:
 1. Create directory: `custom_components/ha_integration_domain/<platform>/`
 2. Implement `__init__.py` with `async_setup_entry()`
 3. Create entity classes inheriting from platform base + `IntegrationBlueprintEntity`
-4. Add platform to `PLATFORMS` in `const.py`
+4. Add platform to `PLATFORMS` in `__init__.py`
 
 ### Adding a New Service Action
 

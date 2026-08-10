@@ -52,6 +52,23 @@ without `paths` is loaded by Claude Code into every session. The full frontmatte
 [`../../instructions/blueprint.markdown.instructions.md`](../../instructions/blueprint.markdown.instructions.md);
 `script/skills-check` enforces it.
 
+## Write for both roles
+
+Every skill except this one is synced downstream and read in two kinds of repository: this template, and the
+initialised integration repositories generated from it. The same sentence has to be true in both.
+
+- **"this repository", "this project"** — the repository the agent is in, whichever that is. This is the default.
+- **"the blueprint", "the template", "upstream"** — reserved for the repository this one was generated _from_.
+  Correct downstream, and correct here too.
+- **"this blueprint"** — almost always wrong. Downstream it claims the maintainer's integration is a template.
+
+The `blueprint-` prefix names where a skill came from, not what the repository is. `blueprint-tooling` is about the
+tooling the template ships, and it applies in an initialised integration exactly as it does here.
+
+Which role a repository is in is declared in the `repo-role` block at the top of `AGENTS.md`; `initialize.sh` rewrites
+it and then deletes itself, so a repository without `initialize.sh` is an initialised integration. A skill never needs
+to work that out for itself — `AGENTS.md` is always loaded.
+
 ## Adding a skill to the shipped set
 
 1. Decide it is really a skill and not a rule (see the seam above), and that no existing skill should absorb it.
@@ -62,19 +79,17 @@ without `paths` is loaded by Claude Code into every session. The full frontmatte
    domain and class-prefix values this repository ships with, or `initialize.sh` will personalise them downstream and
    the next template sync will overwrite the result with the blueprint's own names. `script/skills-check` fails the
    build if a concrete identifier slips in, including in a code sample or a negative example.
-3. Write `evals/evals.json` with 2–3 realistic prompts. At least one should be a _bad_ instruction that the skill is
-   supposed to push back on — those catch regressions that happy-path evals never will.
-4. Add it to the catalogue in **every** place listed below.
-5. `script/skills-check && script/markdown`, then `script/skill-evals <name>`.
+3. Add it to the catalogue in **every** place listed below.
+4. `script/skills-check && script/markdown`.
 
 ## Where the catalogue is duplicated
 
 Adding or renaming a skill means touching these. There is no generator, so this list is the safeguard:
 
-| File                       | Form                           |
-| -------------------------- | ------------------------------ |
-| `.agents/skills/README.md` | table with a "Use when" column |
-| `AGENTS.md`                | table with a "Use when" column |
+| File                       | Form                                                     |
+| -------------------------- | -------------------------------------------------------- |
+| `.agents/skills/README.md` | table with a "Use when" column                           |
+| `AGENTS.md`                | routing table: task → skill → matching instructions file |
 
 No other file carries a catalogue, and none should. Codex and Copilot read `AGENTS.md` natively, and `CLAUDE.md`
 imports it — all three already have the table. Every extra copy is another place to forget.
@@ -89,7 +104,6 @@ stale silently and is wrong downstream anyway, where this skill has been removed
   taste costs them attention and buys nothing.
 - **Check the counterpart instructions file** in the same change. If you add a rule to a skill, it probably belongs in
   the instructions file instead, and if it contradicts one already there, one of the two is now wrong.
-- **Re-run that skill's evals.** A skill edit that does not move an eval either fixed nothing or is untested.
 - If a downstream maintainer would reasonably have edited this skill locally, remember their change is protected only
   if they listed it in `.templatesyncignore` — see the downstream section of [`../README.md`](../README.md).
 
@@ -109,8 +123,6 @@ stale. Re-verify against the newly installed source, not from memory:
 - `ha-quality-review` — `references/quality-scale-rules.md` against `script/hassfest/quality_scale.py` upstream
 - `ha-entity-platform`, `ha-config-flow` — any API named in a code sample
 - `ha-testing` — new `DeprecationWarning`s become test failures, because warnings are errors here
-
-Then `script/skill-evals` across the set. This is the one moment where running all of them is worth the cost.
 
 ## Do not
 

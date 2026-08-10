@@ -11,7 +11,6 @@ plus the conventions this repository adds on top of it:
 - reference files sit exactly one level below SKILL.md
 - relative markdown links resolve
 - no concrete project identifiers leak in (they must stay template-sync safe)
-- evals/evals.json, when present, has the expected shape
 
 Invoked by script/skills-check; not intended to be run directly.
 """
@@ -20,7 +19,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-import json
 from pathlib import Path
 import re
 import sys
@@ -137,7 +135,7 @@ def check_body(path: Path, body_start: int, report: Report) -> None:
 
 def check_layout(skill_dir: Path, report: Report) -> None:
     """Validate that supporting files sit exactly one level below SKILL.md."""
-    for sub in ("references", "scripts", "assets", "evals"):
+    for sub in ("references", "scripts", "assets"):
         directory = skill_dir / sub
         if not directory.is_dir():
             continue
@@ -163,51 +161,6 @@ def check_links(path: Path, report: Report) -> None:
             report.error(f"{path} links to a missing file: {target}")
 
 
-def check_evals(skill_dir: Path, report: Report) -> None:
-    """
-    Validate evals/evals.json against the canonical format.
-
-    https://agentskills.io/skill-creation/evaluating-skills — assertions are plain
-    strings, not objects, so Anthropic's skill-creator plugin can consume the file.
-    """
-    evals_file = skill_dir / "evals" / "evals.json"
-    if not evals_file.is_file():
-        return
-
-    try:
-        data = json.loads(evals_file.read_text())
-    except json.JSONDecodeError as err:
-        report.error(f"evals/evals.json is not valid JSON: {err}")
-        return
-
-    if data.get("skill_name") != skill_dir.name:
-        report.error(f"evals/evals.json skill_name is {data.get('skill_name')!r}, expected {skill_dir.name!r}")
-
-    evals = data.get("evals")
-    if not isinstance(evals, list) or not evals:
-        report.error("evals/evals.json must contain a non-empty 'evals' list")
-        return
-
-    seen_ids: set[object] = set()
-    for index, item in enumerate(evals):
-        where = f"evals[{index}]"
-        for required in ("id", "prompt", "expected_output", "assertions"):
-            if required not in item:
-                report.error(f"{where} is missing '{required}'")
-        if item.get("id") in seen_ids:
-            report.error(f"{where} reuses id {item.get('id')!r}")
-        seen_ids.add(item.get("id"))
-        for extra in set(item) - {"id", "prompt", "expected_output", "assertions", "files"}:
-            report.error(f"{where} has non-canonical field {extra!r} — skill-creator ignores it")
-        assertions = item.get("assertions")
-        if not isinstance(assertions, list) or not assertions:
-            report.error(f"{where} must have a non-empty 'assertions' list")
-            continue
-        for assertion in assertions:
-            if not isinstance(assertion, str) or not assertion.strip():
-                report.error(f"{where} assertions must be non-empty strings, got {type(assertion).__name__}")
-
-
 def check_skill(skill_dir: Path) -> Report:
     """Run every check against one skill directory."""
     report = Report(skill=skill_dir.name)
@@ -221,7 +174,6 @@ def check_skill(skill_dir: Path) -> Report:
         check_frontmatter(skill_dir, fields, report)
         check_body(skill_file, body_start, report)
     check_layout(skill_dir, report)
-    check_evals(skill_dir, report)
     for markdown in sorted(skill_dir.rglob("*.md")):
         check_identifiers(markdown, report)
         check_links(markdown, report)

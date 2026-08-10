@@ -2,9 +2,13 @@
 
 ## Initial Transformation Prompt
 
-**Context:** This project is a fresh, unmodified blueprint template. Your task is to transform it into a working integration for the target device/service.
+**Context:** This project is a fresh, unmodified blueprint template. Turning it into a working integration for one
+device or service is a defined procedure, and it lives in the
+[`blueprint-scaffold`](../../.agents/skills/blueprint-scaffold/SKILL.md) agent skill — not in this document. The skill
+carries the layer order, the manifest classification, what happens to each example platform, and the validation steps.
 
-The blueprint is well-documented (see `AGENTS.md`, which Copilot reads natively). You should analyze the existing structure and remove/modify files as needed.
+Your prompt only has to supply the facts the skill cannot know, and point the agent at it. The Coding Agent runs in
+GitHub Actions and reads `AGENTS.md` natively; naming the skill file explicitly is the reliable way to load it there.
 
 ### What to Include in Your Prompt
 
@@ -12,18 +16,19 @@ The blueprint is well-documented (see `AGENTS.md`, which Copilot reads natively)
 
 - **High-level idea** - What the device/service does (2-3 sentences)
 - **API/Protocol** - How to connect (REST/MQTT/WebSocket, authentication)
-- **Example API response** - Paste actual JSON/data structure
+- **Example API response** - Paste an actual captured JSON/data structure. This is the one thing the agent cannot
+  derive or guess; entities built against an invented payload look finished and fail on first contact with the device.
 
-**Optional (Copilot can figure these out):**
+**Optional (the agent works these out):**
 
-- Config flow requirements - Agent will analyze what needs to be configured
-- Which entities to keep/remove - Agent will determine based on API structure
-- Rate limits or API considerations - Include if critical
+- Config flow requirements - determined from the authentication and connection details
+- Which example platforms to keep or remove - determined from the API structure
+- Rate limits or API considerations - include if critical
 
 ### Prompt Template
 
 ```markdown
-This is a fresh Home Assistant integration blueprint. Transform it for [DEVICE/SERVICE NAME].
+Follow .agents/skills/blueprint-scaffold/SKILL.md to transform this blueprint for [DEVICE/SERVICE NAME].
 
 High-level: [2-3 sentences about what it does]
 
@@ -32,27 +37,17 @@ API Details:
 - Protocol: [REST/GraphQL/WebSocket/MQTT/etc.]
 - Endpoint: [base URL or connection details]
 - Auth: [API key/OAuth/none]
+- Push or poll: [and how often]
+- Stable identifier for the config entry unique ID: [serial/MAC/account ID]
 
 Example API response:
 [paste JSON or data structure from actual device/service]
-
-Tasks:
-
-1. Analyze the blueprint structure (documented in AGENTS.md)
-2. Remove entity platforms not needed for this device
-3. Implement API client based on above structure
-4. Update entities to match available data
-5. Customize config flow for required user inputs
-6. Update README, docs, and translations
-7. Run script/check to validate
-
-The blueprint has example entities - remove what's not needed, keep and adapt what makes sense.
 ```
 
 ### Example: Smart Thermostat
 
 ```markdown
-This is a fresh Home Assistant integration blueprint. Transform it for MyDevice Smart Thermostat.
+Follow .agents/skills/blueprint-scaffold/SKILL.md to transform this blueprint for MyDevice Smart Thermostat.
 
 High-level: Smart thermostat that controls temperature via REST API. Reads current
 temp/humidity, sets target temperature, changes heating/cooling mode.
@@ -62,6 +57,8 @@ API Details:
 - Protocol: REST API
 - Endpoint: http://{host}/api/v1/
 - Auth: API key in X-API-Key header
+- Push or poll: poll, 30s is fine
+- Stable identifier: "serial" field from /info
 
 Example API response from /status:
 {
@@ -70,23 +67,14 @@ Example API response from /status:
 "mode": "heat",
 "state": "heating"
 }
-
-Tasks:
-
-1. Analyze the blueprint structure (documented in AGENTS.md)
-2. Remove entity platforms not needed (fan, number, select, switch)
-3. Keep climate platform, customize for thermostat control
-4. Keep sensor platform for temperature/humidity
-5. Keep binary_sensor for connectivity only
-6. Implement API client: get_status(), set_temperature(), set_mode()
-7. Update config flow to ask for host and API key
-8. Update README and translations
-9. Run script/check to validate
-
-The blueprint has example entities - remove what's not needed, keep and adapt what makes sense.
 ```
 
-Let the Copilot Agent analyze the blueprint and determine the best structure.
+The skill decides the rest: which example platforms survive, the order the layers are built in, and what has to be
+green before the work counts as done.
+
+> [!TIP]
+> Migrating an **existing** integration rather than starting from scratch is a different procedure with different
+> risks — see [`blueprint-import`](../../.agents/skills/blueprint-import/SKILL.md) and [MIGRATION.md](MIGRATION.md).
 
 ## Human Review and Transparency
 
