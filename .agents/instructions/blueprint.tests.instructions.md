@@ -1,5 +1,6 @@
 ---
 applyTo: "tests/**/*.py"
+globs: "tests/**/*.py"
 ---
 
 # Test Instructions

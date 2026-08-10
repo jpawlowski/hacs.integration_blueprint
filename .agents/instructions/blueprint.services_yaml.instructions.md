@@ -1,5 +1,6 @@
 ---
 applyTo: "**/services.yaml"
+globs: "**/services.yaml"
 ---
 
 # Service Actions Definition Instructions

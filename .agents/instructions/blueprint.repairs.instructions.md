@@ -1,5 +1,6 @@
 ---
 applyTo: "custom_components/**/repairs.py"
+globs: "custom_components/**/repairs.py"
 ---
 
 # Repairs Instructions

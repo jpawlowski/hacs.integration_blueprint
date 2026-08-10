@@ -1,5 +1,6 @@
 ---
 applyTo: "**/*.md"
+globs: "**/*.md"
 ---
 
 # Markdown Instructions

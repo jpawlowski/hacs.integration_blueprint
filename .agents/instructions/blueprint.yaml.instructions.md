@@ -1,5 +1,6 @@
 ---
 applyTo: "**/*.yaml, **/*.yml"
+globs: "**/*.yaml, **/*.yml"
 ---
 
 # YAML Instructions

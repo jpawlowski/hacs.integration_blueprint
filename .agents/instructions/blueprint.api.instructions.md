@@ -1,5 +1,6 @@
 ---
 applyTo: "custom_components/**/api/**/*.py, custom_components/**/coordinator/**/*.py"
+globs: "custom_components/**/api/**/*.py, custom_components/**/coordinator/**/*.py"
 ---
 
 # API and Coordinator Instructions

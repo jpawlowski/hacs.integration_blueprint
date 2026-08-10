@@ -1,5 +1,6 @@
 ---
 applyTo: "**/manifest.json"
+globs: "**/manifest.json"
 ---
 
 # Manifest Instructions

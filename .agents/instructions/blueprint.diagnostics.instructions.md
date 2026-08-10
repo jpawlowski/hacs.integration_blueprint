@@ -1,5 +1,6 @@
 ---
 applyTo: "custom_components/**/diagnostics.py"
+globs: "custom_components/**/diagnostics.py"
 ---
 
 # Diagnostics Instructions

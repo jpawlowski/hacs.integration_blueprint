@@ -1,5 +1,6 @@
 ---
 applyTo: "script/**, .devcontainer/*.sh"
+globs: "script/**, .devcontainer/*.sh"
 ---
 
 # Shell Script Instructions

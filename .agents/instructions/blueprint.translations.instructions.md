@@ -1,5 +1,6 @@
 ---
 applyTo: "**/translations/*.json"
+globs: "**/translations/*.json"
 ---
 
 # Translation Files Instructions

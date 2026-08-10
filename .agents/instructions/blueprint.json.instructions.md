@@ -1,5 +1,6 @@
 ---
 applyTo: "**/*.json"
+globs: "**/*.json"
 ---
 
 # JSON Instructions

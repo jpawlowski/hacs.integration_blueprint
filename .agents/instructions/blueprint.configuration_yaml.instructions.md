@@ -1,5 +1,6 @@
 ---
 applyTo: "**/configuration.yaml"
+globs: "**/configuration.yaml"
 ---
 
 # Home Assistant Configuration Instructions

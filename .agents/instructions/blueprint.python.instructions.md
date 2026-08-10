@@ -1,5 +1,6 @@
 ---
 applyTo: "**/*.py"
+globs: "**/*.py"
 ---
 
 # Python Code Instructions

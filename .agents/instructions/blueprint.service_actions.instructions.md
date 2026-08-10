@@ -1,5 +1,6 @@
 ---
 applyTo: "custom_components/**/service_actions/**/*.py"
+globs: "custom_components/**/service_actions/**/*.py"
 ---
 
 # Service Actions Instructions
