@@ -92,7 +92,6 @@ AI_POLICY.md
 # Ownership, funding, and other per-project settings
 .github/CODEOWNERS
 .github/FUNDING.yml
-.github/COPILOT_CODING_AGENT.md
 
 # ── Script and DevContainer hooks ────────────────────────────
 # Your custom pre/post hooks live here — never overwritten by template sync
