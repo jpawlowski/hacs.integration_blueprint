@@ -205,7 +205,7 @@ through the `.claude/rules/instructions` symlink. Codex has no comparable file-t
 The skill catalogue, the symlink layout that makes one directory work for every agent vendor, and the rules for writing
 a new skill are documented in [`.agents/skills/README.md`](../../.agents/skills/README.md).
 
-For using the GitHub Copilot coding agent with this repository, see [`COPILOT_AGENT.md`](./COPILOT_AGENT.md).
+For working with AI coding agents in this repository, see [`AI_AGENTS.md`](./AI_AGENTS.md).
 
 ## Key Design Decisions
 

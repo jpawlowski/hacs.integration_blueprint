@@ -8,7 +8,7 @@ blueprint's project structure, DevContainer environment, and tooling.
 > `./initialize.sh`. That is deliberate — by that point the decisions below are made, and
 > the rest of the migration is driven by the `blueprint-import` agent skill, which stays.
 > The original lives at
-> [jpawlowski/hacs.integration_blueprint](https://github.com/jpawlowski/hacs.integration_blueprint/blob/main/docs/development/MIGRATION.md).
+> [jpawlowski/hacs.integration_blueprint](https://github.com/jpawlowski/hacs.integration_blueprint/blob/main/docs/blueprint/MIGRATION.md).
 
 ## The Core Idea
 
@@ -57,7 +57,7 @@ makes the rest of the migration verifiable.
 
 ## See Also
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) — the package layout the blueprint expects
-- [CUSTOMIZATION.md](CUSTOMIZATION.md) — template sync, `.templatesyncignore`, and hook scripts
+- [ARCHITECTURE.md](../development/ARCHITECTURE.md) — the package layout the blueprint expects
+- [CUSTOMIZATION.md](../development/CUSTOMIZATION.md) — template sync, `.templatesyncignore`, and hook scripts
 - [`blueprint-tooling`](../../.agents/skills/blueprint-tooling/SKILL.md) — the validation scripts,
   and keeping `manifest.json` requirements in sync with `requirements.txt`

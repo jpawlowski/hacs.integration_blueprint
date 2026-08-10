@@ -1079,7 +1079,7 @@ remove_post_attach_script() {
 remove_blueprint_specific_files() {
     if $DRY_RUN; then
         print_dryrun "Would remove .github/FUNDING.yml"
-        print_dryrun "Would remove docs/development/MIGRATION.md"
+        print_dryrun "Would remove docs/blueprint/"
         print_dryrun "Would remove .agents/skills/blueprint-skill-maintenance/"
         print_dryrun "Would remove blueprint-only sections from .agents/skills/README.md"
     else
@@ -1094,10 +1094,12 @@ remove_blueprint_specific_files() {
         # Note: Users can create their own FUNDING.yml later if they want
         # after setting up their own GitHub Sponsors account
 
-        # Remove migration guide (only relevant for blueprint users setting up a new repo)
-        if [[ -f "docs/development/MIGRATION.md" ]]; then
-            rm -f "docs/development/MIGRATION.md"
-            print_success "Removed docs/development/MIGRATION.md"
+        # Remove the blueprint's own documentation: decisions about the template, and the
+        # guide for adopting it. Both are written for whoever maintains the blueprint, not
+        # for this integration. docs/ is in .templatesyncignore, so sync never reinstates it.
+        if [[ -d "docs/blueprint" ]]; then
+            rm -rf "docs/blueprint"
+            print_success "Removed docs/blueprint/"
         fi
 
         # Remove the agent skill that only applies to maintaining the blueprint itself.

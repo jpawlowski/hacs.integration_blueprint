@@ -31,11 +31,21 @@ maintaining a set that ships to other people.
 
 Every piece of guidance goes in exactly one place. Before writing anything into a skill, ask which of these it is:
 
-| It is…                                                        | It belongs in…              |
-| ------------------------------------------------------------- | --------------------------- |
-| A rule that holds whenever a file of that type is edited      | `.agents/instructions/*.md` |
-| An ordered procedure, or a decision the developer has to make | `.agents/skills/*/SKILL.md` |
-| An explanation, a rationale, or a one-time human setup step   | `docs/development/`         |
+| It is…                                                             | It belongs in…              |
+| ------------------------------------------------------------------ | --------------------------- |
+| A rule that holds whenever a file of that type is edited           | `.agents/instructions/*.md` |
+| An ordered procedure, or a decision the developer has to make      | `.agents/skills/*/SKILL.md` |
+| An explanation or rationale for whoever builds **an integration**  | `docs/development/`         |
+| An explanation or rationale for whoever maintains **the template** | `docs/blueprint/`           |
+
+The last row is decided by audience, not by subject. `docs/development/CUSTOMIZATION.md` describes hooks and template
+sync — blueprint mechanisms both — but it addresses someone who received the blueprint, so it stays there. Why the
+blueprint mints its development token offline addresses whoever maintains the blueprint, so it goes in
+[`docs/blueprint/DECISIONS.md`](../../../docs/blueprint/DECISIONS.md).
+
+`initialize.sh` deletes `docs/blueprint/` wholesale, and `docs/` is already in `.templatesyncignore`, so nothing there
+needs further registration. Anything blueprint-only **outside** that directory needs all three steps — see
+[`docs/blueprint/README.md`](../../../docs/blueprint/README.md).
 
 "MUST inherit from X", "never set `name=`", "the per-platform member table" are rules. "First clarify Y, then edit Z,
 then validate with W" is a procedure. When a skill needs a rule in order to make sense, **link to it** — do not copy

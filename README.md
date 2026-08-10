@@ -320,7 +320,7 @@ See [docs/development/CUSTOMIZATION.md](docs/development/CUSTOMIZATION.md) for d
 
 Already have a HACS integration? You can adopt this blueprint's structure and tooling without starting from scratch. The short version: copy your `custom_components/<domain>/` folder in and adapt your code incrementally.
 
-See [docs/development/MIGRATION.md](docs/development/MIGRATION.md) for an overview of strategies (clean start vs. preserving git history) and common pitfalls like namespace mismatches and repository permissions.
+See [docs/blueprint/MIGRATION.md](docs/blueprint/MIGRATION.md) for an overview of strategies (clean start vs. preserving git history) and common pitfalls like namespace mismatches and repository permissions.
 
 ### Troubleshooting
 
@@ -519,13 +519,17 @@ tests/                         # Your test files (add your own!)
 ├── hooks/                     # Your custom pre/post hook scripts (see docs/development/CUSTOMIZATION.md)
 └── post-attach.sh             # Auto-initialization trigger  ⚑ removed by initialize.sh
 docs/                          # Documentation
+├── blueprint/                 # About the template itself  ⚑ removed by initialize.sh
+│   ├── README.md              # What belongs here, and what does not
+│   ├── DECISIONS.md           # Decisions about the blueprint
+│   ├── MIGRATION.md           # Adopting the blueprint in an existing integration
+│   └── TRANSFORMATION_PROMPT.md  # Prompting an agent to transform the template
 ├── development/               # Developer documentation
+│   ├── AI_AGENTS.md           # Working with AI coding agents
 │   ├── ARCHITECTURE.md        # Architecture overview
 │   ├── CODESPACES.md          # Codespaces setup guide
-│   ├── COPILOT_AGENT.md       # GitHub Copilot agent setup
 │   ├── CUSTOMIZATION.md       # Customization guide
 │   ├── DECISIONS.md           # Architectural decisions
-│   ├── MIGRATION.md           # Migration guide  ⚑ removed by initialize.sh
 │   └── RELEASE.md             # Release process
 └── user/                      # User documentation
     ├── CONFIGURATION.md       # Configuration guide
@@ -752,7 +756,7 @@ This blueprint is optimized for development with AI coding assistants like **Git
   `SKILL.md` standard, covering entity platforms, service actions, config flow, debugging, translations, testing,
   quality review, deprecated APIs, breaking changes, planning, releases, and tooling
 - **`.agents/instructions/*.instructions.md`** - 18 path-specific instruction files for different file types (Python, YAML, JSON, config flows, entities, repairs, etc.)
-- **`docs/development/COPILOT_AGENT.md`** - Guide for using GitHub Copilot Coding Agent with this template
+- **`docs/development/AI_AGENTS.md`** - Working with AI coding agents: review workflow and per-agent configuration
 
 **One skill directory, every agent:** `.agents/skills/` is the vendor-neutral location Codex CLI, GitHub Copilot and
 VS Code read directly. Claude Code only looks in `.claude/skills/`, which is a symlink to it — so a skill is written
@@ -775,7 +779,7 @@ When creating a new repository from this template, you can provide initializatio
 3. The agent will run `initialize.sh` in unattended mode and create a draft pull request
 4. Review the changes and record what was checked, automatically tested, and tested with a real device or service
 
-See [`docs/development/COPILOT_AGENT.md`](docs/development/COPILOT_AGENT.md) for detailed instructions and example prompts.
+See [`docs/development/AI_AGENTS.md`](docs/development/AI_AGENTS.md) for detailed instructions and example prompts.
 
 **For complete details:**
 
@@ -922,8 +926,8 @@ Once you have the blueprint working with your device or service:
 - [docs/development/CUSTOMIZATION.md](docs/development/CUSTOMIZATION.md) - Extending scripts and staying up to date
 - [docs/development/RELEASE.md](docs/development/RELEASE.md) - Release process and versioning
 - [docs/development/CODESPACES.md](docs/development/CODESPACES.md) - GitHub Codespaces setup and tips
-- [docs/development/COPILOT_AGENT.md](docs/development/COPILOT_AGENT.md) - Using GitHub Copilot Coding Agent
-- [docs/development/MIGRATION.md](docs/development/MIGRATION.md) - Migrating an existing integration
+- [docs/development/AI_AGENTS.md](docs/development/AI_AGENTS.md) - Working with AI coding agents
+- [docs/blueprint/MIGRATION.md](docs/blueprint/MIGRATION.md) - Migrating an existing integration
 
 ### Home Assistant documentation
 

@@ -21,7 +21,7 @@ When testing a pull request created by GitHub Copilot Coding Agent:
 3. Run `./script/develop` to start Home Assistant
 4. Test the integration in the browser (port 8123 forwards automatically)
 
-For the complete Copilot Agent workflow, see [COPILOT_AGENT.md](COPILOT_AGENT.md).
+For the complete Copilot Agent workflow, see [AI_AGENTS.md](AI_AGENTS.md).
 
 ## What Works Automatically
 
