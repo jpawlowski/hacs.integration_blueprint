@@ -28,7 +28,7 @@ cd "$SCRIPT_DIR/.."
 source "$SCRIPT_DIR/.lib/output.sh"
 
 MODE="${1:-stdout}"
-SCRATCH_DIR=".ai-scratch"
+SCRATCH_DIR=".agents/scratch"
 
 # Configuration
 COPILOT_MODEL="${COPILOT_MODEL:-claude-sonnet-4.6}"
