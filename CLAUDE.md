@@ -1,38 +1,21 @@
+@AGENTS.md
+
 # Claude Code Instructions
 
-This repository uses a shared AI agent instruction system. **All instructions are in [`AGENTS.md`](AGENTS.md).**
+Claude Code reads `CLAUDE.md`, not `AGENTS.md`, so the import above is what loads the shared instruction file every
+agent in this repository uses. Everything else — project identity, architecture, workflow rules, validation — lives
+there and is not repeated here.
 
-Read `AGENTS.md` completely before starting any work. It contains:
+## How the pieces reach Claude Code
 
-- Project overview and integration identifiers
-- Package structure and architectural rules
-- Code style, validation commands, and quality expectations
-- Home Assistant patterns (config flow, coordinator, entities, services)
-- Error recovery strategy and breaking change policy
-- Workflow rules (scope management, translations, documentation)
+| What              | Path Claude Code reads        | Real location           |
+| ----------------- | ----------------------------- | ----------------------- |
+| Agent skills      | `.claude/skills/`             | `.agents/skills/`       |
+| Path-scoped rules | `.claude/rules/instructions/` | `.agents/instructions/` |
 
-## Quick Reference
+Both are symlinks. **Edit the real `.agents/` paths**, so your diff shows the same file another maintainer would
+touch.
 
-- **Domain:** `ha_integration_domain`
-- **Title:** Integration Blueprint
-- **Class prefix:** `IntegrationBlueprint`
-- **Main code:** `custom_components/ha_integration_domain/`
-- **Validate:** `script/check` (type-check + lint + spell)
-- **Test:** `script/test`
-- **Run HA:** `./script/develop`
-
-## Path-Specific Instructions
-
-Additional domain-specific guidance is available in `.github/instructions/*.instructions.md`.
-These files use `applyTo` globs to indicate which files they cover.
-Consult the relevant instruction file when working on specific file types:
-
-- `blueprint.python.instructions.md` — Python style, async patterns, HA imports
-- `blueprint.entities.instructions.md` — Entity platform patterns, inheritance
-- `blueprint.config_flow.instructions.md` — Config flow, reauth, discovery
-- `blueprint.coordinator.instructions.md` — DataUpdateCoordinator patterns
-- `blueprint.api.instructions.md` — API client, exception hierarchy
-- `blueprint.services_yaml.instructions.md` — Service action definitions
-- `blueprint.translations.instructions.md` — Translation file structure
-- `blueprint.commit-message.instructions.md` — Conventional Commits format (applies to
-  every commit, not to a file glob)
+Path-scoped rules load automatically for the file you are working on, matched by the `globs` key in each file's
+frontmatter. If they appear not to apply, that key is the first thing to check — a rule with no `globs` loads into
+every session instead, and a malformed one silently loads into none.
