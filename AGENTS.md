@@ -237,9 +237,11 @@ parallel. Rules: [`ha-coordinator-debug`](.agents/skills/ha-coordinator-debug/SK
 
 Log reading, failure triage and the debugging loop: [`ha-coordinator-debug`](.agents/skills/ha-coordinator-debug/SKILL.md).
 
-**Devcontainer CLI tools:** `fd`, `fzf`, `http`, `hyperfine`, `ipython`, `jq`, `jo`, `mlr`, `rg`, `shellcheck`,
-`shfmt`, `sponge`, `sqlite3`, `yq`, `yamllint`. Debian package names differ from the common spellings, so `fdfind`,
-`git-delta`, `httpie`, `miller` and `ripgrep` also resolve. `yq` is the Mike Farah variant (`yq eval` syntax).
+**Devcontainer CLI tools:** `fd`, `fzf`, `gron`, `http`, `hyperfine`, `ipython`, `jq`, `jo`, `mlr`, `rg`,
+`shellcheck`, `shfmt`, `sponge`, `sqlite3`, `yq`, `yamllint`. Debian package names differ from the common spellings,
+so `fdfind`, `git-delta`, `httpie`, `miller` and `ripgrep` also resolve. `yq` is the Mike Farah variant (`yq eval`
+syntax). `gron` flattens JSON into greppable assignments — `script/ha diagnostics | gron | rg <key>` gives the value
+and its path without pulling the whole document into context.
 
 `bat`, `delta`, `eza` and `tree` are installed for the developer's terminal, not for you: `bat` and `delta` pass
 their input through unchanged when the caller is not a TTY, and the other two only prettify what `ls` and `fd`
