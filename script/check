@@ -10,7 +10,7 @@
 # For targeted checks after specific file type changes:
 #   ./script/type-check     Python type checking only (Pyright)
 #   ./script/python-check   Python lint/format only (Ruff)
-#   ./script/yaml-check     YAML only (yamllint)
+#   ./script/yaml-check     YAML only (yamllint + zizmor)
 #   ./script/shell-check    Shell only (shfmt + shellcheck)
 #   ./script/spell-check    Spelling only (codespell)
 #

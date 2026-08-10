@@ -29,7 +29,7 @@ For a diff review: `git diff main...HEAD --stat`, then read the changed files in
 ## 1. Automated gates (always first)
 
 ```bash
-script/lint          # ruff format+fix, shfmt, prettier/markdownlint, yamllint, shellcheck
+script/lint          # ruff format+fix, shfmt, prettier/markdownlint, yamllint, zizmor, shellcheck
 script/type-check    # pyright — never auto-fixed
 script/hassfest      # manifest, services.yaml, translations, integration structure
 script/test --cov-html

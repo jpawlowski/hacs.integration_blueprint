@@ -3,7 +3,7 @@
 # script/lint: Format and lint all file types
 #
 # Orchestrates formatting and linting across all languages:
-# Python (Ruff), YAML (yamllint), Shell (shfmt + shellcheck), Markdown (Prettier + markdownlint-cli2),
+# Python (Ruff), YAML (yamllint + zizmor), Shell (shfmt + shellcheck), Markdown (Prettier + markdownlint-cli2),
 # Spelling (codespell). Applies auto-fixes where available.
 #
 # Usage:

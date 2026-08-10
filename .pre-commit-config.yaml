@@ -46,6 +46,14 @@ repos:
         files: ^(custom_components/ha_integration_domain/|schemas/yaml/|\.github/|\.pre-commit-config\.yaml|\.prettierrc\.yml)
         pass_filenames: true
 
+      # GitHub Actions security auditing
+      - id: zizmor
+        name: zizmor
+        entry: bash -c 'if command -v zizmor &>/dev/null; then zizmor --pedantic "$@"; exit $?; fi; for venv in "$HOME/.local/ha-venv" ".local/ha-venv"; do if [[ -f "$venv/bin/zizmor" ]]; then source "$venv/bin/activate" 2>/dev/null || true; zizmor --pedantic "$@"; exit $?; fi; done; echo "⚠️  Skipping zizmor (venv not ready)"; exit 0' --
+        language: system
+        files: ^\.github/workflows/.*\.ya?ml$
+        pass_filenames: true
+
       # Keep HA release train in sync across all three version sources:
       #   requirements_test.txt (pytest-homeassistant-custom-component pin)
       #   hacs.json (homeassistant minimum)

@@ -44,12 +44,18 @@ Consult the relevant schema when editing YAML files to ensure correct structure.
 
 ## Validation
 
-Run `script/yaml-check` after editing YAML files. yamllint has no auto-fix mode — all
+Run `script/yaml-check` after editing YAML files. Neither tool auto-fixes here — all
 errors require manual fixes.
 
 ```bash
-script/yaml-check   # yamllint against integration YAML, schemas, .github/
+script/yaml-check   # yamllint against integration YAML, schemas, .github/;
+                    # zizmor --pedantic against .github/workflows/
 ```
+
+GitHub Actions workflows carry extra rules zizmor enforces: pin every `uses:` to a commit SHA with the version in a
+trailing comment, give the workflow a `permissions:` block and every job the narrowest one it needs with a trailing
+comment saying why, set `concurrency:`, and pass `persist-credentials: false` to `actions/checkout` unless the job
+pushes with those credentials.
 
 Configuration: `.yamllint.yml` at the project root. Key rules:
 

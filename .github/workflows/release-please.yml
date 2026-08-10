@@ -5,14 +5,11 @@ on:
     branches:
       - main
 
-# Required permissions for GITHUB_TOKEN to create releases and pull requests.
-#
-# Additionally, "Allow GitHub Actions to create and approve pull requests" must
-# be enabled in your repository under Settings > Actions > General.
-# See: https://github.com/googleapis/release-please-action?tab=readme-ov-file#workflow-permissions
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 jobs:
   release-please:
@@ -20,6 +17,12 @@ jobs:
     # Skip when running inside the template repository itself
     if: github.repository != 'jpawlowski/hacs.integration_blueprint'
     runs-on: ubuntu-latest
+    # "Allow GitHub Actions to create and approve pull requests" must also be enabled
+    # under Settings > Actions > General.
+    # See: https://github.com/googleapis/release-please-action?tab=readme-ov-file#workflow-permissions
+    permissions:
+      contents: write # create tags and releases
+      pull-requests: write # open and update the release pull request
     steps:
       - name: Run release-please
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
