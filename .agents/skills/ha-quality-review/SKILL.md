@@ -69,6 +69,10 @@ The rules most often missed in this codebase's shape:
 
 ## 4. Code quality
 
+| File                                                               | When to read                                                                                                                            |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| [`references/core-lint-checks.md`](references/core-lint-checks.md) | Any review of integration code. The integration-specific checks Home Assistant Core lints in its own CI and this repository cannot run. |
+
 Look for the failure modes linters miss:
 
 - **Typing** — full annotations, `-> None` on procedures, no bare `Any` where a `TypedDict` or dataclass is meant,
