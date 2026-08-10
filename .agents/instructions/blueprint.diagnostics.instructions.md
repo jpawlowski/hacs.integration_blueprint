@@ -41,6 +41,22 @@ async def async_get_config_entry_diagnostics(
     }
 ```
 
+## Device-Level Diagnostics
+
+A second, optional entry point. Implement it when a single device's data is worth downloading on its own; without it,
+the device page offers the config entry diagnostics instead.
+
+```python
+async def async_get_device_diagnostics(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    device: DeviceEntry,
+) -> dict[str, Any]:
+    """Return diagnostics for a device."""
+```
+
+Either function may exist on its own, or both together. Redaction rules are identical.
+
 ## Never Expose
 
 The following must ALWAYS be redacted:

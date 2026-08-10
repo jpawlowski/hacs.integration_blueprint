@@ -39,7 +39,8 @@ This schema combines Home Assistant's official manifest requirements with HACS-s
 
 - `domain` - Integration identifier (matches directory name)
 - `name` - Display name in Home Assistant
-- `version` - Semantic version (required for HACS)
+- `version` - Required for HACS. Any version AwesomeVersion recognises works (SemVer, CalVer); this project uses
+  SemVer, and `script/version` owns the field.
 - `documentation` - Link to documentation
 - `issue_tracker` - Link to GitHub issues (required for HACS)
 - `codeowners` - GitHub usernames for notifications
@@ -55,10 +56,19 @@ This schema combines Home Assistant's official manifest requirements with HACS-s
 
 **Optional fields:**
 
-- `dependencies` - Home Assistant integrations this depends on
-- `after_dependencies` - Load after these integrations
+- `dependencies` - Integrations loaded before setup. This guarantees the integration is **loaded**, not that its
+  config entries are set up. A custom integration may list both built-in and other custom integrations here.
+- `after_dependencies` - Load after these integrations, without requiring them
+- `loggers` - The logger names the integration's requirements use in their `getLogger` calls, so the user's log-level
+  setting reaches the library too
+- `single_config_entry` - `true` prevents the user adding a second entry. This is the only thing that makes "the one
+  entry" a safe assumption in a service action handler.
+- `quality_scale` - The tier the integration claims. Optional for custom integrations and not shown in the UI.
 - `dhcp`, `zeroconf`, `ssdp`, `usb`, `bluetooth` - Discovery configs
 - `homekit`, `mqtt` - Protocol configs
+
+**Naming:** if the product exists as both a local and a cloud integration, the cloud one appends "Cloud". The local
+one uses the plain product name — never append "Local".
 
 ## IoT Class Values
 
@@ -81,6 +91,10 @@ Use package name with version constraint:
 ]
 ```
 
+**Only list what Home Assistant does not already ship.** A custom integration must not repeat a package from Core's
+own `requirements.txt` — `aiohttp`, `voluptuous`, `httpx`, `awesomeversion` and friends are already there, and
+pinning them from here can only conflict with Core.
+
 ## Codeowners Format
 
 GitHub usernames with `@` prefix:
@@ -90,10 +104,6 @@ GitHub usernames with `@` prefix:
   "@jpawlowski"
 ]
 ```
-
-**Only list what Home Assistant does not already ship.** A custom integration must not repeat a package from Core's
-own `requirements.txt` — `aiohttp`, `voluptuous`, `httpx`, `awesomeversion` and friends are already there, and
-pinning them from here can only conflict with Core.
 
 ## Version
 

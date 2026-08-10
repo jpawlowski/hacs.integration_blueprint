@@ -206,16 +206,20 @@ vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): selector.Number
 
 - Set unique ID for all discovery flows: `await self.async_set_unique_id(device_id)`
 - Call `self._abort_if_unique_id_configured()` to prevent duplicates
-- Use stable identifiers: serial number, MAC address, device ID, geo coordinates, account ID
-- Normalize IDs: MAC via `format_mac()`, email/username to lowercase
+- Use stable identifiers: serial number, MAC address, device ID, latitude/longitude, an identifier printed on the
+  device, or — for a cloud service — an account ID that is guaranteed collision-free
+- Take the MAC **from the device API or the discovery handler** and normalise it with `format_mac()`. Reading the ARP
+  cache (`getmac` and similar) does not work in every supported network setup and is not acceptable.
+- Normalize email and username to lowercase, and only use them when nothing better exists
 - Use `updates` parameter to refresh config data: `self._abort_if_unique_id_configured(updates={CONF_HOST: host})`
 
 **NEVER:**
 
 - Use IP addresses (can change via DHCP)
 - Use device names (user-changeable)
-- Use hostnames (user-changeable)
 - Use URLs (can change)
+- Use a hostname the user can change. Only the stable substring of a hostname that encodes a serial or MAC is
+  acceptable — the hostname itself is not.
 
 **Discovery without unique ID:**
 

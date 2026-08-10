@@ -46,12 +46,29 @@ ir.async_create_issue(
     hass,
     DOMAIN,
     "issue_id",
-    is_fixable=True,  # Shows "Fix" button
-    severity=ir.IssueSeverity.WARNING,  # WARNING, ERROR, CRITICAL
+    is_fixable=True,  # Shows "Fix" button; requires a fix flow
+    severity=ir.IssueSeverity.WARNING,
     translation_key="issue_id",
     translation_placeholders={"key": "value"},  # Optional
+    breaks_in_ha_version="2027.1",  # Optional: when this stops working
+    learn_more_url="https://…",  # Optional: link to docs/user/
+    issue_domain=DOMAIN,  # Optional: only when raising on another integration's behalf
+    data={"entry_id": entry.entry_id},  # Optional: reaches async_create_fix_flow
 )
 ```
+
+`is_persistent=True` marks an issue that only exists because it was observed once — an update that failed, an
+unknown action in an automation — so it must survive a restart. Leave it off for anything the integration re-checks
+on its own, such as a deprecated option found during setup; that one comes back by itself if it is still true.
+
+**Only raise an issue the user can act on.** Something broken that they cannot fix themselves is a log entry, not a
+repair.
+
+**Ignoring is sticky.** An ignored issue stays ignored across restarts until it is deleted — by the integration or by
+the user completing its flow — and then created again. Re-creating the same `issue_id` on every coordinator update is
+therefore harmless; inventing a new id each time defeats the user's choice.
+
+`ir.async_create_issue` must run in the event loop. From a worker thread use `ir.create_issue` / `ir.delete_issue`.
 
 **When to create:**
 
@@ -73,13 +90,22 @@ async def async_create_fix_flow(
     return MyRepairFlow()
 ```
 
-**Flow class structure:**
+**When the fix is just "acknowledge and I will handle it", do not write a flow class** — return the built-in one:
+
+```python
+from homeassistant.components.repairs import ConfirmRepairFlow
+
+return ConfirmRepairFlow()
+```
+
+**Flow class structure** (only when the user has something to enter or choose):
 
 ```python
 from homeassistant.components.repairs import RepairsFlow
+from homeassistant.components.repairs.models import RepairsFlowResult
 
 class MyRepairFlow(RepairsFlow):
-    async def async_step_init(self, user_input=None):
+    async def async_step_init(self, user_input=None) -> RepairsFlowResult:
         if user_input is not None:
             # Apply fix
             entry = self.hass.config_entries.async_get_entry(self.handler)
@@ -207,6 +233,8 @@ Fixable (`is_fixable=True`) — the flow's own steps carry the text:
 
 **NEVER:**
 
+- Copy `from __future__ import annotations` out of the upstream examples — this repository dropped it repo-wide and
+  Ruff rejects it
 - Put repair flows in `config_flow_handler/` (separate system)
 - Leave issues after repair completes (always delete)
 - Use repair flows for normal config changes (use reconfigure instead)

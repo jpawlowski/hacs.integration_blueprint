@@ -91,7 +91,8 @@ above it exists.
    imports. Raise your own auth/connection/unknown exceptions and let the coordinator translate them. **When nothing
    is fetched, this package has nothing to hold — delete it** rather than leaving a client that wraps a calculation.
 2. **`coordinator/`** — replace `_async_update_data` with the real call and return the shape the entities will read.
-   Translate API exceptions into `ConfigEntryAuthFailed` or `UpdateFailed` there and only there
+   Translate API exceptions into `ConfigEntryAuthFailed`, `UpdateFailed` or — when the failure will never resolve by
+   itself, such as a closed account — `ConfigEntryError`, there and only there
    ([`ha-coordinator-debug`](../ha-coordinator-debug/SKILL.md)). If the values are produced rather than fetched, this
    is where the computation lives, driven by a state listener or a timer instead of a poll — and a coordinator that
    would only re-run a local calculation on a timer should be replaced by the listener outright.
@@ -141,6 +142,10 @@ verification is the developer's to do, not yours to claim.
 ## 7. Finish the paperwork, then retire this skill
 
 - Update `README.md` and `docs/user/` to describe the real integration.
+- Add the brand images. Since Home Assistant 2026.3 a custom integration ships its own, in
+  `custom_components/<domain>/brand/` as `icon.png` and `logo.png`; local images take precedence over the
+  `home-assistant/brands` repository, which only Core integrations can use. Ask the developer for the files — do not
+  invent placeholders, and do not open a pull request against `home-assistant/brands`.
 - Record the library-versus-own-client decision in `docs/development/DECISIONS.md` if you have not already.
 - Commit in reviewable pieces, following [`ha-release`](../ha-release/SKILL.md). Never commit unasked.
 

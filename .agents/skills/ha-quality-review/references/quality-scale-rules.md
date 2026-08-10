@@ -10,28 +10,28 @@ Gold.
 
 ## Bronze (20 rules)
 
-| Rule                             | What it requires                                                                               |
-| -------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `action-setup`                   | Service actions are registered in `async_setup()`, not `async_setup_entry()`                   |
-| `appropriate-polling`            | The polling interval is sensible for the data source and documented                            |
-| `brands`                         | The integration has an icon/logo in `home-assistant/brands` (not applicable to HACS-only)      |
-| `common-modules`                 | Common patterns live in the expected modules (coordinator, base entity)                        |
-| `config-flow`                    | Setup happens through the UI, every field has a `data_description`                             |
-| `config-flow-test-coverage`      | The config flow has full test coverage, including every abort and error path                   |
-| `dependency-transparency`        | Dependencies are published on PyPI, source-available, versioned, and built from a known source |
-| `docs-actions`                   | Every service action is documented                                                             |
-| `docs-conditions`                | Every condition the integration provides is documented                                         |
-| `docs-high-level-description`    | The docs open with what the device/service is and what the integration does                    |
-| `docs-installation-instructions` | The docs explain how to install and set it up                                                  |
-| `docs-removal-instructions`      | The docs explain how to remove it cleanly                                                      |
-| `docs-triggers`                  | Every trigger the integration provides is documented                                           |
-| `entity-event-setup`             | Event subscriptions happen in `async_added_to_hass()` and are released on removal              |
-| `entity-unique-id`               | Every entity has a stable unique ID                                                            |
-| `has-entity-name`                | Entities set `_attr_has_entity_name = True`                                                    |
-| `runtime-data`                   | State is stored in `ConfigEntry.runtime_data`, typed via a `ConfigEntry[...]` alias            |
-| `test-before-configure`          | The config flow verifies the connection before creating the entry                              |
-| `test-before-setup`              | Setup checks reachability and raises `ConfigEntryNotReady` / `ConfigEntryAuthFailed`           |
-| `unique-config-entry`            | Duplicate entries for the same device/account are prevented                                    |
+| Rule                             | What it requires                                                                                             |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `action-setup`                   | Service actions are registered in `async_setup()`, not `async_setup_entry()`                                 |
+| `appropriate-polling`            | The polling interval is sensible for the data source and documented                                          |
+| `brands`                         | Icon and logo ship in `custom_components/<domain>/brand/` (HA 2026.3+); `home-assistant/brands` is Core-only |
+| `common-modules`                 | Common patterns live in the expected modules (coordinator, base entity)                                      |
+| `config-flow`                    | Setup happens through the UI, every field has a `data_description`                                           |
+| `config-flow-test-coverage`      | The config flow has full test coverage, including every abort and error path                                 |
+| `dependency-transparency`        | Dependencies are published on PyPI, source-available, versioned, and built from a known source               |
+| `docs-actions`                   | Every service action is documented                                                                           |
+| `docs-conditions`                | Every condition the integration provides is documented                                                       |
+| `docs-high-level-description`    | The docs open with what the device/service is and what the integration does                                  |
+| `docs-installation-instructions` | The docs explain how to install and set it up                                                                |
+| `docs-removal-instructions`      | The docs explain how to remove it cleanly                                                                    |
+| `docs-triggers`                  | Every trigger the integration provides is documented                                                         |
+| `entity-event-setup`             | Event subscriptions happen in `async_added_to_hass()` and are released on removal                            |
+| `entity-unique-id`               | Every entity has a stable unique ID                                                                          |
+| `has-entity-name`                | Entities set `_attr_has_entity_name = True`                                                                  |
+| `runtime-data`                   | State is stored in `ConfigEntry.runtime_data`, typed via a `ConfigEntry[...]` alias                          |
+| `test-before-configure`          | The config flow verifies the connection before creating the entry                                            |
+| `test-before-setup`              | Setup checks reachability and raises `ConfigEntryNotReady` / `ConfigEntryAuthFailed`                         |
+| `unique-config-entry`            | Duplicate entries for the same device/account are prevented                                                  |
 
 ## Silver (10 rules)
 

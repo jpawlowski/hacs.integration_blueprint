@@ -103,11 +103,15 @@ These are the ones an agent typically breaks _before_ it realises a skill or ins
   The source is usually an API client in `api/`, but it can equally be a state listener, a file, or a computation —
   an integration that fetches nothing has no `api/` package, and the layering above it is unchanged.
 - **Register service actions in `async_setup()`**, not `async_setup_entry()` (Quality Scale rule `action-setup`).
-- **A unique ID is a serial number, MAC, device ID or account ID** — never an IP address, hostname, URL, or a name the
-  user chose.
+- **A unique ID is a serial number, MAC, device ID or account ID** — never an IP address, hostname, URL, an email
+  address, a username, or a name the user chose. Take a MAC from the device API or a discovery handler and normalise
+  it with `format_mac()`; reading the ARP cache (`getmac` and friends) does not work in every supported network setup
+  and is not acceptable.
 - **Entity metadata comes from `EntityDescription` + `translation_key`** — never a hardcoded `name=` or `icon=`.
-- **Coordinator failures raise**: `ConfigEntryAuthFailed` (triggers reauth), `UpdateFailed` (retry), or
-  `ConfigEntryNotReady` during setup. Do not log `ConfigEntryNotReady` manually — HA already logs it at debug level.
+- **Coordinator failures raise**: `ConfigEntryAuthFailed` (triggers reauth), `UpdateFailed` (retry),
+  `ConfigEntryNotReady` during setup (retry later), or `ConfigEntryError` when the failure will not resolve on its own
+  — a closed account, unsupported firmware — which stops the retry loop instead of spinning forever. Do not log
+  `ConfigEntryNotReady` manually; HA already logs it at debug level.
 - **Diagnostics must call `async_redact_data()`** for credentials, tokens, location and personal data.
 - **YAML configuration is deprecated** for integrations talking to devices or services (ADR-0010) — config flow only.
 - **Changing the shape of `entry.data`** requires a `VERSION`/`MINOR_VERSION` bump and `async_migrate_entry()`.
@@ -233,11 +237,9 @@ parallel. Rules: [`ha-coordinator-debug`](.agents/skills/ha-coordinator-debug/SK
 
 Log reading, failure triage and the debugging loop: [`ha-coordinator-debug`](.agents/skills/ha-coordinator-debug/SKILL.md).
 
-**Devcontainer CLI tools:** `fd`, `fzf`, `gron`, `http`, `hyperfine`, `ipython`, `jq`, `jo`, `mlr`, `rg`,
-`shellcheck`, `shfmt`, `sponge`, `sqlite3`, `yq`, `yamllint`. Debian package names differ from the common spellings,
-so `fdfind`, `git-delta`, `httpie`, `miller` and `ripgrep` also resolve. `yq` is the Mike Farah variant (`yq eval`
-syntax). `gron` flattens JSON into greppable assignments — `script/ha diagnostics | gron | rg <key>` returns the
-value and its path without pulling the whole document into context.
+**Devcontainer CLI tools:** `fd`, `fzf`, `http`, `hyperfine`, `ipython`, `jq`, `jo`, `mlr`, `rg`, `shellcheck`,
+`shfmt`, `sponge`, `sqlite3`, `yq`, `yamllint`. Debian package names differ from the common spellings, so `fdfind`,
+`git-delta`, `httpie`, `miller` and `ripgrep` also resolve. `yq` is the Mike Farah variant (`yq eval` syntax).
 
 `bat`, `delta`, `eza` and `tree` are installed for the developer's terminal, not for you: `bat` and `delta` pass
 their input through unchanged when the caller is not a TTY, and the other two only prettify what `ls` and `fd`

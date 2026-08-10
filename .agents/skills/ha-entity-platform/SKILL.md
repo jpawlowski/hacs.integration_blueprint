@@ -19,11 +19,15 @@ usual: unique IDs, device classes, and entity IDs are effectively permanent once
 
 **Read [`blueprint.entities.instructions.md`](../../instructions/blueprint.entities.instructions.md) first** —
 it holds the rules this procedure assumes: base-class inheritance and MRO, required `EntityDescription` fields, the
-coordinator-only data rule, the per-platform member table, `PARALLEL_UPDATES`, and device registry ownership. Copilot
+coordinator-only data rule, availability, device info fields, `PARALLEL_UPDATES`, and device registry ownership. Copilot
 injects it automatically when you edit an entity file; other agents must open it. Python style is in
 [`blueprint.python.instructions.md`](../../instructions/blueprint.python.instructions.md).
 
 This skill is the procedure and the decisions — it does not restate those rules.
+
+| File                                                               | When to read                                                           |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| [`references/platform-members.md`](references/platform-members.md) | Before implementing a platform — its required members and its one trap |
 
 ## Before you write code
 
@@ -56,7 +60,8 @@ The mechanical rules are in the instructions file. What this step actually costs
 - **`key`** becomes part of the unique ID. Pick it once — renaming it later is a breaking change
   ([`ha-breaking-changes`](../ha-breaking-changes/SKILL.md)).
 - **Primary, diagnostic or config?** Anything a user would not put on a dashboard is
-  `EntityCategory.DIAGNOSTIC`, and if it is also noisy, `entity_registry_enabled_default=False`.
+  `EntityCategory.DIAGNOSTIC`. If it is also noisy, decide between `entity_registry_enabled_default=False` (not
+  created at all) and `_attr_entity_registry_visible_default = False` (created and automatable, just off dashboards).
 - **Is there a matching `device_class`?** Check the platform's enum before inventing units or icons. A device class
   buys unit conversion, correct icons and voice-assistant behaviour for free.
 - **Is the value a measurement?** Then it needs a `state_class`, or the user gets no history.
@@ -77,13 +82,16 @@ class {ClassPrefix}AirQualitySensor(SensorEntity, {ClassPrefix}Entity):
         return self.entity_description.value_fn(self.coordinator.data)
 ```
 
-Only override `available` when a single entity can be unavailable while the rest of the device is fine — the base
-`CoordinatorEntity` already handles the whole-device case:
+A value that is simply missing from this poll is `unknown`, not `unavailable` — returning `None` above already does
+that, and it keeps the entity usable in templates and automations.
+
+Only override `available` when a single entity can genuinely be **gone** while the rest of the device is fine — a
+missing key that means a missing sub-device. The base `CoordinatorEntity` already handles the whole-device case:
 
 ```python
 @property
 def available(self) -> bool:
-    """Return True if the backing value is present."""
+    """Return True if the backing sub-device is still present."""
     return super().available and self.entity_description.key in self.coordinator.data
 ```
 
@@ -126,6 +134,9 @@ category. If it does not appear at all, switch to [`ha-coordinator-debug`](../ha
 - Do not rename an existing `key`, `translation_key`, or unique ID without reading
   [`ha-breaking-changes`](../ha-breaking-changes/SKILL.md).
 - Do not skip the sibling-file read in step 0. Most "new" entities are a variation of one that already exists.
+- Do not raise `ConfigEntryNotReady` from a platform's `async_setup_entry` — the config entry setup has already
+  finished by then and nothing catches it.
 
-The per-platform member table and the remaining hard rules are in
-[`blueprint.entities.instructions.md`](../../instructions/blueprint.entities.instructions.md).
+The remaining hard rules are in
+[`blueprint.entities.instructions.md`](../../instructions/blueprint.entities.instructions.md); the per-platform
+members are in [`references/platform-members.md`](references/platform-members.md).

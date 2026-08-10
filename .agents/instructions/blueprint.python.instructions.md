@@ -98,6 +98,24 @@ them on unload, which `hass.async_create_task` does not.
 - `@callback` from `homeassistant.core` - For event loop functions without blocking
 - Required for event listeners, state change callbacks
 - Cannot do I/O, cannot call coroutines (only schedule them)
+
+**Calling Home Assistant from a non-event-loop thread:** the `async_*` APIs are **not** thread-safe and Home Assistant
+raises when they are called from the wrong thread. Most have a sync twin that does the hand-off for you — a library
+callback running on its own thread is the usual reason to need one:
+
+| From a worker thread, instead of                                                               | call                                                |
+| ---------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| `hass.async_create_task`                                                                       | `hass.create_task`                                  |
+| `hass.bus.async_fire`                                                                          | `hass.bus.fire`                                     |
+| `hass.services.async_register` / `async_remove`                                                | `hass.services.register` / `remove`                 |
+| `entity.async_write_ha_state`                                                                  | `entity.schedule_update_ha_state`                   |
+| `async_dispatcher_send`                                                                        | `dispatcher_send`                                   |
+| `issue_registry.async_get_or_create` / `async_delete`                                          | `issue_registry.create_issue` / `delete_issue`      |
+| `event.async_track_state_change_event`                                                         | `event.track_state_change_event`                    |
+| The registries (`device_`, `entity_`, `area_`, …) and `hass.config_entries.async_update_entry` | no sync twin — wrap the call in `hass.add_job(...)` |
+
+`hass.add_job` is the sync entry point and is not deprecated; `hass.async_add_job` is.
+
 - Missing decorator causes execution in executor thread (wrong context)
 
 **Blocking operations (NEVER in event loop):**
@@ -130,10 +148,15 @@ them on unload, which `hass.async_create_task` does not.
 
 See [Integration Setup Failures](https://developers.home-assistant.io/docs/integration_setup_failures) for details.
 
-- `ConfigEntryNotReady` - Device offline/unavailable (raises in `async_setup_entry()`)
+- `ConfigEntryNotReady` - Device offline/unavailable, retry later (raise in `async_setup_entry()`)
 - `ConfigEntryAuthFailed` - Expired credentials (triggers reauth flow)
+- `ConfigEntryError` - Will not resolve on its own (closed account, unsupported device); stops the retry loop
 - Pass error message to exception (HA logs at debug level automatically)
 - **Do NOT log setup failures manually** - Avoid log spam
+- Raising any of the three still runs the `entry.async_on_unload` callbacks, but does **not** replace
+  `async_unload_entry` — that always has to exist
+- Raising `ConfigEntryNotReady` in a **platform's** `async_setup_entry` does nothing; by then the config entry setup
+  has already completed and cannot catch it
 
 **Constants:**
 
@@ -193,6 +216,16 @@ See [Integration Setup Failures](https://developers.home-assistant.io/docs/integ
 ## Error Handling
 
 **Use specific exceptions from integration's exception module**
+
+**Errors that reach the user** — from a service action handler _and_ from an entity method
+(`async_set_native_value`, `async_set_hvac_mode`, …):
+
+- `ServiceValidationError` — the user got something wrong (bad value, unsupported option). The stack trace is only
+  logged at debug level, so they see a message rather than a wall of text.
+- `HomeAssistantError` — the device or service failed. The full stack trace **is** logged.
+- **Never `ValueError`.** It is what these two exist to replace, and it reaches the user as an unhandled crash.
+
+Both take `translation_domain`, `translation_key` and `translation_placeholders` — never a plain English string.
 
 **Logging levels:**
 

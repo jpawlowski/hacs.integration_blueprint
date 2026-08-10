@@ -92,6 +92,7 @@ These rules apply to migrations, repairs, diagnostics, registry listeners, **and
 | `time.sleep`, `datetime.now()`             | `asyncio.sleep`, `homeassistant.util.dt.utcnow()`                |
 | `open()` / `json.load()` in the event loop | `await hass.async_add_executor_job(...)`                         |
 | `hass.async_add_job`                       | `entry.async_create_task` / `entry.async_create_background_task` |
+| An `async_*` API from a worker thread      | Its sync twin — table in `blueprint.python.instructions.md`      |
 
 ## Diagnostics
 

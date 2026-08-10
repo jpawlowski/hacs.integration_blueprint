@@ -53,6 +53,10 @@ assumes have already been made.
 
 **Base class provides:** Coordinator integration, device info, unique ID (`{entry_id}_{description.key}`), attribution, entity naming
 
+`{entry_id}_{key}` is the documented **unique ID of last resort**. If the device or account exposes a serial, MAC or
+account ID, switch to it **before the first release** — afterwards it is a breaking change needing a registry
+migration ([`ha-breaking-changes`](../skills/ha-breaking-changes/SKILL.md)).
+
 **You implement:** Platform-specific properties/methods (`native_value`, `is_on`, `async_press`, etc.)
 
 **Imports pattern:** `from homeassistant.components.PLATFORM import PlatformEntity, PlatformEntityDescription` + `from ..entity import {ClassPrefix}Entity`
@@ -66,11 +70,21 @@ assumes have already been made.
 **Required fields:**
 
 - `key` - Used in unique_id, must match coordinator data key. Never rename it after release.
-- `translation_key` - Entity name comes from `translations/en.json`. **NEVER set `name=`** — the base entity sets
-  `_attr_has_entity_name = True`, and a hardcoded name breaks localisation (quality scale `entity-translations`).
+- `translation_key` - Entity name comes from `translations/en.json`. **NEVER set `name=` to a string** — the base
+  entity sets `_attr_has_entity_name = True`, and a hardcoded name breaks localisation (quality scale
+  `entity-translations`). Two exceptions:
+  - On `binary_sensor`, `number`, `sensor` and `update`, an entity whose `device_class` already produces the wanted
+    name needs **no** `translation_key` — a `SensorDeviceClass.TEMPERATURE` sensor is named "Temperature" by itself.
+    Adding one only creates a redundant key for translators.
+  - The entity that **is** the device's main feature (the light of a bulb, the fan of a purifier) sets `name=None`
+    on its description, or `_attr_name = None` on the class. `friendly_name` then becomes the device name alone and
+    the entity id is `<platform>.<device_name>` — without it the UI reads "Air Purifier Air Purifier".
 - Platform-specific: `device_class`, `state_class`, `native_unit_of_measurement`, `options`, etc.
 - **Set `device_class` whenever one fits** - drives unit conversion, icons and voice assistants.
-- **Set `state_class` on every numeric measurement** - without it there are no long-term statistics.
+- **Set `state_class` on every numeric measurement** - without it there are no long-term statistics. But
+  `MEASUREMENT` is **invalid** with a `device_class` of `ENERGY`, `GAS`, `WATER`, `VOLUME`, `MONETARY`, `DATE`,
+  `TIMESTAMP` or `ENUM` — meters take `TOTAL` or `TOTAL_INCREASING`. See
+  [`platform-members.md`](../skills/ha-entity-platform/references/platform-members.md).
 - **NEVER set `icon=`** - icons belong in `icons.json` (quality scale `icon-translations`).
 
 **Value extraction:** Subclass the description dataclass with a `value_fn` rather than branching on `key` in the entity:
@@ -104,7 +118,13 @@ class {ClassPrefix}SensorEntityDescription(SensorEntityDescription):
 
 **NEVER call API directly:** No `self.coordinator.client` or `await api_call()` in entities
 
-**Handle missing data:** Override `available` property to check `self.entity_description.key in self.coordinator.data`
+**Missing data is `unknown`, not `unavailable`.** The two are not interchangeable: `unavailable` hides the entity and
+breaks templates that read its state, so it is only correct when the thing behind the entity is genuinely gone.
+
+- The poll succeeded but one field is absent → return `None` from `native_value` / `is_on`. The state becomes
+  `unknown` and the entity stays usable.
+- The whole device or channel is gone → override `available`. Only do this when a missing key really means a missing
+  sub-device; the base `CoordinatorEntity` already covers the whole-device case.
 
 ## File Organization
 
@@ -114,36 +134,70 @@ class {ClassPrefix}SensorEntityDescription(SensorEntityDescription):
 
 ## Custom State Attributes
 
-**Use `extra_state_attributes` property** returning dict for supplemental data
+**Prefer a second entity.** Every attribute is written to the recorder database on every state change, so a frequently
+changing attribute on a frequently changing entity multiplies database growth. A value worth showing is usually worth
+its own sensor.
 
-**NEVER override `state_attributes`** - reserved for base platform components (brightness, color, etc.)
+**If attributes are still right:** use the `extra_state_attributes` property returning a dict, and exclude the volatile
+ones from history with a **class-level** `_unrecorded_attributes: frozenset[str]` (instance attributes are ignored).
+`MATCH_ALL` excludes everything except `device_class`, `state_class`, `unit_of_measurement` and `friendly_name`.
 
-## Disabled By Default
+**NEVER override `state_attributes` or `capability_attributes`** - reserved for base platform components (brightness,
+color, etc.)
 
-**Set property:** `entity_registry_enabled_default = False` for advanced/diagnostic entities
+## Disabled and Hidden By Default
 
-**Config-controlled visibility:** Conditionally add/remove entities in setup, NOT via `disabled_by`
+Two different things, and the wrong one is a common mistake:
+
+- **Disabled** — not created at all, no state, unusable in automations. `_attr_entity_registry_enabled_default = False`
+  on the class, or `entity_registry_enabled_default=False` on the description. Note the `_attr_` prefix on the class
+  form: writing the bare property name silently does nothing.
+- **Hidden** — created and recorded, usable in automations, just kept off auto-generated dashboards.
+  `_attr_entity_registry_visible_default = False`. Usually what a noisy-but-useful diagnostic actually wants.
+
+**Config-controlled visibility:** Conditionally add/remove entities in setup, NOT via `disabled_by`. When an option
+turns a group off, also remove the stale registry entries (`er.async_remove(entity_id)`, and the device once it has no
+entities left) — merely not creating them leaves entities the registry reports as `unavailable` forever.
+
+## Device Info Fields
+
+The base entity supplies `identifiers`, `name`, `manufacturer` and `model`. Fill in whatever else the source actually
+knows — the Gold `devices` rule wants a complete device, and a `DeviceInfo` must match one of the registry's shapes
+(Link: `connections` + `identifiers` only; Primary: the full metadata set; Secondary), never a partial mix.
+
+| Field                                | Source                                                              |
+| ------------------------------------ | ------------------------------------------------------------------- |
+| `serial_number`                      | The device serial, when the API exposes one                         |
+| `sw_version`, `hw_version`           | Firmware and hardware revision                                      |
+| `model_id`                           | The machine-readable model code, next to the human-readable `model` |
+| `configuration_url`                  | The device's own web UI; `homeassistant://<path>` to link inside HA |
+| `entry_type=DeviceEntryType.SERVICE` | For a cloud account or service, which is not a physical device      |
+
+Device info is only read when the entity is set up from a **config entry** and has a `unique_id`. No unique ID means
+`device_info` and every registry property are silently ignored.
 
 ## Platform-Required Methods
 
-| Platform        | Required members                                                      | Notes                                                          |
-| --------------- | --------------------------------------------------------------------- | -------------------------------------------------------------- |
-| `sensor`        | `native_value`                                                        | `state_class` for statistics; `device_class` drives conversion |
-| `binary_sensor` | `is_on`                                                               | `BinarySensorDeviceClass` instead of icons                     |
-| `switch`        | `is_on`, `async_turn_on`, `async_turn_off`                            | refresh after write                                            |
-| `button`        | `async_press`                                                         | stateless; no `is_on`                                          |
-| `number`        | `native_value`, `async_set_native_value`, min/max/step                | `NumberDeviceClass`, `mode`                                    |
-| `select`        | `current_option`, `options`, `async_select_option`                    | options are translated via `state` keys                        |
-| `fan`           | `is_on`, `percentage`, `async_set_percentage`, `supported_features`   | declare `FanEntityFeature` accurately                          |
-| `climate`       | `hvac_mode`, `hvac_modes`, `target_temperature`, `supported_features` | always set `_attr_temperature_unit`                            |
-| `cover`         | `is_closed`, `async_open_cover`, `async_close_cover`                  | `current_cover_position` when known                            |
-| `update`        | `installed_version`, `latest_version`                                 | `UpdateEntityFeature.INSTALL` only if it really installs       |
+Per-platform members and the trap each platform carries:
+[`ha-entity-platform/references/platform-members.md`](../skills/ha-entity-platform/references/platform-members.md).
+Read the row for the platform you are adding.
 
 **Write operations:** call the API client through `entry.runtime_data`, then `await coordinator.async_request_refresh()`.
-Never mutate local state and assume it took. Wrap failures in `HomeAssistantError` with a `translation_key`.
+Never mutate local state and assume it took — unless the device cannot report its state back at all (one-way RF or IR),
+in which case set `_attr_assumed_state = True` and write the optimistic state. The frontend then shows discrete on/off
+buttons instead of a toggle.
+
+Failures follow the same split as everywhere else: `ServiceValidationError` for a value the user got wrong,
+`HomeAssistantError` for a device or communication failure, both with a `translation_key`, never `ValueError`.
 
 **Event subscriptions:** subscribe in `async_added_to_hass()` and release every subscription via `self.async_on_remove(...)`
-(quality scale `entity-event-setup`).
+(quality scale `entity-event-setup`). Call `await super().async_added_to_hass()` first — the base class needs it, and
+subscribing earlier breaks any callback that touches `self.hass` or writes state. Never register a reference to an
+entity object outside `async_added_to_hass`: a disabled entity is never added, and the reference would dangle.
+
+**Runtime-varying metadata:** derive `supported_features` from coordinator data **once, at construction**, not in a
+property that re-reads it every poll. `supported_features`, `device_class` and capability attributes may change, but
+each change forces voice-assistant integrations to resynchronise with their cloud service.
 
 **Reference:** [Entity Developer Docs](https://developers.home-assistant.io/docs/core/entity)
 
@@ -172,8 +226,9 @@ Home Assistant Core 2026.8 and newer assigns every device to exactly one config 
 
 **NEVER:**
 
-- Use the deprecated unscoped `async_get_device()` lookup.
-- Use `via_device`, because identifiers are not globally unique across config entries.
+- Use the unscoped `async_get_device()` lookup — it resolves ambiguously across entries.
+- Use `via_device`, because identifiers are not globally unique across config entries. Passing **both** `via_device`
+  and `via_device_id` raises at runtime, so a half-finished migration fails loudly — remove the old one.
 - Add this integration's config entry to a device owned by another integration. Helper entities link to the source
   device by assigning `self.device_entry` instead of copying its identifiers or connections into `DeviceInfo`.
 - Depend on a device being shared or merged across config entries.
