@@ -1,7 +1,5 @@
 """Control switches for ha_integration_domain."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Any
 
 from custom_components.ha_integration_domain.api import IntegrationBlueprintApiClientError

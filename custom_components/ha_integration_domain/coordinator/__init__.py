@@ -14,8 +14,6 @@ For more information on coordinators:
 https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
 """
 
-from __future__ import annotations
-
 from .base import IntegrationBlueprintDataUpdateCoordinator
 
 __all__ = ["IntegrationBlueprintDataUpdateCoordinator"]

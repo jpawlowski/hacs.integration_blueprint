@@ -18,8 +18,6 @@ Called by `script/setup/seed-auth`, which maps the exit codes below onto the
 project's logging helpers.
 """
 
-from __future__ import annotations
-
 import argparse
 import asyncio
 from contextlib import contextmanager

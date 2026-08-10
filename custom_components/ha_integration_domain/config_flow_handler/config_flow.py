@@ -10,8 +10,6 @@ For more information:
 https://developers.home-assistant.io/docs/config_entries_config_flow_handler
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Any
 
 from slugify import slugify

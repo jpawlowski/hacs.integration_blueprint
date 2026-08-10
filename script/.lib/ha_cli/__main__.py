@@ -11,8 +11,6 @@ Exit codes:
     3  authentication failed
 """
 
-from __future__ import annotations
-
 import argparse
 import asyncio
 import os

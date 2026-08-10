@@ -11,8 +11,6 @@ Use cases:
 - Custom event handling for specific data changes
 """
 
-from __future__ import annotations
-
 from collections.abc import Awaitable, Callable
 
 from custom_components.ha_integration_domain.const import LOGGER

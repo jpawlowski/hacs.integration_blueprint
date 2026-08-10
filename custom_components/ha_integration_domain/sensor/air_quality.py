@@ -1,7 +1,5 @@
 """Air quality sensors for ha_integration_domain."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from custom_components.ha_integration_domain.entity import IntegrationBlueprintEntity

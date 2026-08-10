@@ -8,8 +8,6 @@ The IntegrationBlueprintConfigEntry type alias is used throughout the integratio
 for type-safe access to the config entry's runtime data.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 

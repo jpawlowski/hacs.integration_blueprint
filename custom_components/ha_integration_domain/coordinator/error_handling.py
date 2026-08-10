@@ -12,8 +12,6 @@ Use cases:
 - Graceful degradation when partial data is available
 """
 
-from __future__ import annotations
-
 from datetime import timedelta
 
 from custom_components.ha_integration_domain.const import LOGGER

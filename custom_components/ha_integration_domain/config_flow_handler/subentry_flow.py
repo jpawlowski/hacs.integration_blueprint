@@ -24,8 +24,6 @@ For more information:
 https://developers.home-assistant.io/docs/config_entries_config_flow_handler#subentry-flows
 """
 
-from __future__ import annotations
-
 # Uncomment when implementing subentry flows:
 #
 # from typing import Any
@@ -109,6 +107,5 @@ from __future__ import annotations
 # #     return {
 # #         "location": ExampleLocationSubentryFlowHandler
 # #     }
-
 
 __all__: list[str] = []  # Empty until subentry flows are implemented

@@ -9,8 +9,6 @@ Flow ids are printed on every step; a flow lives until it is finished or
 aborted, so a session survives across several CLI invocations.
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Any
 
 from .client import HaError

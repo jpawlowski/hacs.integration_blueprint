@@ -8,8 +8,6 @@ For more information on creating API clients:
 https://developers.home-assistant.io/docs/api_lib_index
 """
 
-from __future__ import annotations
-
 import asyncio
 import socket
 from typing import Any

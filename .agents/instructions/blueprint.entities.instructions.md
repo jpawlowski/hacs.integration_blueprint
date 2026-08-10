@@ -174,7 +174,6 @@ Home Assistant Core 2026.8 and newer assigns every device to exactly one config 
 **Avoid circular imports:** Use `TYPE_CHECKING` block for coordinator imports
 
 ```python
-from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ..coordinator import {ClassPrefix}DataUpdateCoordinator

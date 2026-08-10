@@ -6,8 +6,6 @@ because the CLI's whole point is that an agent can read this output — and the
 credential it authenticates with must never appear in it.
 """
 
-from __future__ import annotations
-
 import json
 from typing import Any
 

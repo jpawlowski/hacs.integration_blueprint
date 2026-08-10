@@ -17,8 +17,6 @@ plus the conventions this repository adds on top of it:
 Invoked by script/skills-check; not intended to be run directly.
 """
 
-from __future__ import annotations
-
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path

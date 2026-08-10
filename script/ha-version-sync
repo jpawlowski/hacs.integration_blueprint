@@ -26,8 +26,6 @@ cd "$SCRIPT_DIR/.."
 source "$SCRIPT_DIR/.lib/output.sh"
 
 python3 <<'PY'
-from __future__ import annotations
-
 import json
 import re
 import sys

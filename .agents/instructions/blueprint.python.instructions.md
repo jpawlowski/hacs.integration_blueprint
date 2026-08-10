@@ -60,7 +60,8 @@ sensor/
 
 **Import rules:**
 
-- `from __future__ import annotations` (always first import)
+- Never `from __future__ import annotations` — Home Assistant requires Python 3.14, where annotations are already
+  lazily evaluated; Ruff's `banned-api` rejects it
 - `collections.abc` for abstract base classes (prefer over `typing`)
 - `typing` for complex types (Any, TYPE_CHECKING, etc.)
 
@@ -169,11 +170,10 @@ See [Integration Setup Failures](https://developers.home-assistant.io/docs/integ
 
 **Order (separated by blank lines):**
 
-1. `from __future__ import annotations`
-2. Standard library
-3. Third-party packages
-4. Home Assistant core
-5. Local integration imports
+1. Standard library
+2. Third-party packages
+3. Home Assistant core
+4. Local integration imports
 
 **Standard HA aliases:** `vol`, `cv`, `dr`, `er`, `dt_util`
 

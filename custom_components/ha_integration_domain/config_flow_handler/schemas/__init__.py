@@ -18,8 +18,6 @@ When schemas grow (>300 lines per file), split further:
 All schemas are re-exported from this __init__.py for convenient imports.
 """
 
-from __future__ import annotations
-
 from custom_components.ha_integration_domain.config_flow_handler.schemas.config import (
     get_reauth_schema,
     get_reconfigure_schema,

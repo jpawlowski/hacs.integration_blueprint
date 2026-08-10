@@ -19,8 +19,6 @@ When validators grow (>300 lines per file), split further:
 All validators are re-exported from this __init__.py for convenient imports.
 """
 
-from __future__ import annotations
-
 from custom_components.ha_integration_domain.config_flow_handler.validators.credentials import validate_credentials
 from custom_components.ha_integration_domain.config_flow_handler.validators.sanitizers import sanitize_username
 

@@ -1,7 +1,5 @@
 """Fan speed select for ha_integration_domain."""
 
-from __future__ import annotations
-
 from enum import StrEnum
 from typing import TYPE_CHECKING
 

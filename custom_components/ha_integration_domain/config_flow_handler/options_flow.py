@@ -8,8 +8,6 @@ For more information:
 https://developers.home-assistant.io/docs/config_entries_options_flow_handler
 """
 
-from __future__ import annotations
-
 from typing import Any
 
 from custom_components.ha_integration_domain.config_flow_handler.schemas import get_options_schema

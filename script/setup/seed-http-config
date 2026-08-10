@@ -51,8 +51,6 @@ mkdir -p config/.storage
 # Edit the `desired` dict below to change the seeded dev network settings.
 # Values mirror what the http: YAML block used to configure.
 python3 <<'PY'
-from __future__ import annotations
-
 import json
 import os
 import tempfile

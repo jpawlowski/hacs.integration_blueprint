@@ -10,8 +10,6 @@ When adding many options, consider grouping them:
 - device_options.py: Device-specific settings
 """
 
-from __future__ import annotations
-
 from collections.abc import Mapping
 from typing import Any
 

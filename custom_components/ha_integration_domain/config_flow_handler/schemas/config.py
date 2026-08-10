@@ -12,8 +12,6 @@ When this file grows too large (>300 lines), consider splitting into:
 - reconfigure.py: Reconfiguration schemas
 """
 
-from __future__ import annotations
-
 from collections.abc import Mapping
 from typing import Any
 

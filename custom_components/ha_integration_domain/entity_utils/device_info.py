@@ -1,7 +1,5 @@
 """Device info utilities for ha_integration_domain."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.device_registry import DeviceInfo

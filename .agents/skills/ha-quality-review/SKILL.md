@@ -72,7 +72,7 @@ The rules most often missed in this codebase's shape:
 Look for the failure modes linters miss:
 
 - **Typing** — full annotations, `-> None` on procedures, no bare `Any` where a `TypedDict` or dataclass is meant,
-  `from __future__ import annotations` at the top.
+  no `from __future__ import annotations` (banned on Python 3.14).
 - **Async** — no blocking I/O in the event loop (`requests`, `open()`, `time.sleep`, sync SDK calls); every network call
   has a timeout; `asyncio.timeout` rather than a deprecated helper.
 - **Exceptions** — specific types, never bare `except:`; `raise ... from err` to preserve the chain; the coordinator

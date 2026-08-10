@@ -9,8 +9,6 @@ When this file grows, consider splitting into:
 - api_auth.py: API authentication methods
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from custom_components.ha_integration_domain.api import IntegrationBlueprintApiClient

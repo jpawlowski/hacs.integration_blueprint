@@ -1,7 +1,5 @@
 """State helper utilities for ha_integration_domain."""
 
-from __future__ import annotations
-
 from datetime import datetime
 from typing import Any
 

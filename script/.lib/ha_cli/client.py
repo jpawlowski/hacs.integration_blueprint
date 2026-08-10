@@ -5,8 +5,6 @@ stay declarative. Every failure is turned into `HaError` carrying the process
 exit code the caller should use, so no command has to think about aiohttp.
 """
 
-from __future__ import annotations
-
 import asyncio
 import json
 import os

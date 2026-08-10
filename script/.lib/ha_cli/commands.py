@@ -8,8 +8,6 @@ Listings default to the entities, devices, and config entries of *this*
 integration. `--all` widens them to the whole instance.
 """
 
-from __future__ import annotations
-
 import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Any

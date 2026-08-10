@@ -1,7 +1,5 @@
 """Air purifier fan entity for ha_integration_domain."""
 
-from __future__ import annotations
-
 import math
 from typing import TYPE_CHECKING, Any
 

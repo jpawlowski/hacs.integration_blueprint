@@ -9,8 +9,6 @@ When adding many sanitizers, consider organizing by type:
 - identifiers.py: Device ID, serial number normalizers
 """
 
-from __future__ import annotations
-
 
 def sanitize_username(username: str) -> str:
     """

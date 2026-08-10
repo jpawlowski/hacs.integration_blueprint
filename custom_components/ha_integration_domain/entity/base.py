@@ -9,8 +9,6 @@ https://developers.home-assistant.io/docs/core/entity
 https://developers.home-assistant.io/docs/core/entity/index/#common-properties
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from custom_components.ha_integration_domain.const import ATTRIBUTION

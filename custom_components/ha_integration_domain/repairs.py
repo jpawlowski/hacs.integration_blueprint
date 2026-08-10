@@ -1,7 +1,5 @@
 """Repairs platform for ha_integration_domain."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, cast
 
 from homeassistant.components.repairs import RepairsFlow

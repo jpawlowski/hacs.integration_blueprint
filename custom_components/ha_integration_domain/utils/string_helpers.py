@@ -1,7 +1,5 @@
 """String helper utilities for ha_integration_domain."""
 
-from __future__ import annotations
-
 import re
 
 

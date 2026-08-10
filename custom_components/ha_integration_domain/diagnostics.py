@@ -4,8 +4,6 @@ Learn more about diagnostics:
 https://developers.home-assistant.io/docs/core/integration_diagnostics
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
