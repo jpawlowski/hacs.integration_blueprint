@@ -280,6 +280,30 @@ including options that look unused.
 Prefer a migration path over a break, and record it with a `BREAKING CHANGE:` footer.
 Procedure: [`ha-breaking-changes`](.agents/skills/ha-breaking-changes/SKILL.md).
 
+### Code that predates the current rules
+
+This file, `.agents/instructions/` and the skills are the reference; the surrounding code is not. When a file you are
+already editing turns out not to follow them, **bring it into line as part of that change, without asking**. A rule
+that is only applied to new code never reaches the old code, and a large codebase converges only if every edit leaves
+its file slightly closer.
+
+Bound it to what you are already in:
+
+- ✅ The function, class or block you are editing, and file-wide changes a tool verifies for you — an import ban, a
+  renamed API, a formatting rule.
+- ❌ The rest of the file, and other files with the same deviation. That is a migration in its own right: name it,
+  and offer it as the next piece of work ([`ha-planning`](.agents/skills/ha-planning/SKILL.md) once it passes ~10
+  files).
+- ❌ Anything on the breaking-changes list above, however plainly the current rules forbid the old shape. Unique IDs,
+  entity IDs, entry data, state values and action signatures reach users, so they take the warn-first route through
+  [`ha-breaking-changes`](.agents/skills/ha-breaking-changes/SKILL.md) instead.
+
+Where the two are separable, the cleanup is its own commit — a drive-by `refactor:` must not decide the release type
+or the changelog entry of the fix it rode in with. Where they are not, say so in the commit body.
+
+If the same deviation is everywhere, the rule may be what is wrong. Raise that instead of migrating the codebase to a
+rule nobody follows.
+
 ### When instructions conflict with a request
 
 Say which instruction the request contradicts and restate what you understood, then follow the developer's decision.
