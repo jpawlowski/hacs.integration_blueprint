@@ -13,6 +13,11 @@ what a good answer looks like. The runner does two passes per eval:
 This measures whether a skill actually changes agent behaviour, which linting a SKILL.md
 cannot tell you. It costs real model calls, so it is never part of script/check.
 
+Works with whichever agent CLI script/skill-evals resolved: Claude Code (`claude`),
+Codex CLI (`codex`), or GitHub Copilot CLI (`copilot`). Each has a different flag
+surface for models, tool permissions, and output capture — see the `_*_argv()`
+builders below, one per agent.
+
 Invoked by script/skill-evals; not intended to be run directly.
 """
 
@@ -21,9 +26,11 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 import textwrap
 
 SKILLS_DIR = Path(".agents/skills")
@@ -32,9 +39,12 @@ REPORT_DIR = Path(".agents/scratch")
 ANSWER_PREAMBLE = """\
 You are working in this Home Assistant custom integration repository. Answer the request
 below the way you normally would: consult the repository's own agent skills, instructions
-and code as needed.
+and code as needed, including read-only commands (e.g. git status, git diff, git log) to
+inspect the current repository state.
 
-Do not modify any files. Describe what you would do and show the code you would write.
+Do not create, edit, or delete any files, and do not run any command that changes
+repository or git state (commit, push, add, reset, checkout, etc.). Describe what you
+would do and show the code you would write.
 
 REQUEST:
 """
@@ -73,34 +83,111 @@ class EvalResult:
         return [r for r in self.results if not r["passed"]]
 
 
-def run_agent(agent_bin: str, model: str, prompt: str, timeout: int, *, repo_access: bool) -> str:
-    """
-    Send a prompt to the agent CLI and return its stdout.
+def _claude_argv(agent_bin: str, model: str, *, repo_access: bool) -> list[str]:
+    """Build argv for Claude Code's non-interactive print mode (`claude -p`)."""
+    argv = [agent_bin, "-p", "--output-format", "text"]
+    if model:
+        argv += ["--model", model]
+    if repo_access:
+        # Explicit allow-list: unlisted tools are auto-denied (no prompt possible in -p
+        # mode), so the read tools the agent needs must be named here. Git is split into
+        # read-only subcommands (allowed, needed to inspect status/diff before answering)
+        # and mutating ones (explicitly disallowed) rather than blocking `git` outright.
+        argv += [
+            "--allowedTools",
+            (
+                "Read,Glob,Grep,Bash(rg:*),Bash(cat:*),Bash(ls:*),"
+                "Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*)"
+            ),
+            "--disallowedTools",
+            (
+                "Write,Edit,NotebookEdit,Bash(rm:*),"
+                "Bash(git commit:*),Bash(git push:*),Bash(git add:*),"
+                "Bash(git reset:*),Bash(git checkout:*),Bash(git clean:*),Bash(git branch:*)"
+            ),
+        ]
+    else:
+        # Judge pass needs no tools at all — reasoning over the prompt text only.
+        argv += [
+            "--disallowedTools",
+            "Read,Write,Edit,NotebookEdit,Bash,Grep,Glob,WebFetch,WebSearch,Task,TodoWrite",
+        ]
+    return argv
 
-    The prompt goes in on stdin rather than through -p: judge prompts embed a full answer
-    and would otherwise risk the argv length limit. Writes are denied in both passes — an
-    eval must never mutate the repository it is measuring.
+
+def _codex_argv(agent_bin: str, model: str, answer_file: Path) -> list[str]:
     """
+    Build argv for Codex CLI's non-interactive mode (`codex exec`).
+
+    `--sandbox read-only` blocks writes and covers both passes (repo exploration reads
+    are still allowed). The final answer is captured via --output-last-message rather
+    than stdout, which also carries reasoning/tool-call trace lines.
+    """
+    argv = [
+        agent_bin,
+        "exec",
+        "--sandbox",
+        "read-only",
+        "--output-last-message",
+        str(answer_file),
+    ]
+    if model:
+        argv += ["--model", model]
+    return argv
+
+
+def _copilot_argv(agent_bin: str, model: str, *, repo_access: bool) -> list[str]:
+    """Build argv for GitHub Copilot CLI's programmatic mode."""
     argv = [agent_bin, "--model", model, "--no-color", "--log-level", "none"]
     if repo_access:
         argv += ["--allow-tool=shell(rg)", "--allow-tool=shell(cat)", "--allow-tool=shell(ls)"]
     argv += ["--deny-tool=write", "--deny-tool=shell(git)", "--deny-tool=shell(rm)"]
-
-    completed = subprocess.run(
-        argv,
-        input=prompt,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-        check=False,
-    )
-    if completed.returncode != 0:
-        message = completed.stderr.strip() or "agent CLI exited non-zero"
-        raise RuntimeError(message)
-    return completed.stdout.strip()
+    return argv
 
 
-def judge(agent_bin: str, model: str, item: dict, answer: str, timeout: int) -> list[dict]:
+def run_agent(agent: str, agent_bin: str, model: str, prompt: str, timeout: int, *, repo_access: bool) -> str:
+    """
+    Send a prompt to the configured agent CLI and return its answer text.
+
+    The prompt goes in on stdin rather than through a positional/-p argument: judge
+    prompts embed a full answer and would otherwise risk the argv length limit. Writes
+    are denied in every pass — an eval must never mutate the repository it is measuring.
+    """
+    answer_file: Path | None = None
+    try:
+        if agent == "claude":
+            argv = _claude_argv(agent_bin, model, repo_access=repo_access)
+        elif agent == "codex":
+            fd, path = tempfile.mkstemp(prefix="skill-eval-", suffix=".txt")
+            os.close(fd)
+            answer_file = Path(path)
+            argv = _codex_argv(agent_bin, model, answer_file)
+        elif agent == "copilot":
+            argv = _copilot_argv(agent_bin, model, repo_access=repo_access)
+        else:
+            raise RuntimeError(f"Unknown agent CLI: {agent!r} (expected claude, codex, or copilot)")
+
+        completed = subprocess.run(
+            argv,
+            input=prompt,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
+        )
+        if completed.returncode != 0:
+            message = completed.stderr.strip() or completed.stdout.strip() or "agent CLI exited non-zero"
+            raise RuntimeError(message)
+
+        if answer_file is not None:
+            return answer_file.read_text().strip()
+        return completed.stdout.strip()
+    finally:
+        if answer_file is not None:
+            answer_file.unlink(missing_ok=True)
+
+
+def judge(agent: str, agent_bin: str, model: str, item: dict, answer: str, *, timeout: int) -> list[dict]:
     """
     Grade an answer against the eval's assertions.
 
@@ -116,7 +203,7 @@ def judge(agent_bin: str, model: str, item: dict, answer: str, timeout: int) -> 
         f"ASSERTIONS (grade every one, in this order):\n{checklist}\n\n"
         f"ANSWER TO GRADE:\n{answer}\n"
     )
-    raw = run_agent(agent_bin, model, prompt, timeout, repo_access=False)
+    raw = run_agent(agent, agent_bin, model, prompt, timeout=timeout, repo_access=False)
     start, end = raw.find("{"), raw.rfind("}")
     if start == -1 or end == -1:
         raise RuntimeError(f"judge did not return JSON: {raw[:200]}")
@@ -135,10 +222,10 @@ def judge(agent_bin: str, model: str, item: dict, answer: str, timeout: int) -> 
     return results
 
 
-def run_eval(agent_bin: str, model: str, skill: str, item: dict, timeout: int) -> EvalResult:
+def run_eval(agent: str, agent_bin: str, model: str, skill: str, item: dict, *, timeout: int) -> EvalResult:
     """Run one eval end to end."""
-    answer = run_agent(agent_bin, model, ANSWER_PREAMBLE + item["prompt"], timeout, repo_access=True)
-    results = judge(agent_bin, model, item, answer, timeout)
+    answer = run_agent(agent, agent_bin, model, ANSWER_PREAMBLE + item["prompt"], timeout, repo_access=True)
+    results = judge(agent, agent_bin, model, item, answer, timeout=timeout)
     return EvalResult(skill=skill, eval_id=item["id"], prompt=item["prompt"], results=results, answer=answer)
 
 
@@ -174,8 +261,9 @@ def write_report(results: list[EvalResult]) -> Path:
 def main() -> int:
     """Run the selected evals and print a summary."""
     parser = argparse.ArgumentParser(description="Run agent skill evals.")
+    parser.add_argument("--agent", required=True, choices=["claude", "codex", "copilot"], help="Agent CLI to use")
     parser.add_argument("--agent-bin", required=True, help="Path to the agent CLI binary")
-    parser.add_argument("--model", required=True, help="Model identifier passed to the agent CLI")
+    parser.add_argument("--model", default="", help="Model identifier passed to the agent CLI (empty: CLI default)")
     parser.add_argument("--skill", default=None, help="Only run evals for this skill")
     parser.add_argument("--timeout", type=int, default=300, help="Per-call timeout in seconds")
     args = parser.parse_args()
@@ -185,13 +273,13 @@ def main() -> int:
         print(f"No evals found{f' for skill {args.skill!r}' if args.skill else ''}.")
         return 1
 
-    print(f"Running {len(items)} evals with {args.model} (2 model calls each)\n")
+    print(f"Running {len(items)} evals with {args.agent} ({args.model or 'default model'}, 2 model calls each)\n")
 
     results: list[EvalResult] = []
     for index, (skill, item) in enumerate(items, start=1):
         label = f"[{index}/{len(items)}] {skill} eval {item['id']}"
         try:
-            result = run_eval(args.agent_bin, args.model, skill, item, args.timeout)
+            result = run_eval(args.agent, args.agent_bin, args.model, skill, item, timeout=args.timeout)
         except (RuntimeError, subprocess.TimeoutExpired, json.JSONDecodeError) as err:
             print(f"  ERROR {label}: {err}")
             failure = {"text": "runner completed the eval", "passed": False, "evidence": str(err)}
