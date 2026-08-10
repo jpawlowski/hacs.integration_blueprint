@@ -4,10 +4,10 @@
   "permissions": {
     "defaultMode": "bypassPermissions",
     "deny": [
-      "Read(**/.env)",
-      "Read(**/.env.*)",
-      "Edit(**/.env)",
-      "Edit(**/.env.*)",
+      "Read(**/.env.local)",
+      "Read(**/.env.local.*)",
+      "Edit(**/.env.local)",
+      "Edit(**/.env.local.*)",
       "Edit(./.git/**)",
       "Edit(./.github/workflows/**)",
       "Edit(./.github/actions/**)",
