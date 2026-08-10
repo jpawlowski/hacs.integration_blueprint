@@ -1080,6 +1080,8 @@ remove_blueprint_specific_files() {
     if $DRY_RUN; then
         print_dryrun "Would remove .github/FUNDING.yml"
         print_dryrun "Would remove docs/development/MIGRATION.md"
+        print_dryrun "Would remove .agents/skills/blueprint-skill-maintenance/"
+        print_dryrun "Would remove blueprint-only sections from .agents/skills/README.md"
     else
         print_color "$BLUE" "Removing blueprint-specific files..."
 
@@ -1096,6 +1098,21 @@ remove_blueprint_specific_files() {
         if [[ -f "docs/development/MIGRATION.md" ]]; then
             rm -f "docs/development/MIGRATION.md"
             print_success "Removed docs/development/MIGRATION.md"
+        fi
+
+        # Remove the agent skill that only applies to maintaining the blueprint itself.
+        # .templatesyncignore keeps template sync from reinstating it.
+        if [[ -d ".agents/skills/blueprint-skill-maintenance" ]]; then
+            rm -rf ".agents/skills/blueprint-skill-maintenance"
+            print_success "Removed .agents/skills/blueprint-skill-maintenance/"
+        fi
+
+        # Strip the matching blueprint-only sections from the skills README, so it does
+        # not reference a skill that no longer exists in this repository.
+        if [[ -f ".agents/skills/README.md" ]] &&
+            grep -q "blueprint-only:start" ".agents/skills/README.md"; then
+            sed -i '/<!-- blueprint-only:start -->/,/<!-- blueprint-only:end -->/d' ".agents/skills/README.md"
+            print_success "Removed blueprint-only sections from .agents/skills/README.md"
         fi
     fi
 }

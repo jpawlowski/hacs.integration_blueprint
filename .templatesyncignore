@@ -57,12 +57,30 @@ DEPENDENCIES.md
 # ── AI agent instruction files ───────────────────────────────
 # Project-identity files are customized during initialization and must not be
 # overwritten by template sync (they contain your domain, class prefix, repo
-# URL, etc.). The path-specific *.instructions.md files under .github/instructions/
+# URL, etc.). The path-specific *.instructions.md files under .agents/instructions/
 # use generic placeholders and ARE safely synced from the template.
 AGENTS.md
-CODEX.md
 CLAUDE.md
-.github/copilot-instructions.md
+
+# ── Agent skills ─────────────────────────────────────────────
+# Skills under .agents/skills/ use generic placeholders and ARE safely synced,
+# so you keep receiving blueprint improvements.
+#
+# This one is only meaningful inside the blueprint repository itself.
+# initialize.sh deletes it; this entry stops the sync from reinstating it.
+.agents/skills/blueprint-skill-maintenance/
+#
+# Skills YOU add are never touched — template sync only overwrites files that
+# changed upstream, and a directory the blueprint does not have is not one of
+# them. No entry needed.
+#
+# To take ownership of a blueprint skill (your edits win, and you keep it
+# current yourself), or to switch one off, uncomment and adjust:
+#
+# .agents/skills/ha-testing/
+# .agents/skills/ha-release/
+#
+# See .agents/skills/README.md → "Customizing in your own repository".
 
 # ── Project governance ────────────────────────────────────────
 # Shipped once with the blueprint, then owned by the integration maintainer.
