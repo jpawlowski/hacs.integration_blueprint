@@ -41,6 +41,16 @@ export MY_DEVICE_API_KEY="test-key-123"
 export MY_DEVICE_HOST="localhost"
 ```
 
+```bash
+# script/hooks/develop.pre.sh
+# Opt out of the script/ha development token, or shorten its life.
+export HA_DEV_TOKEN=0        # no token is minted at all
+# export HA_DEV_TOKEN_DAYS=1 # or keep it, expiring after a day
+```
+
+Scripts under `script/` read the process environment and never source `.devcontainer/.env`, so a hook is the only
+place their variables can be set.
+
 Rules:
 
 - Hooks are **sourced**, not executed — `exit` would terminate the calling script. Use `return`.
@@ -51,36 +61,39 @@ Rules:
 
 ## Available hooks
 
-| Script                            | pre hook                                    | post hook                                    |
-| --------------------------------- | ------------------------------------------- | -------------------------------------------- |
-| `script/check`                    | `script/hooks/check.pre.sh`                 | `script/hooks/check.post.sh`                 |
-| `script/clean`                    | `script/hooks/clean.pre.sh`                 | `script/hooks/clean.post.sh`                 |
-| `script/develop`                  | `script/hooks/develop.pre.sh`               | — (long-running process)                     |
-| `script/hassfest`                 | `script/hooks/hassfest.pre.sh`              | `script/hooks/hassfest.post.sh`              |
-| `script/help`                     | `script/hooks/help.pre.sh`                  | `script/hooks/help.post.sh`                  |
-| `script/lint`                     | `script/hooks/lint.pre.sh`                  | `script/hooks/lint.post.sh`                  |
-| `script/lint-check`               | `script/hooks/lint-check.pre.sh`            | `script/hooks/lint-check.post.sh`            |
-| `script/markdown`                 | `script/hooks/markdown.pre.sh`              | `script/hooks/markdown.post.sh`              |
-| `script/markdown-check`           | `script/hooks/markdown-check.pre.sh`        | `script/hooks/markdown-check.post.sh`        |
-| `script/python`                   | `script/hooks/python.pre.sh`                | `script/hooks/python.post.sh`                |
-| `script/python-check`             | `script/hooks/python-check.pre.sh`          | `script/hooks/python-check.post.sh`          |
-| `script/release-notes`            | `script/hooks/release-notes.pre.sh`         | `script/hooks/release-notes.post.sh`         |
-| `script/shell`                    | `script/hooks/shell.pre.sh`                 | `script/hooks/shell.post.sh`                 |
-| `script/shell-check`              | `script/hooks/shell-check.pre.sh`           | `script/hooks/shell-check.post.sh`           |
-| `script/spell`                    | `script/hooks/spell.pre.sh`                 | `script/hooks/spell.post.sh`                 |
-| `script/spell-check`              | `script/hooks/spell-check.pre.sh`           | `script/hooks/spell-check.post.sh`           |
-| `script/test`                     | `script/hooks/test.pre.sh`                  | `script/hooks/test.post.sh`                  |
-| `script/type-check`               | `script/hooks/type-check.pre.sh`            | `script/hooks/type-check.post.sh`            |
-| `script/version`                  | `script/hooks/version.pre.sh`               | `script/hooks/version.post.sh`               |
-| `script/yaml-check`               | `script/hooks/yaml-check.pre.sh`            | `script/hooks/yaml-check.post.sh`            |
-| `script/setup/bootstrap`          | `script/hooks/setup/bootstrap.pre.sh`       | `script/hooks/setup/bootstrap.post.sh`       |
-| `script/setup/reset`              | `script/hooks/setup/reset.pre.sh`           | `script/hooks/setup/reset.post.sh`           |
-| `script/setup/setup`              | — (calls bootstrap)                         | `script/hooks/setup/setup.post.sh`           |
-| `script/setup/sync-hacs`          | `script/hooks/setup/sync-hacs.pre.sh`       | `script/hooks/setup/sync-hacs.post.sh`       |
-| `.devcontainer/on-create.sh`      | `.devcontainer/hooks/on-create.pre.sh`      | `.devcontainer/hooks/on-create.post.sh`      |
-| `.devcontainer/update-content.sh` | `.devcontainer/hooks/update-content.pre.sh` | `.devcontainer/hooks/update-content.post.sh` |
-| `.devcontainer/post-create.sh`    | `.devcontainer/hooks/post-create.pre.sh`    | `.devcontainer/hooks/post-create.post.sh`    |
-| `.devcontainer/post-start.sh`     | `.devcontainer/hooks/post-start.pre.sh`     | `.devcontainer/hooks/post-start.post.sh`     |
-| `.devcontainer/setup-shell.sh`    | `.devcontainer/hooks/setup-shell.pre.sh`    | `.devcontainer/hooks/setup-shell.post.sh`    |
-| `.devcontainer/setup-git.sh`      | `.devcontainer/hooks/setup-git.pre.sh`      | `.devcontainer/hooks/setup-git.post.sh`      |
-| `.devcontainer/post-attach.sh`    | `.devcontainer/hooks/post-attach.pre.sh`    | `.devcontainer/hooks/post-attach.post.sh`    |
+| Script                            | pre hook                                     | post hook                                     |
+| --------------------------------- | -------------------------------------------- | --------------------------------------------- |
+| `script/check`                    | `script/hooks/check.pre.sh`                  | `script/hooks/check.post.sh`                  |
+| `script/clean`                    | `script/hooks/clean.pre.sh`                  | `script/hooks/clean.post.sh`                  |
+| `script/develop`                  | `script/hooks/develop.pre.sh`                | — (long-running process)                      |
+| `script/ha`                       | `script/hooks/ha.pre.sh`                     | `script/hooks/ha.post.sh`                     |
+| `script/hassfest`                 | `script/hooks/hassfest.pre.sh`               | `script/hooks/hassfest.post.sh`               |
+| `script/help`                     | `script/hooks/help.pre.sh`                   | `script/hooks/help.post.sh`                   |
+| `script/lint`                     | `script/hooks/lint.pre.sh`                   | `script/hooks/lint.post.sh`                   |
+| `script/lint-check`               | `script/hooks/lint-check.pre.sh`             | `script/hooks/lint-check.post.sh`             |
+| `script/markdown`                 | `script/hooks/markdown.pre.sh`               | `script/hooks/markdown.post.sh`               |
+| `script/markdown-check`           | `script/hooks/markdown-check.pre.sh`         | `script/hooks/markdown-check.post.sh`         |
+| `script/python`                   | `script/hooks/python.pre.sh`                 | `script/hooks/python.post.sh`                 |
+| `script/python-check`             | `script/hooks/python-check.pre.sh`           | `script/hooks/python-check.post.sh`           |
+| `script/release-notes`            | `script/hooks/release-notes.pre.sh`          | `script/hooks/release-notes.post.sh`          |
+| `script/shell`                    | `script/hooks/shell.pre.sh`                  | `script/hooks/shell.post.sh`                  |
+| `script/shell-check`              | `script/hooks/shell-check.pre.sh`            | `script/hooks/shell-check.post.sh`            |
+| `script/spell`                    | `script/hooks/spell.pre.sh`                  | `script/hooks/spell.post.sh`                  |
+| `script/spell-check`              | `script/hooks/spell-check.pre.sh`            | `script/hooks/spell-check.post.sh`            |
+| `script/test`                     | `script/hooks/test.pre.sh`                   | `script/hooks/test.post.sh`                   |
+| `script/type-check`               | `script/hooks/type-check.pre.sh`             | `script/hooks/type-check.post.sh`             |
+| `script/version`                  | `script/hooks/version.pre.sh`                | `script/hooks/version.post.sh`                |
+| `script/yaml-check`               | `script/hooks/yaml-check.pre.sh`             | `script/hooks/yaml-check.post.sh`             |
+| `script/setup/bootstrap`          | `script/hooks/setup/bootstrap.pre.sh`        | `script/hooks/setup/bootstrap.post.sh`        |
+| `script/setup/reset`              | `script/hooks/setup/reset.pre.sh`            | `script/hooks/setup/reset.post.sh`            |
+| `script/setup/seed-auth`          | `script/hooks/setup/seed-auth.pre.sh`        | `script/hooks/setup/seed-auth.post.sh`        |
+| `script/setup/seed-http-config`   | `script/hooks/setup/seed-http-config.pre.sh` | `script/hooks/setup/seed-http-config.post.sh` |
+| `script/setup/setup`              | — (calls bootstrap)                          | `script/hooks/setup/setup.post.sh`            |
+| `script/setup/sync-hacs`          | `script/hooks/setup/sync-hacs.pre.sh`        | `script/hooks/setup/sync-hacs.post.sh`        |
+| `.devcontainer/on-create.sh`      | `.devcontainer/hooks/on-create.pre.sh`       | `.devcontainer/hooks/on-create.post.sh`       |
+| `.devcontainer/update-content.sh` | `.devcontainer/hooks/update-content.pre.sh`  | `.devcontainer/hooks/update-content.post.sh`  |
+| `.devcontainer/post-create.sh`    | `.devcontainer/hooks/post-create.pre.sh`     | `.devcontainer/hooks/post-create.post.sh`     |
+| `.devcontainer/post-start.sh`     | `.devcontainer/hooks/post-start.pre.sh`      | `.devcontainer/hooks/post-start.post.sh`      |
+| `.devcontainer/setup-shell.sh`    | `.devcontainer/hooks/setup-shell.pre.sh`     | `.devcontainer/hooks/setup-shell.post.sh`     |
+| `.devcontainer/setup-git.sh`      | `.devcontainer/hooks/setup-git.pre.sh`       | `.devcontainer/hooks/setup-git.post.sh`       |
+| `.devcontainer/post-attach.sh`    | `.devcontainer/hooks/post-attach.pre.sh`     | `.devcontainer/hooks/post-attach.post.sh`     |

@@ -215,6 +215,26 @@ These files are sourced by lifecycle hook scripts (`onCreateCommand`, `postCreat
 
 For feature versions (Python, Node.js) or Python runtime flags (`PYTHONASYNCIODEBUG` etc.), edit `devcontainer.json` directly.
 
+Scripts under `script/` are also outside this scope — they read the **process** environment and never source these
+files. Variables that steer them belong in a hook script (see [Hook Scripts](#hook-scripts)):
+
+| Variable            | Default                 | Description                                                                                |
+| ------------------- | ----------------------- | ------------------------------------------------------------------------------------------ |
+| `HA_DEV_TOKEN`      | `1`                     | Set to `0` so `script/develop` does not mint the access token `script/ha` uses.            |
+| `HA_DEV_TOKEN_DAYS` | `30`                    | Lifetime of that token in days. It is rotated automatically once fewer than 7 days remain. |
+| `HA_URL`            | `http://127.0.0.1:8123` | Which instance `script/ha` talks to.                                                       |
+| `HA_TOKEN`          | the seeded token file   | Authenticate `script/ha` as someone else, e.g. against a real installation.                |
+
+```bash
+# script/hooks/develop.pre.sh
+export HA_DEV_TOKEN=0
+```
+
+The token itself lives in `config/.storage/dev_access_token` (mode `0600`), next to the Home Assistant auth store it
+belongs to — gitignored, excluded from template sync, and removed by `script/setup/reset` along with that store.
+`script/setup/seed-auth --revoke` removes it and its refresh token; `--force` rotates it. Both require Home Assistant
+to be stopped.
+
 ### Personal overrides
 
 Copy the example file and uncomment what you need:

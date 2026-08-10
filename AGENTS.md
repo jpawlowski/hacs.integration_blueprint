@@ -108,6 +108,10 @@ These are the ones an agent typically breaks _before_ it realises a skill or ins
 - **Diagnostics must call `async_redact_data()`** for credentials, tokens, location and personal data.
 - **YAML configuration is deprecated** for integrations talking to devices or services (ADR-0010) — config flow only.
 - **Changing the shape of `entry.data`** requires a `VERSION`/`MINOR_VERSION` bump and `async_migrate_entry()`.
+- **While Home Assistant runs, ask it — do not read `config/.storage/`.** Those files are written 1–180 seconds after
+  the change they describe and hold no live state at all, so `script/ha` is the source of truth. With Home Assistant
+  stopped it is the other way round. Never write into `config/.storage/` while it runs; the next save discards the
+  edit. Decision table: [`ha-coordinator-debug`](.agents/skills/ha-coordinator-debug/SKILL.md).
 
 ### Device registry ownership (Home Assistant 2026.8+)
 
@@ -192,8 +196,37 @@ pkill -f "hass --config" || true && pkill -f "debugpy.*5678" || true && ./script
 ```
 
 Restart after changing Python files, `manifest.json`, `services.yaml`, translations or the config flow. Logs are live
-in that terminal and in `config/home-assistant.log`. Log levels are set in `config/configuration.yaml` — raising
-`custom_components.ha_integration_domain` to `debug` while investigating is expected.
+in that terminal and in `config/home-assistant.log`.
+
+**`script/ha` reads and controls that instance directly, so never ask the developer to look something up in the UI for
+you.** It authenticates itself with a token `script/develop` mints — there is nothing to configure, and the token never
+appears in a command line or in output.
+
+```bash
+script/ha entries                                     # did the config entry load, and why not
+script/ha states                                      # this integration's entities
+script/ha entity sensor.example                       # state + registry entry + source
+script/ha diagnostics | jq .                          # replaces the UI download step
+script/ha logs --level error                          # structured, deduplicated
+script/ha loglevel custom_components.ha_integration_domain=debug   # immediate, no restart
+script/ha watch --seconds 60                          # does the value actually change
+script/ha call ha_integration_domain.example_action
+script/ha flow start                                  # walk a config flow without a browser
+```
+
+Persistent log levels still belong in `config/configuration.yaml`. Full command reference:
+[`references/ha-cli.md`](.agents/skills/blueprint-tooling/references/ha-cli.md).
+
+**The instance is shared — the developer starts, stops and restarts it while you work.** Never carry its run state
+from one step to the next; `script/ha status` reports it along with `uptime`, which is what reveals a restart you did
+not perform. Finding it in a different state than you left it is normal: adapt in one step, never go through `ps` or
+the process tree looking for an explanation.
+
+**`./script/develop` is a takeover, not "start if not running"** — it kills whatever is already bound to `config/`, so
+the developer's terminal loses the live log it was streaming. Check first, and use the instance that is already there.
+Announce a restart, and announce **beforehand** when you need the instance exclusively — `script/setup/reset`,
+`script/ha token --rotate|--revoke`, or a repeated restart loop — so the developer knows whether they can experiment in
+parallel. Rules: [`ha-coordinator-debug`](.agents/skills/ha-coordinator-debug/SKILL.md).
 
 Log reading, failure triage and the debugging loop: [`ha-coordinator-debug`](.agents/skills/ha-coordinator-debug/SKILL.md).
 

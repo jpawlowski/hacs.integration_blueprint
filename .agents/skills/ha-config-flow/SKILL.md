@@ -96,11 +96,30 @@ script/hassfest          # cross-checks every step/error/abort key against trans
 script/test
 ```
 
-Then restart Home Assistant and **walk every flow you touched in the UI** — add, reconfigure, options, and, by
-invalidating the credential, reauth. hassfest proves the translation keys exist; only the UI proves the flow is usable.
-A flow that passes CI and dead-ends on the second step is the normal failure here.
+Then restart Home Assistant and **walk every flow you touched** — add, reconfigure, options, and, by invalidating the
+credential, reauth. hassfest proves the translation keys exist; only walking the flow proves it is usable. A flow that
+passes CI and dead-ends on the second step is the normal failure here.
+
+Walk it from the terminal first — it is faster, it is repeatable, and it shows the serialised schema Home Assistant
+actually built, which is where defaults and selectors go wrong:
+
+```bash
+script/ha flow start                              # or --reconfigure
+script/ha flow step <flow_id> host=192.0.2.10 username=admin password=secret
+script/ha flow options                            # then step through it the same way
+script/ha entries                                 # the entry exists and loaded
+```
+
+Each step prints its `step_id`, any `errors`, and every field with its type and default. Full reference:
+[`references/ha-cli.md`](../blueprint-tooling/references/ha-cli.md).
+
+Two things only the browser can confirm, so finish there: that the translated labels and `data_description` hints read
+correctly, and that the form renders the way the selectors promise.
 
 ## Do not
 
 - Do not do blocking I/O or long retries inside a flow step; validate with a short timeout.
-- Do not call the flow done before walking it in the UI.
+- Do not call the flow done before walking it end to end.
+- Do not give an optional free-text field `default=None` — voluptuous injects that default when the field is left
+  empty and the selector then rejects it, making the form unsubmittable. Carry the current value in
+  `description={"suggested_value": ...}` instead.

@@ -58,15 +58,41 @@ Agents should use fix mode. `script/check` is the gate to run before saying a ta
 ### Other scripts
 
 ```bash
-script/develop          # start Home Assistant on :8123 with debugpy on :5678
-script/hassfest         # official HA validation (first run downloads ~27 MB)
-script/test             # pytest
-script/skills-check     # validate .agents/skills/ (also part of lint / lint-check)
-script/version          # read the canonical version from manifest.json
-script/ha-version-sync  # align the pinned Home Assistant version across config files
-script/clean            # remove caches, logs, build artifacts
-script/help             # list every script with its description
+script/develop           # take over Home Assistant on :8123, debugpy on :5678 (see below)
+script/ha                # query and control the running instance (see below)
+script/setup/seed-auth   # mint the token script/ha uses — run by script/develop
+script/hassfest          # official HA validation (first run downloads ~27 MB)
+script/test              # pytest
+script/skills-check      # validate .agents/skills/ (also part of lint / lint-check)
+script/version           # read the canonical version from manifest.json
+script/ha-version-sync   # align the pinned Home Assistant version across config files
+script/clean             # remove caches, logs, build artifacts
+script/help              # list every script with its description
 ```
+
+`script/develop` **kills any Home Assistant already bound to `config/` and starts its own.** That is deliberate — the
+log has to stream into the terminal that launched it — but it means running it is a takeover, not a "start if needed".
+Whoever was watching the previous instance loses their live log. Check `script/ha status` first and use the instance
+that is already there.
+
+### Talking to the running instance
+
+`script/ha` reads entity states, config entry status, diagnostics, and the error log from the instance
+`script/develop` started, calls service actions, and drives config flows — so debugging does not require reading a log
+file and asking a human to click through the UI.
+
+```bash
+script/ha entries                                  # config entry state and failure reason
+script/ha states                                   # this integration's entities
+script/ha diagnostics | jq .                       # no UI download step
+script/ha logs --level error
+script/ha loglevel custom_components.<domain>=debug   # immediate, no restart
+```
+
+Authentication is automatic: `script/develop` runs `script/setup/seed-auth`, which mints a long-lived access token
+offline into `config/.storage/dev_access_token`. `script/ha` reads that file itself, so **the token never appears in a
+command line or in output**. On a fresh environment the instance has to be onboarded in the browser once; the token
+then appears on the next `script/develop`.
 
 ### When a check keeps failing
 
@@ -107,9 +133,10 @@ Every script supports sourced `pre` and `post` hook scripts under `script/hooks/
 instead of editing the template-managed scripts themselves — hook directories are excluded from template sync, the
 scripts are not.
 
-| File                                         | When to read                                                                                                                                                    |
-| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`references/hooks.md`](references/hooks.md) | Adding or debugging a hook. Naming convention, the complete pre/post hook table for every script, worked examples, and the rules that apply to sourced scripts. |
+| File                                           | When to read                                                                                                                                                    |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`references/hooks.md`](references/hooks.md)   | Adding or debugging a hook. Naming convention, the complete pre/post hook table for every script, worked examples, and the rules that apply to sourced scripts. |
+| [`references/ha-cli.md`](references/ha-cli.md) | Using `script/ha`. Every command with its options, the token lifecycle, exit codes, and driving config flows from the terminal.                                 |
 
 ## Devcontainer environment
 
@@ -128,6 +155,16 @@ Two layers, both sourced by the lifecycle scripts:
 
 Changes require **Dev Containers: Rebuild Container**. These files are not visible to devcontainer _features_ or
 `containerEnv` — those are set at image build time and must be edited in `devcontainer.json`.
+
+Scripts under `script/` read the **process** environment and do not source these files. Variables that steer them are
+therefore set in a hook — `script/hooks/develop.pre.sh` for anything `script/develop` runs:
+
+| Variable            | Default                 | Effect                                              |
+| ------------------- | ----------------------- | --------------------------------------------------- |
+| `HA_DEV_TOKEN`      | `1`                     | `0` skips minting the `script/ha` token entirely    |
+| `HA_DEV_TOKEN_DAYS` | `30`                    | token lifetime; it rotates once under 7 days remain |
+| `HA_URL`            | `http://127.0.0.1:8123` | which instance `script/ha` talks to                 |
+| `HA_TOKEN`          | the seeded token file   | authenticate `script/ha` as someone else            |
 
 ## Template sync
 
