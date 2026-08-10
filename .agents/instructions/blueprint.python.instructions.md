@@ -114,8 +114,9 @@ Use `if TYPE_CHECKING:` block for type-only imports that would cause circular de
 
 **Conventions not enforced by Ruff:**
 
-- Comments as complete sentences with capitalization and ending period
 - Alphabetical sorting of constants/lists when order doesn't matter
+- Comments: see `blueprint.comments.instructions.md` for when one is warranted at all — the default is none, and
+  those that survive are complete sentences with capitalization and an ending period
 
 **Note:** Ruff enforces `__all__`/`__slots__` sorting, import ordering, f-string usage in logs.
 

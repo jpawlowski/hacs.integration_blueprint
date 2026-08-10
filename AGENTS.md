@@ -86,6 +86,7 @@ agent that implements it. If yours does not, read the `SKILL.md` before starting
 | `manifest.json`                                        | —                                                                      | `blueprint.manifest`                                   |
 | diagnostics                                            | —                                                                      | `blueprint.diagnostics`                                |
 | any Python, YAML, JSON or Markdown file                | —                                                                      | `blueprint.python`, `.yaml`, `.json`, `.markdown`      |
+| commenting any file, in any syntax                     | —                                                                      | `blueprint.comments`                                   |
 
 Two one-time skills exist for a fresh repository and remove themselves as their final step:
 [`blueprint-scaffold`](.agents/skills/blueprint-scaffold/SKILL.md) (turn the template into an integration for one real
@@ -283,6 +284,11 @@ Discovery can come later, breaking changes are allowed when documented, and expe
 
 **Python** 4 spaces, 120 columns, double quotes, full type hints, async for all I/O · **YAML** 2 spaces, modern HA
 syntax · **JSON** 2 spaces, no trailing commas, no comments.
+
+**Comments default to none.** Write one only for what the code cannot say — a workaround and its issue link, a
+deliberate deviation, a non-local constraint — never to restate the code, narrate a change, or park knowledge that is
+one lookup away. Longer than two lines means it belongs in a commit message, `docs/development/` or a docstring
+instead. The gates and the routing table for that: `blueprint.comments`.
 
 Everything beyond that is in the per-file-type instruction files listed in the routing table.
 

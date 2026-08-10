@@ -18,6 +18,10 @@ paths:
 - Use double quotes for all strings
 - End files with a single newline
 
+**JSONC** — `.devcontainer/devcontainer.json`, `.vscode/*.json` and `*.jsonc` are parsed as JSONC by their tools, so
+`//` comments do not break them. That makes comments possible there, not wanted: see
+`blueprint.comments.instructions.md`, whose first gate is whether the sibling entries carry any.
+
 ## Validation
 
 Use Python's json module to validate syntax:
