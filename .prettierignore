@@ -7,5 +7,9 @@ custom_components/
 # Auto-generated release files
 CHANGELOG.md
 
+# Symlinks into .agents/ — format the real directories once.
+.claude/
+.github/instructions/
+
 # Ignore-style files (no recognized extension — Prettier would misparse them)
 *ignore
