@@ -101,6 +101,27 @@ above it exists.
 Decide the coordinator's data shape deliberately: a parsed model or `TypedDict` beats passing raw JSON around,
 because every entity would otherwise repeat the same defensive key lookups.
 
+### Bluetooth is a different coordinator
+
+`DataUpdateCoordinator` polls, and a BLE device that broadcasts advertisements has nothing to poll. Pick by how the
+data actually arrives:
+
+| The device…                                                | Coordinator                                                            |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Broadcasts, and feeds `sensor` / `binary_sensor` / `event` | `PassiveBluetoothProcessorCoordinator`                                 |
+| Broadcasts, but some values need a connection              | `ActiveBluetoothProcessorCoordinator`                                  |
+| Broadcasts, and feeds other platforms                      | `PassiveBluetoothCoordinator` / `ActiveBluetoothDataUpdateCoordinator` |
+| Only answers when connected to                             | plain `DataUpdateCoordinator`                                          |
+
+- `bluetooth_adapters` goes in `dependencies` — it guarantees remote adapters are connected before you use them.
+- Get the scanner from `bluetooth.async_get_scanner(hass)` and hand it to the library; never construct your own.
+- Do not reuse a `BleakClient` across connections, use a connection timeout of at least 10 seconds, and go through
+  `bleak-retry-connector`.
+- Start the coordinator **after** `async_forward_entry_setups`, so every platform has had a chance to subscribe:
+  `entry.async_on_unload(coordinator.async_start())`.
+- An advertisement-only device needs `connectable: false` in the manifest matcher
+  ([`ha-config-flow`](../ha-config-flow/references/discovery-matchers.md)).
+
 ## 4. Keep, adapt, delete each platform
 
 The blueprint ships `binary_sensor`, `button`, `fan`, `number`, `select`, `sensor`, `switch` as worked examples. For

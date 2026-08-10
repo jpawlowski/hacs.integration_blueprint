@@ -103,6 +103,10 @@ These are the ones an agent typically breaks _before_ it realises a skill or ins
   The source is usually an API client in `api/`, but it can equally be a state listener, a file, or a computation —
   an integration that fetches nothing has no `api/` package, and the layering above it is unchanged.
 - **Register service actions in `async_setup()`**, not `async_setup_entry()` (Quality Scale rule `action-setup`).
+- **Never add `device_trigger.py`, `device_condition.py` or `device_action.py`.** Device automations are frozen
+  upstream — existing ones keep working, new ones are not accepted. Older integrations are full of them, so this is a
+  pattern to recognise and not copy. Use the trigger and condition platform instead
+  ([`ha-service-action`](.agents/skills/ha-service-action/SKILL.md)).
 - **A unique ID is a serial number, MAC, device ID or account ID** — never an IP address, hostname, URL, an email
   address, a username, or a name the user chose. Take a MAC from the device API or a discovery handler and normalise
   it with `format_mac()`; reading the ARP cache (`getmac` and friends) does not work in every supported network setup
@@ -150,6 +154,9 @@ Full "do not use → use instead" table: [`ha-modern-apis`](.agents/skills/ha-mo
 - `<platform>/` — entity platforms (sensor, switch, …), one entity class per file
 - `service_actions/` — service action implementations
 - `utils/` — integration-wide utilities
+
+Top-level modules beside these: `config_flow.py` (a discovery shim), `diagnostics.py`, `repairs.py`, and — when the
+integration provides them — `trigger.py` / `condition.py` with their `triggers.yaml` / `conditions.yaml`.
 
 `helpers/`, `common/`, `shared/`, `lib/` and any other new top-level package need explicit approval — use `utils/` or
 `entity_utils/` instead.

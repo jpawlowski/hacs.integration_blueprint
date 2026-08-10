@@ -72,6 +72,11 @@ Adding the dependency itself — `manifest.json` **and** `requirements.txt`, kep
 - **Never convert units** (Celsius/Fahrenheit and friends). That decides precision and rounding on the caller's
   behalf; set `native_unit_of_measurement` on the entity and let Home Assistant convert.
 
+**Building a URL that points back at Home Assistant** — a webhook target, a device callback, a proxied image — use
+`homeassistant.helpers.network.get_url(hass, ...)`. It knows about internal versus external, SSL, and Nabu Casa, none
+of which can be reconstructed from `hass.config.internal_url`. It raises `NoURLAvailableError` when no suitable URL
+exists; catch it rather than falling back to a guess.
+
 **Authentication:**
 
 - The auth layer authenticates; it does not **store**. Persisting tokens is the config entry's job.

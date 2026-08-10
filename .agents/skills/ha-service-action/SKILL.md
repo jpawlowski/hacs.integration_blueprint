@@ -176,6 +176,43 @@ script/test
 Then restart Home Assistant and call the action from _Developer tools → Actions_ — check that every field renders with
 its selector, and that an intentional failure surfaces a readable message.
 
+## Triggers and conditions
+
+The same contract in a different file. When the integration should offer its own automation triggers — "the device
+reported a fault", "the price crossed a threshold" — that is `trigger.py` plus `triggers.yaml`, not a device
+automation.
+
+**`device_trigger.py`, `device_condition.py` and `device_action.py` are frozen upstream**: existing ones keep working,
+new ones are not accepted. They appear all over integrations from 2021–2023, so the pattern is familiar and wrong.
+
+```python
+class {ClassPrefix}FaultTrigger(Trigger):
+    """Fires when the device reports a fault."""
+
+    async def async_validate_config(self, hass, config): ...
+    async def async_attach_runner(self, hass, run_action, config): ...
+
+
+async def async_get_triggers(hass: HomeAssistant) -> dict[str, type[Trigger]]:
+    """Return the triggers this integration provides."""
+    return {"fault": {ClassPrefix}FaultTrigger}
+```
+
+New implementations only need `async_get_triggers`; the older `async_attach_trigger` / `TRIGGER_SCHEMA` module-level
+form is the legacy shape. `conditions.yaml` and `async_get_conditions` mirror this exactly.
+
+`triggers.yaml` has the same structure as `services.yaml` — `target:`, `fields:`, selectors — and the strings live
+under the `triggers` and `conditions` keys in `translations/en.json`.
+
+**Name them as a sentence about the device, not about the code**: "Light turned on", "Motion detected", "Vacuum
+cleaner started cleaning", "[measurement] crossed threshold".
+
+## Actions are what a voice assistant reads
+
+The Assist LLM API exposes service actions to conversation agents using the `description` from the translations. That
+makes the description functional, not decorative: write what the action does in a sentence a person would say, not
+"Calls the set_target_value endpoint".
+
 ## Removing or renaming an action
 
 Renaming an action breaks every automation and script that calls it. Treat it as a breaking change: see

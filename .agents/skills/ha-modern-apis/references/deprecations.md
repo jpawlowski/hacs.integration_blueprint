@@ -84,15 +84,18 @@ These rules apply to migrations, repairs, diagnostics, registry listeners, **and
 
 ## Async and I/O
 
-| Do not use                                 | Use instead                                                      |
-| ------------------------------------------ | ---------------------------------------------------------------- |
-| `requests`, `urllib`, blocking SDK calls   | `aiohttp` via `async_get_clientsession(hass)`                    |
-| Creating your own `aiohttp.ClientSession`  | `async_get_clientsession(hass)` (Platinum `inject-websession`)   |
-| `async_timeout.timeout(...)`               | `asyncio.timeout(...)`                                           |
-| `time.sleep`, `datetime.now()`             | `asyncio.sleep`, `homeassistant.util.dt.utcnow()`                |
-| `open()` / `json.load()` in the event loop | `await hass.async_add_executor_job(...)`                         |
-| `hass.async_add_job`                       | `entry.async_create_task` / `entry.async_create_background_task` |
-| An `async_*` API from a worker thread      | Its sync twin — table in `blueprint.python.instructions.md`      |
+| Do not use                                      | Use instead                                                      |
+| ----------------------------------------------- | ---------------------------------------------------------------- |
+| `requests`, `urllib`, blocking SDK calls        | `aiohttp` via `async_get_clientsession(hass)`                    |
+| Creating your own `aiohttp.ClientSession`       | `async_get_clientsession(hass)` (Platinum `inject-websession`)   |
+| `async_timeout.timeout(...)`                    | `asyncio.timeout(...)`                                           |
+| `time.sleep`, `datetime.now()`                  | `asyncio.sleep`, `homeassistant.util.dt.utcnow()`                |
+| `open()` / `json.load()` in the event loop      | `await hass.async_add_executor_job(...)`                         |
+| `hass.async_add_job`                            | `entry.async_create_task` / `entry.async_create_background_task` |
+| An `async_*` API from a worker thread           | Its sync twin — table in `blueprint.python.instructions.md`      |
+| `async_track_state_change`                      | `async_track_state_change_event`                                 |
+| `hass.bus.async_listen(EVENT_STATE_CHANGED)`    | `async_track_state_change_event`                                 |
+| `hass.bus.async_listen(EVENT_COMPONENT_LOADED)` | `homeassistant.helpers.start.async_at_start`                     |
 
 ## Diagnostics
 

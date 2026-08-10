@@ -64,8 +64,12 @@ This schema combines Home Assistant's official manifest requirements with HACS-s
 - `single_config_entry` - `true` prevents the user adding a second entry. This is the only thing that makes "the one
   entry" a safe assumption in a service action handler.
 - `quality_scale` - The tier the integration claims. Optional for custom integrations and not shown in the UI.
-- `dhcp`, `zeroconf`, `ssdp`, `usb`, `bluetooth` - Discovery configs
+- `dhcp`, `zeroconf`, `ssdp`, `usb`, `bluetooth` - Discovery configs. Each protocol has a matcher rule that fails
+  silently when guessed — see
+  [`ha-config-flow/references/discovery-matchers.md`](../skills/ha-config-flow/references/discovery-matchers.md).
 - `homekit`, `mqtt` - Protocol configs
+- `preview_features` - Home Assistant Labs. A real key, but the surrounding process (feedback threads, Core issue
+  templates) is Core-only; a HACS integration just releases a version instead.
 
 **Naming:** if the product exists as both a local and a cloud integration, the cloud one appends "Cloud". The local
 one uses the plain product name — never append "Local".

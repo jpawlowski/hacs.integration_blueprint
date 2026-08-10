@@ -24,6 +24,11 @@ normalisation, the MUST/NEVER lists for user, discovery, reauth, reconfigure and
 and the migration contract. Copilot injects it automatically when you edit a config flow file; other agents must open
 it. This skill is the order of operations and the decisions.
 
+| File                                                                   | When to read                                                                 |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| [`references/discovery-matchers.md`](references/discovery-matchers.md) | Writing a `manifest.json` discovery matcher, or using a discovery helper API |
+| [`references/oauth2.md`](references/oauth2.md)                         | The service authenticates with OAuth2 rather than an API key or a password   |
+
 ## Package layout
 
 ```text
@@ -54,7 +59,10 @@ The top-level `config_flow.py` is a thin shim Home Assistant discovers — leave
 
 ## Adding discovery
 
-1. Add the matcher to `manifest.json`:
+1. Add the matcher to `manifest.json` — read
+   [`references/discovery-matchers.md`](references/discovery-matchers.md) first, because each protocol has a rule
+   that fails silently when you guess (lowercase-only zeroconf properties, DHCP MACs arriving without separators,
+   VID/PID pairs shared by hundreds of devices):
 
    ```json
    "zeroconf": [{ "type": "_myservice._tcp.local.", "name": "blueprint*" }]

@@ -118,6 +118,11 @@ Look for the failure modes linters miss:
 - Entity names read well in the UI with `has_entity_name` (no repeated device name).
 - Units, device classes, and state classes are set so history and statistics work.
 - Failures surface as repair issues or reauth flows rather than silent unavailability.
+- For an integration that depends on a remote endpoint, consider `system_health.py`: a `@callback async_register`
+  that calls `register.async_register_info(...)`, whose info callback returns a dict whose values may be coroutines
+  (the frontend shows a spinner and resolves them). `system_health.async_check_can_reach_url(hass, ENDPOINT)` covers
+  the common case, and every key needs a `system_health.info.<key>` translation. It turns "it is broken" into
+  "the API is unreachable" on the user's own system page.
 
 ## 8. Documentation and release hygiene
 

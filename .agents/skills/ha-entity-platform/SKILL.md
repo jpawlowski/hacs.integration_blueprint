@@ -127,10 +127,34 @@ script/test
 Then restart Home Assistant (`./script/develop`) and confirm the entity appears with the expected name, unit, icon, and
 category. If it does not appear at all, switch to [`ha-coordinator-debug`](../ha-coordinator-debug/SKILL.md).
 
+## Something happened, rather than something is
+
+For a button press, a doorbell ring, a fault report — anything that **occurs** instead of **holds** — reach for an
+`event` entity, not a sensor.
+
+**The anti-pattern: do not represent an event as entity state.** A binary sensor that is `on` for 30 seconds after a
+doorbell ring is wrong in both directions — it invents a duration the device never reported, and it loses a second
+ring inside the window. `event` entities exist for exactly this.
+
+Firing on the event bus directly is the fallback for what does not fit an entity at all:
+
+- Event type is `<domain>_event`; include the `device_id` from the device registry in the payload.
+- The wiring belongs in `__init__.py`, not in an entity — an entity that is disabled would never subscribe.
+- A device that **only** fires events still has to be registered in the device registry by hand; nothing else creates
+  it.
+
+Listening is the mirror image: prefer a helper from `homeassistant.helpers.event` over `hass.bus.async_listen`, and
+wrap the unsubscribe callable every helper returns in `entry.async_on_unload(...)`.
+
 ## Do not
 
 - Do not add an entity for data the coordinator does not already fetch — extend the coordinator first, or you will be
   tempted to call the API from the entity.
+- Do not write `significant_change.py` or `reproduce_state.py` speculatively. The first only matters when the
+  integration's entities are exported to Google Assistant or Alexa and are noisy enough to need filtering
+  (`async_check_significant_change(hass, old_state, old_attrs, new_state, new_attrs, **kwargs) -> bool | None`). The
+  second is only for an integration that defines its **own** domain — entities added to an existing platform inherit
+  scene support from it for free.
 - Do not rename an existing `key`, `translation_key`, or unique ID without reading
   [`ha-breaking-changes`](../ha-breaking-changes/SKILL.md).
 - Do not skip the sibling-file read in step 0. Most "new" entities are a variation of one that already exists.
