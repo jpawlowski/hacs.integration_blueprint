@@ -11,6 +11,7 @@ plus the conventions this repository adds on top of it:
 - reference files sit exactly one level below SKILL.md
 - relative markdown links resolve
 - no concrete project identifiers leak in (they must stay template-sync safe)
+- the marker blocks initialize.sh strips or rewrites are intact
 
 Invoked by script/skills-check; not intended to be run directly.
 """
@@ -46,6 +47,11 @@ LINK_PATTERN = re.compile(r"\[[^\]]*\]\((?!https?:|mailto:|#)([^)]+)\)")
 # Sections initialize.sh strips when a project is initialised from the template.
 MARKER_START = "<!-- blueprint-only:start -->"
 MARKER_END = "<!-- blueprint-only:end -->"
+
+# The repository-role block initialize.sh rewrites, rather than strips.
+ROLE_FILE = Path("AGENTS.md")
+ROLE_MARKER_START = "<!-- repo-role:start -->"
+ROLE_MARKER_END = "<!-- repo-role:end -->"
 
 
 @dataclass
@@ -204,6 +210,35 @@ def check_blueprint_only_markers() -> list[Report]:
     return reports
 
 
+def check_repo_role_markers() -> Report:
+    """
+    Verify that AGENTS.md still carries exactly one repo-role block.
+
+    initialize.sh rewrites this block to say the repository is an initialised integration.
+    Unlike the blueprint-only markers, losing these fails silently in both directions: the
+    rewrite becomes a no-op, and every repository initialised from the template keeps a
+    block claiming it has not been initialised yet. Nothing surfaces that downstream, so
+    this check is the only thing standing between an edit here and wrong instructions in
+    every generated repository.
+    """
+    report = Report(skill=str(ROLE_FILE))
+    if not ROLE_FILE.is_file():
+        report.error(f"{ROLE_FILE} is missing — initialize.sh rewrites its repo-role block")
+        return report
+
+    text = ROLE_FILE.read_text()
+    starts = text.count(ROLE_MARKER_START)
+    ends = text.count(ROLE_MARKER_END)
+    if starts != 1 or ends != 1:
+        report.error(
+            f"expected exactly one repo-role block, found {starts} start and {ends} end marker(s) — "
+            "initialize.sh would silently leave the wrong role in place downstream"
+        )
+    elif text.index(ROLE_MARKER_START) > text.index(ROLE_MARKER_END):
+        report.error("repo-role end marker precedes its start marker")
+    return report
+
+
 def check_instruction_paths() -> list[Report]:
     """
     Verify the frontmatter contract of every instructions file.
@@ -269,7 +304,7 @@ def main() -> int:
 
     reports = [check_skill(d) for d in skill_dirs]
     instruction_reports = check_instruction_paths()
-    marker_reports = check_blueprint_only_markers()
+    marker_reports = [*check_blueprint_only_markers(), check_repo_role_markers()]
 
     for report in reports:
         if report.errors:
