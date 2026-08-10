@@ -62,6 +62,23 @@ Deterministic automation such as dependency updates, release workflows, and temp
 AI authorship merely because it opens a pull request. Its output should still be reviewed according to the risk of the
 change.
 
+## Contributing upstream to Open Home Foundation
+
+The rules above govern this repository. The moment a contribution is aimed at an Open Home Foundation repository —
+`home-assistant/core`, the developer documentation, the brands repository — the [OHF AI
+policy](https://developers.home-assistant.io/docs/ai_policy) applies instead, and it is stricter:
+
+- **Agents must never open an issue, pull request, or comment there.** Autonomous contributions are closed on sight,
+  and that includes anything that bypasses the issue or pull request templates. Prepare the material locally and hand
+  it to a human to submit.
+- **Do not use AI to answer a maintainer's question.** A contributor is expected to understand and explain their own
+  work.
+- If AI-generated context is quoted in a discussion, it belongs in a quote block, is disclosed as such, and is
+  accompanied by the contributor's own reasoning about why it is relevant. Long pasted transcripts are not welcome.
+- An AI-drafted pull request description still has to be checked for technical accuracy by the person submitting it.
+
+Home Assistant also runs AI review bots of its own. Their comments are not authoritative — maintainers decide.
+
 ## Purpose of this blueprint
 
 This blueprint helps both humans and AI agents work at a useful level of abstraction. Its prescribed architecture,

@@ -109,6 +109,26 @@ Every step method must return one of these result types (see [Data Entry Flow do
 
 **Sections** - Group with `section()`: `vol.Required("advanced"): section(vol.Schema({...}), {"collapsed": True})`
 
+- Only **one level** — a section inside a section is not allowed.
+- A section **nests the submitted data**: `{"host": …, "advanced": {"port": …}}`. Read it accordingly. (Sections in
+  `services.yaml` do the opposite and leave the data flat — see `blueprint.services_yaml`.)
+- Icons for a section go under `config.step.<step>.sections.<name>`.
+
+**Schema hygiene:**
+
+- Required keys first, optional second.
+- An optional key's default must be a **valid value** — `vol.Optional(CONF_X, default=None): cv.string` is wrong;
+  use `default=""`.
+- Reach for the specific validator before `cv.string`: `cv.port`, `cv.url`, `cv.positive_int`, `cv.small_float`,
+  `cv.entity_id`, `cv.time_zone`, `cv.slug`, `cv.icon`, `cv.temperature_unit`.
+- A `vol.In(...)` field with no `default` pre-selects the first option in the frontend.
+
+**Menus** - `async_show_menu(..., sort=True)` sorts entries by their translated label; per-entry help text comes from
+`menu_option_descriptions` in the translations.
+
+**Do not use `SchemaConfigFlowHandler`.** It writes every value into `options`, which contradicts the data/options
+split below, so it cannot hold connection data or credentials.
+
 **Pre-filling:**
 
 - Default values: `vol.Optional("field", default="value")`
@@ -199,6 +219,10 @@ vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): selector.Number
 - If discovery step exists → called on discovery
 - If discovery step omitted → `user` step called on discovery
 - **NEVER** auto-create entries from discovery - always confirm with user first
+- **`discovery` is a deprecated step name** — never implement `async_step_discovery`. Use the specific step for the
+  protocol.
+- A reauth flow starts with `source`, `entry_id` and `unique_id` in `self.context`, and reauth and reconfigure set
+  `title_placeholders` to `{"name": <entry title>}` for you.
 
 ## Unique IDs
 
@@ -335,13 +359,20 @@ Core's `[%key:common::…%]` references do not resolve in a custom integration �
 - Update via `hass.config_entries.async_update_entry(entry, version=X, minor_version=Y)`
 - Log migration events
 
-**Minor:** Compatible changes, loads without migration. **Major:** Breaking changes, requires migration.
+Both default to `1`; set them only when implementing a migration.
+
+**Minor:** Compatible changes. A newer minor version still loads even without `async_migrate_entry`.
+**Major:** Breaking changes, requires migration — and a major bump means the entry **fails to load** if the user
+downgrades Home Assistant. That asymmetry is the reason to prefer a minor bump whenever the change is additive.
 
 ## Titles and Translations
 
 **Title priority:** `title_placeholders` + `flow_title` → `title_placeholders["name"]` → `title` → manifest `name` → domain
 
 **Set placeholders:** `self.context["title_placeholders"] = {"name": device_name}`
+
+Two ways a `flow_title` is silently ignored: `title_placeholders` is missing or empty (even when `flow_title` has no
+placeholders at all), or it is non-empty but has no `name` key and there is no localized `flow_title`.
 
 **Translation keys:** `config.step.<step>.title`, `config.error.<key>`, `config.abort.<key>`
 
@@ -394,7 +425,8 @@ subentry being edited, and `async_update_and_abort()` to finish a reconfigure st
 
 **`async_setup_entry(hass, entry)`** - Forward platforms, return `True`, raise `ConfigEntryNotReady`/`ConfigEntryAuthFailed`
 
-**`async_unload_entry(hass, entry)`** - Optional (Silver+), unload platforms, close connections, return `True`/`False`
+**`async_unload_entry(hass, entry)`** - Always implement it. `entry.async_on_unload()` callbacks are not a substitute,
+and they also run when `async_setup_entry` raises.
 
 **`async_remove_entry(hass, entry)`** - Optional, cleanup cloud resources after deletion
 
@@ -402,6 +434,8 @@ subentry being edited, and `async_update_and_abort()` to finish a reconfigure st
 
 - **NEVER mutate ConfigEntry directly** - Use `hass.config_entries.async_update_entry()`
 - Use `entry.async_on_unload()` for cleanup callbacks
+- To react to another entry changing state: `entry.async_on_unload(entry.async_on_state_change(callback))`
+- `ConfigEntryNotReady` only works from `async_setup_entry` in `__init__.py`. Raised from a platform it is inert.
 - Entity cleanup: `async_will_remove_from_hass()` in entities
 
 ## Rules Summary

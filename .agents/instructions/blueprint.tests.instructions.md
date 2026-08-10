@@ -50,6 +50,9 @@ tests/
 - `config_entry` - `MockConfigEntry` from `pytest-homeassistant-custom-component`
 - `coordinator` - The project's `DataUpdateCoordinator` instance
 - `mock_api_client` - Mocked API client
+- `hass_client` - From `pytest_homeassistant_custom_component.typing`; an authenticated aiohttp client against the
+  HTTP API. Needed for anything served over HTTP, diagnostics above all.
+- `freezer` - `pytest-freezegun`; advance with `freezer.tick()` plus `async_fire_time_changed`, never `time.sleep`
 
 **Define fixtures in `conftest.py`:** Use `MockConfigEntry` from `pytest-homeassistant-custom-component`
 
@@ -57,16 +60,23 @@ tests/
 
 - Snapshots for: Entity states, registry entries, diagnostics, config flow results
 - Update: `script/test --snapshot-update`, commit `.ambr` files
-- Complement functional tests, don't replace them
+- The file is named after the test file and lives in `snapshots/` beside it — `test_sensor.py` →
+  `snapshots/test_sensor.ambr`. Renaming a test file orphans its snapshot.
+- Complement functional tests, don't replace them. A snapshot asserts "unchanged since I recorded it", which assumes
+  the recording was right. To check that an entity goes unavailable on an API error, assert that specific state —
+  do not snapshot the whole entity and hope.
 - Pattern: `assert hass.states.get("sensor.x") == snapshot`
 
 ## Core Interface Testing
 
-**Rule: Test through core interfaces (`hass.states`, `hass.services`), not integration internals.**
+**Rule: Test through core interfaces, not integration internals.** The point is not purity — it is that a test which
+reaches into the integration has to be rewritten every time the integration is refactored, so it stops being a safety
+net exactly when one is needed.
 
-✅ **Correct:** `hass.states.get("sensor.x")`, `await hass.services.async_call(DOMAIN, "action")`
+✅ **Correct:** `async_setup_component` or `hass.config_entries.async_setup`, `MockConfigEntry`, `hass.states`,
+`hass.services`, `entry.state`, and the device and entity registries
 
-❌ **Wrong:** Direct entity instantiation, accessing entity properties directly
+❌ **Wrong:** Direct entity instantiation, reading entity properties, reaching into `entry.runtime_data`
 
 ## Registry Testing
 
@@ -118,7 +128,12 @@ script/test tests/sensor/      # Specific directory
 script/test -k test_sensor     # Pattern matching
 script/test -m unit            # Marker filtering
 script/test --snapshot-update  # Update snapshots
+script/test -x                 # Stop at the first failure — the one to use while iterating
+script/test --cov-report term-missing   # Coverage with the uncovered lines listed in the terminal
 ```
+
+`development_testing.md` upstream is mostly the **Core** workflow — `prek`, `script/gen_requirements_all.py` and its
+`pytest ./tests/components/...` paths do not exist here. Take its patterns, not its commands.
 
 ## Rules
 

@@ -32,7 +32,12 @@ Treat as breaking:
 - Removing an entity, a platform, or a device.
 
 Long-term statistics deserve special care: changing `state_class`, the unit, or the entity ID discards or corrupts
-history that cannot be recovered.
+history that cannot be recovered. One case is recoverable — when only the **spelling** of a unit changes (`"KWh"` to
+`UnitOfEnergy.KILO_WATT_HOUR`), declare the pair equivalent with `recorder.async_custom_equivalent_units` instead of
+letting the statistics break.
+
+`supported_features`, `device_class` and capability attributes are changeable at runtime, but every change forces
+voice-assistant integrations to resynchronise with their cloud service — treat a change at poll rate as a bug.
 
 ## 2. Warn before you implement
 
@@ -127,12 +132,22 @@ async_create_issue(
 
 ## 6. Removing entities and devices
 
-Removing an entity leaves an orphaned registry entry showing as "restored". Clean up explicitly:
+Removing an entity does not remove its registry entry, and **the entity registry writes an `unavailable` state for
+every registered entity that no longer has an entity object behind it** — so the entity lingers in the UI forever.
+Clean up explicitly:
+
+The registry cascades downward: config entry → device → entity. Removing a device removes its entities with it, which
+is why `stale-devices` needs no per-entity cleanup.
 
 - Entities: `er.async_get(hass).async_remove(entity_id)` during setup for the IDs you know are gone.
 - Devices: remove devices that no longer exist upstream (`stale-devices`, Gold), scoped to the owning config entry —
   see [`ha-modern-apis`](../ha-modern-apis/SKILL.md).
-- Implement `async_remove_config_entry_device()` so users can delete a stale device from the UI themselves.
+- Implement `async_remove_config_entry_device()` so users can delete a stale device from the UI themselves. It
+  returns `True` when the device's identifier is no longer in the coordinator's data.
+
+Entity names and entity IDs are generated from the **backend language at the moment the entity is created**, not the
+user's current UI language. Fixing wording in `en.json` therefore does not rename anyone's existing entities, and an
+entity ID created under another backend language cannot be assumed to match the English one.
 
 ## Do not
 

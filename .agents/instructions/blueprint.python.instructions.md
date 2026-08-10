@@ -69,6 +69,17 @@ sensor/
 
 Use `if TYPE_CHECKING:` block for type-only imports that would cause circular dependencies.
 
+**Narrowing a type for Pyright:** an `assert x is not None` belongs **inside** a `TYPE_CHECKING` block, so it exists
+for the type checker and changes nothing at runtime:
+
+```python
+if TYPE_CHECKING:
+    assert self.config_entry is not None
+```
+
+**Docstrings** are Google style when they need more than a summary line — `Args:`, `Returns:`, `Raises:`. Leave the
+types out; the annotations already carry them.
+
 ## Async Patterns
 
 **All I/O operations must be async** - Network, file, database, blocking operations
@@ -91,6 +102,8 @@ them on unload, which `hass.async_create_task` does not.
 - `entry.async_create_task(hass, coroutine)` - Work that must finish before the entry unloads
 - `entry.async_create_background_task(hass, coroutine, name)` - Long-lived loops (a listener, a reconnect loop)
 - `hass.async_create_task(coroutine)` - Only in `async_setup()` scope, where there is no entry
+- All three default to `eager_start=True`: the coroutine runs synchronously up to its first `await` before the call
+  returns. Do not assume it starts on the next loop iteration — ordering-sensitive code and tests will surprise you.
 - `asyncio.run_coroutine_threadsafe(coro, hass.loop).result()` - From sync thread (rare)
 
 **Callback decorator:**
@@ -98,6 +111,7 @@ them on unload, which `hass.async_create_task` does not.
 - `@callback` from `homeassistant.core` - For event loop functions without blocking
 - Required for event listeners, state change callbacks
 - Cannot do I/O, cannot call coroutines (only schedule them)
+- Missing decorator causes execution in executor thread (wrong context)
 
 **Calling Home Assistant from a non-event-loop thread:** the `async_*` APIs are **not** thread-safe and Home Assistant
 raises when they are called from the wrong thread. Most have a sync twin that does the hand-off for you — a library
@@ -116,20 +130,31 @@ callback running on its own thread is the usual reason to need one:
 
 `hass.add_job` is the sync entry point and is not deprecated; `hass.async_add_job` is.
 
-- Missing decorator causes execution in executor thread (wrong context)
-
 **Blocking operations (NEVER in event loop):**
 
-- File: `open()`, `pathlib.Path.read_text()`, `pathlib.Path.write_bytes()`
-- Directory: `os.listdir()`, `os.walk()`, `glob.glob()`
+- File: `open()`, `pathlib.Path.read_text()` / `.read_bytes()` / `.write_text()`
+- Directory: `os.listdir()`, `os.walk()`, `os.scandir()`, `os.stat()`, `glob.glob()`, `glob.iglob()`
 - Network: `urllib` (use `aiohttp`)
-- Other: `time.sleep()`, `SSLContext.load_default_certs()`
-- **All must run in executor:** `await hass.async_add_executor_job(blocking_func)`
+- Other: `time.sleep()`
+- **All must run in executor:** `await hass.async_add_executor_job(blocking_func)`, and
+  `await hass.async_add_executor_job(partial(f, kwarg=True))` when there are keyword arguments
 
-**Late imports:**
+**The `open()` trap:** Home Assistant only detects the `open` call, never the reads and writes that follow. Moving
+`open` into the executor and leaving `.read()` in the event loop silences the warning without fixing anything — move
+the whole file operation.
 
-- Module-level imports are safe
-- Late async imports: `await async_import_module(hass, "module.path")`
+**SSL is not an executor problem.** `SSLContext.load_default_certs()`, `load_verify_locations()`,
+`load_cert_chain()` and `set_default_verify_paths()` block, and the fix is to stop building your own context:
+`async_get_clientsession(hass)`, `homeassistant.helpers.httpx_client.get_async_client()`, or
+`homeassistant.util.ssl`.
+
+**Late imports** — CPython's import machinery is not thread-safe, so which helper you need depends on how the module
+can be reached:
+
+- Module-level imports are safe (loaded before the loop starts, or on the import executor)
+- Imported in exactly one place, conditionally: `await hass.async_add_executor_job(_do_the_late_import)`
+- Possibly imported concurrently: `homeassistant.helpers.importlib.import_module`
+- Reachable from several code paths: `await async_import_module(hass, "module.path")`
 - `if TYPE_CHECKING:` for type-only imports
 
 ## Code Style
@@ -168,6 +193,8 @@ See [Integration Setup Failures](https://developers.home-assistant.io/docs/integ
 - Always use constants from `homeassistant.const` - Never hardcode strings
 - Examples: `UnitOfDensity.MICROGRAMS_PER_CUBIC_METER`, `PERCENTAGE`, `UnitOfTime.HOURS`
 - Construct compound units if no combined constant exists: `f"{UnitOfLength.METERS}/{UnitOfTime.SECONDS}"`
+- **Do not convert units yourself.** Set `native_unit_of_measurement` and let Home Assistant convert according to
+  `hass.config.units`. `hass.config.language` and `.country` are there too, when an API needs a locale.
 
 **Time and Timestamps:**
 
@@ -185,6 +212,9 @@ See [Integration Setup Failures](https://developers.home-assistant.io/docs/integ
 
 - Prefix with integration domain: `<domain>_<event_name>`
 - Example: `hass.bus.async_fire(f"{DOMAIN}_device_paired", data)`
+- Event data — like state attributes — must be **JSON-serializable**. A `datetime` or a dataclass breaks the
+  recorder and the WebSocket API; convert before firing. Fired events land in the recorder database, so keep the
+  payload small.
 
 **PARALLEL_UPDATES:**
 

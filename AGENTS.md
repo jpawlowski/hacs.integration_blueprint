@@ -259,8 +259,11 @@ in the validation output reveals the gap — an empty result is not evidence of 
 
 Read and follow [`AI_POLICY.md`](AI_POLICY.md). This project permits extensive AI assistance, but agents must not
 overstate human review, maintainer understanding, automated coverage, or real-device testing. Prepare publication
-material as drafts for human review, and follow the policy of any destination repository. Contributions to Open Home
-Foundation repositories are additionally governed by the official OHF AI Policy.
+material as drafts for human review, and follow the policy of any destination repository.
+
+**Never open an issue, pull request, or comment on an Open Home Foundation repository** — `home-assistant/core`, the
+developer docs, the brands repo. Their AI policy closes anything it believes an agent filed, so draft it locally and
+hand it over. `AI_POLICY.md` has the rest of what applies there.
 
 ### Do not assume the developer speaks Home Assistant's vocabulary
 

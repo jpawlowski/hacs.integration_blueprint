@@ -43,21 +43,39 @@ action_name:
 
 ## Key Requirements
 
+**`name` and `description` live in the translations.** What is written here is only the fallback shown when a
+translation is missing; `services.<action>.name` / `.description` and one pair per field are what users actually see,
+and hassfest requires them. To keep something out of the translations — a URL, say — pass
+`description_placeholders={"docs_url": …}` to `hass.services.async_register`.
+
 **Service action definition:**
 
-- `name` - User-visible name (required)
-- `description` - Clear explanation with Markdown support (required)
+- `name` - Fallback name
+- `description` - Fallback explanation with Markdown support
 - `fields` - Parameter definitions (optional)
 - `target` - Entity/device/area selector (optional)
 
 **Field definition:**
 
-- `name` - Field display name (required)
-- `description` - Field explanation (required)
+- `name` - Fallback field name
+- `description` - Fallback field explanation
 - `required` - Boolean, default false
 - `example` - Example value (recommended)
 - `default` - Default value (optional)
-- `selector` - UI selector type (recommended)
+- `selector` - UI selector type (required in this project — every field gets one)
+- `advanced` - Hide behind the advanced toggle
+- `filter` - Show the field only for matching targets. Specify **either** `supported_features` **or** `attribute`,
+  never both; the field appears when at least one selected entity matches.
+
+**Target the level the action acts on** — entity via `target:`, one device via a `device_id` field with a `device:`
+selector, the whole integration instance via a `config_entry_id` field with a `config_entry:` selector. A target is
+never optional and never defaulted.
+
+**`sections`** group fields in the UI (`collapsed: true` to fold them). Unlike config flow sections, they do **not**
+nest the data: a field inside a section still arrives as `{"speed_pct": 50}`, not
+`{"additional_fields": {"speed_pct": 50}}`.
+
+Under `target.entity.supported_features`, a nested list means AND — both features must be present.
 
 ## Selector Types
 

@@ -40,8 +40,17 @@ auto-heals formatting, so only its **remaining** output counts.
 
 ## 2. Architecture
 
-- Layering is Entity → Coordinator → API client. Any entity importing `api/` directly, or any coordinator holding HTTP
+- Layering is Entity → Coordinator → source. Any entity importing `api/` directly, or any coordinator holding HTTP
   details, is a finding.
+
+**Two upstream requirements this project deliberately does not meet.** Neither is a finding here, and both should be
+stated as decisions rather than silently passed over:
+
+- Core requires all device or service communication to be wrapped in a PyPI library. As a custom integration this
+  project allows an in-repo client (`AGENTS.md` § Custom Integration Flexibility) — with the consequence that the
+  client would have to be extracted before this could ever be submitted to Core.
+- `creating_component_code_review.md` still recommends `hass.data[DOMAIN]`. That page is out of date and is
+  contradicted by the Bronze `runtime-data` rule. Do not "correct" `entry.runtime_data` back to it.
 - Package structure matches the fixed set (`api/`, `coordinator/`, `config_flow_handler/`, `entity/`, `entity_utils/`,
   `<platform>/`, `service_actions/`, `utils/`). A `helpers/`, `common/`, `shared/`, or `lib/` package is a finding.
 - Files are 200–400 lines, one entity class per file.
@@ -87,7 +96,10 @@ Look for the failure modes linters miss:
 
 ## 5. Security
 
-- Credentials only in `entry.data`, never in `entry.options`, the entry title, logs, or diagnostics.
+- Credentials only in `entry.data`, never in `entry.options`, the entry title, logs, or diagnostics. Separately from
+  that security rule, `config-flow` requires the whole split to be right: everything needed to establish the
+  connection belongs in `entry.data`, everything else in `entry.options`. A host stored in `options` passes the
+  credential check and still fails the rule.
 - `diagnostics.py` runs everything through `async_redact_data()` with a `TO_REDACT` set that actually covers the
   payload — re-check it whenever the API response shape changes.
 - TLS verification is never disabled, and no secret has a default value in a schema.

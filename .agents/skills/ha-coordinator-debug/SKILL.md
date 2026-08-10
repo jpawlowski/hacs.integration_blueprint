@@ -145,6 +145,13 @@ logger:
 
 Read the **first** error in a cascade, not the last. A wall of "Error doing job" usually has one root cause above it.
 
+Two debug modes catch what no log level shows: Home Assistant's own, and asyncio's. With both on, calling an `async_*`
+API from the wrong thread and blocking the event loop are reported the moment they happen, instead of surfacing later
+as an unexplained hang or a state that quietly went wrong.
+
+**A config flow missing after a restart is usually the frontend cache, not the code.** Hard-refresh the browser before
+debugging the flow.
+
 ## 3. Localise the failure
 
 Each symptom has one command that produces the evidence, so you are reading state rather than guessing at it.

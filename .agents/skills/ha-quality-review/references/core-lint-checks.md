@@ -29,14 +29,14 @@ Migrating a unique ID after release breaks every existing install, so these are 
 
 ## Entities and platforms
 
-| Core rule | Check                                                                                                                                                                                   |
-| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `W7416`   | `_attr_has_entity_name = True` holds statically — class level, unconditionally at the top of a method, or via the `EntityDescription`. A conditional assignment does not count.         |
-| `C7412`   | No `EntityDescription` field is set to a default the class hierarchy already declares (`None`, `True`, `False`).                                                                        |
-| `C7409`   | The `PLATFORMS` list is sorted alphabetically.                                                                                                                                          |
-| `C7411`   | An entity class deriving from a platform base lives in that platform's package, never in `__init__.py` or an unrelated module.                                                          |
-| `E7404`   | Entity methods that require it call `super()`.                                                                                                                                          |
-| `W7429`   | No `format_mac()` inside a `CONNECTION_NETWORK_MAC` tuple passed as `connections=` — the device registry normalises it already. Comparisons against `device.connections` still need it. |
+| Core rule | Check                                                                                                                                                                                                                                                    |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `W7416`   | `_attr_has_entity_name = True` holds statically — class level, unconditionally at the top of a method, or via the `EntityDescription`. A conditional assignment does not count.                                                                          |
+| `C7412`   | No `EntityDescription` field is set to a default the class hierarchy already declares (`None`, `True`, `False`). `name=None` is **not** such a case — the field defaults to `UNDEFINED`, and `None` is the deliberate "name it after the device" marker. |
+| `C7409`   | The `PLATFORMS` list is sorted alphabetically.                                                                                                                                                                                                           |
+| `C7411`   | An entity class deriving from a platform base lives in that platform's package, never in `__init__.py` or an unrelated module.                                                                                                                           |
+| `E7404`   | Entity methods that require it call `super()`. In `async_added_to_hass` this is not ceremony: subscribing before the base class has run breaks any callback touching `self.hass` or writing state.                                                       |
+| `W7429`   | No `format_mac()` inside a `CONNECTION_NETWORK_MAC` tuple passed as `connections=` — the device registry normalises it already. Comparisons against `device.connections` still need it.                                                                  |
 
 ## Service actions and errors
 

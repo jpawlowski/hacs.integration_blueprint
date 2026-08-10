@@ -93,6 +93,9 @@ script/release-notes --interactive # write context to .agents/scratch/ and open 
 `autorelease: pending`, collects commits and a compact diff since the last tag, and rewrites the notes for a
 user-facing audience. Tunable via `COPILOT_MODEL` and `RELEASE_NOTES_DIFF_MAX`.
 
+**The generated notes are a draft.** Whoever publishes the release is accountable for their technical accuracy, so
+they get read before the release PR is merged — not after ([`AI_POLICY.md`](../../../AI_POLICY.md)).
+
 To keep an internal commit out of the notes, add a trailer to its body:
 
 ```text

@@ -67,6 +67,16 @@ Adding the dependency itself — `manifest.json` **and** `requirements.txt`, kep
 - Return raw API response data
 - Let coordinator transform data for entities
 - Don't process/restructure in API client
+- **Mirror the API's own structure**, even where it is badly designed or contains a typo. A client that "improves"
+  the shape hides what the service actually returns, and the next reader cannot match it against the API docs.
+- **Never convert units** (Celsius/Fahrenheit and friends). That decides precision and rounding on the caller's
+  behalf; set `native_unit_of_measurement` on the entity and let Home Assistant convert.
+
+**Authentication:**
+
+- The auth layer authenticates; it does not **store**. Persisting tokens is the config entry's job.
+- Return tokens as JSON-serializable values (`str`, `int`, `float`, and dicts of those) so they survive being written
+  into `entry.data`.
 
 ## Exception Hierarchy (REQUIRED)
 
@@ -125,9 +135,14 @@ See [Integration Setup Failures](https://developers.home-assistant.io/docs/integ
 
 ## Update Interval
 
-**Set in coordinator:** `super().__init__(hass, LOGGER, name="...", update_interval=timedelta(seconds=30))`
+**Set in coordinator:**
+`super().__init__(hass, LOGGER, config_entry=entry, name="...", update_interval=timedelta(seconds=30))`
 
-**Guidelines:** Environmental sensors (30-60s), Energy (10-30s), Status (60-300s), Slow data (5-15min)
+**Always pass `config_entry=`.** Omitting it makes the coordinator fall back to a ContextVar, which for a custom
+integration is set to ignore the problem — so it fails silently rather than loudly.
+
+**Guidelines:** Environmental sensors (30-60s), Energy (10-30s), Status (60-300s), Slow data (5-15min). The floor
+Home Assistant accepts is 5 seconds.
 
 ## Context-Based Fetching (Optional)
 

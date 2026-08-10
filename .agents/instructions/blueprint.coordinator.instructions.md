@@ -62,7 +62,10 @@ the four coordinator failures no exception-mapping table can express.
 **Implementation notes:**
 
 - Pull: Coordinator handles everything automatically via `update_interval`
-- Push: Set up listener in `async_setup_entry()`, call `async_set_updated_data()` on events
+- Push: Set up the coordinator-level listener in `async_setup_entry()`, call `async_set_updated_data()` on events.
+  A subscription held by an **entity** goes in `async_added_to_hass()` instead and is released via
+  `self.async_on_remove(...)` — a disabled entity is never added, so subscribing at setup leaks.
+- `async_set_updated_data()` on a polling coordinator also resets the timer until the next poll
 - Hybrid: Use push for updates + polling as fallback for connection monitoring
 
 See [HA Data Update Patterns](https://developers.home-assistant.io/docs/integration_fetching_data)
@@ -72,6 +75,9 @@ See [HA Data Update Patterns](https://developers.home-assistant.io/docs/integrat
 **In `async_setup_entry()` in `__init__.py`:** Call `await coordinator.async_config_entry_first_refresh()`
 
 **Automatic handling:** If `_async_update_data()` raises `UpdateFailed`, coordinator raises `ConfigEntryNotReady` automatically
+
+**When setup should not be retried at all**, use `await coordinator.async_refresh()` instead — it does not raise, so
+the entry loads with entities in an unavailable state rather than going into the retry loop.
 
 See [Integration Setup Failures](https://developers.home-assistant.io/docs/integration_setup_failures#integrations-using-async_setup_entry)
 
