@@ -327,7 +327,12 @@ including options that look unused.
 > ⚠️ This changes the entity ID format from `sensor.device_name` to `sensor.device_name_sensor`. Existing automations
 > and dashboards will break. Should I proceed, or would you prefer a migration path?
 
-Prefer a migration path over a break, and record it with a `BREAKING CHANGE:` footer.
+Record it with a `BREAKING CHANGE:` footer either way.
+
+**Before `1.0.0`, breaking is usually the right answer** — the goal is a settled code base, not compatibility code
+wrapped around a shape nobody has committed to yet. What still needs asking is whether to build the **migration**:
+never write `async_migrate_entry` or bump `VERSION` / `MINOR_VERSION` unprompted, and do not log each break in
+`DECISIONS.md`. After `1.0.0`, prefer a migration path over a break.
 Procedure: [`ha-breaking-changes`](.agents/skills/ha-breaking-changes/SKILL.md).
 
 ### Code that predates the current rules

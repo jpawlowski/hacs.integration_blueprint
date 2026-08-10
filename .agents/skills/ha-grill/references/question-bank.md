@@ -88,6 +88,15 @@ blocks apply rather than forcing the integration into one of them.
 | How fast the data genuinely changes                        | An interval faster than the data is pure load |
 | Does a command's effect show up in the next poll, or later | Whether writes need an optimistic state       |
 
+**Starting without a connection** — Home Assistant is often up before the router after a power cut
+
+| Decision                                                                         | Why it earns a turn                                                               |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Does one response stay true for a known period, or is it a point-in-time reading | Decides whether a cached payload may be restored at all, or would be a lie        |
+| If it has a validity window, how long — a day, an hour, until a published time   | When to discard the cache and go `unknown` instead of serving it                  |
+| Does the current value follow the clock within that payload                      | A scheduler recomputing locally, rather than polling often enough to catch a flip |
+| Should the integration load at all when the first fetch fails                    | Restoring from `Store` versus `ConfigEntryNotReady` and no entities whatsoever    |
+
 **Identity**
 
 | Decision                                                             | Why it earns a turn                                                                                          |

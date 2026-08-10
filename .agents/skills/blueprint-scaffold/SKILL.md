@@ -32,6 +32,7 @@ device mean scaffolding already happened. Adding an entity to an existing integr
 | **Where its values come from**                 | Everything below; see the branch under it                           |
 | **A real payload, or the real source**         | The coordinator's data shape, and every entity's value accessor     |
 | What drives an update, and how often           | `iot_class`, `UPDATE_INTERVAL`, whether a listener replaces polling |
+| **How long one response stays true**           | Whether the integration can start from cache with no network        |
 | A stable per-install identifier, if one exists | The config entry `unique_id`                                        |
 
 **Where the values come from is the branch, and it decides which further facts you need.**
@@ -97,6 +98,11 @@ above it exists.
    is where the computation lives, driven by a state listener or a timer instead of a poll — and a coordinator that
    would only re-run a local calculation on a timer should be replaced by the listener outright.
 3. **`data.py` / `const.py`** — the runtime data container and the constants the platforms share.
+
+If one response stays true for a defined period — a day's prices, a published forecast — decide **now** whether the
+integration persists it and starts from that without a network. It changes the coordinator's shape (a `Store`, a
+validity window, a scheduler instead of a short interval) and is awkward to retrofit; the rules are in
+[`blueprint.coordinator`](../../instructions/blueprint.coordinator.instructions.md).
 
 Decide the coordinator's data shape deliberately: a parsed model or `TypedDict` beats passing raw JSON around,
 because every entity would otherwise repeat the same defensive key lookups.

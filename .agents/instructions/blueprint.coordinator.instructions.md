@@ -89,10 +89,52 @@ See [Integration Setup Failures](https://developers.home-assistant.io/docs/integ
 
 ## Caching API Data
 
-**When to cache:** API rate limits stricter than update needs (e.g., API allows 1 req/5min, entities need 30s updates)
+### In memory, to fetch less often than entities update
+
+**When:** API rate limits stricter than update needs (e.g., API allows 1 req/5min, entities need 30s updates)
 
 **Pattern:** Store `_api_cache`, `_api_cache_time`, `_api_cache_ttl` as instance variables. In `_async_update_data()`: Check if cache fresh (TTL not expired), return cached data if fresh, else fetch new data and update cache.
 
 **Use cases:** Expensive API calls, rate-limited APIs, multiple entities reading same raw data
 
 **Result:** Entities update frequently (coordinator `update_interval`), API fetches less often (cache TTL)
+
+### Persisted, so the integration works without a connection at startup
+
+Home Assistant restarts without internet more often than one would think — after a power cut it is regularly up before
+the router is. The reflex, `async_config_entry_first_refresh()`, raises `ConfigEntryNotReady` when that first fetch
+fails, and then **no entity exists at all**: exactly when the user most wants to see the last known values, the
+integration shows nothing.
+
+**First decide whether the cached payload is still true**, because this is what separates honest caching from lying
+about the device:
+
+| The payload…                                                                           | On a cold start with no network            |
+| -------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Covers a defined period — today's electricity prices, a published forecast, a schedule | Restore it. It is complete and still valid |
+| Is a point-in-time reading — a temperature, a power draw, an online/offline flag       | Do **not** restore it. It is stale         |
+
+For the first kind:
+
+- Persist the payload with `homeassistant.helpers.storage.Store` when a fetch succeeds, and load it in
+  `async_setup_entry` before the coordinator's first refresh.
+- **Return the cached payload from `_async_update_data()` instead of raising `UpdateFailed`**, as long as it is still
+  inside its validity window. This is the part that actually works: `CoordinatorEntity.available` is exactly
+  `coordinator.last_update_success`, so raising `UpdateFailed` and merely leaving `coordinator.data` populated makes
+  every entity unavailable and shows the user nothing.
+- Once the window has passed, raise `UpdateFailed` as normal. Serving yesterday's prices as today's is worse than
+  going unavailable.
+- Log the fallback once at `info` level, so "still on cached data" is visible without spamming every poll.
+
+The Bronze `test-before-setup` rule is satisfied either way: setup still fails loudly when there is nothing valid to
+fall back on. What changes is that a valid cache counts as "we can work".
+
+**Values that change with the clock need a scheduler, not a shorter interval.** A "current price" sensor derived from
+a daily payload changes on the hour; the answer is one fetch per validity window plus
+`async_track_point_in_utc_time` / `async_track_time_change` to recompute locally — not polling every minute so the
+value happens to flip in time. Polling for something the integration can compute is also what makes
+`appropriate-polling` look violated.
+
+Entity-level state restoration is a different mechanism for a different problem — see `RestoreSensor` in
+[`platform-members.md`](../skills/ha-entity-platform/references/platform-members.md). Use it for a value the entity
+accumulates itself; use `Store` for the payload the coordinator hands out.

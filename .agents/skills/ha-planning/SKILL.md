@@ -108,8 +108,9 @@ be lost:
 - Unique ID scheme.
 - Anything you had to argue yourself into.
 
-Do **not** record: routine implementation choices, anything the code already makes obvious, or a restatement of a Home
-Assistant convention.
+Do **not** record: routine implementation choices, anything the code already makes obvious, a restatement of a Home
+Assistant convention, or a breaking change made before `1.0.0` — those are expected at that stage, and their record is
+the `BREAKING CHANGE:` footer in the commit ([`ha-breaking-changes`](../ha-breaking-changes/SKILL.md)).
 
 The bar is all three of: hard to reverse, a genuine trade-off rather than the one sensible option, and surprising to a
 reader who was not there. **Most sessions produce no entry, and that is the normal outcome** — a log padded with
