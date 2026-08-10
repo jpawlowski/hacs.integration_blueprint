@@ -9,7 +9,8 @@ plus the conventions this repository adds on top of it:
 - ``description`` is present and within the 1024 character limit
 - SKILL.md body stays within the recommended 500 lines
 - reference files sit exactly one level below SKILL.md
-- relative markdown links resolve
+- relative markdown links resolve, in the skills and in every file that points into them
+- every skill is listed in both hand-maintained catalogues
 - no concrete project identifiers leak in (they must stay template-sync safe)
 - the marker blocks initialize.sh strips or rewrites are intact
 
@@ -41,6 +42,11 @@ FORBIDDEN_IDENTIFIERS = ("ha_integration_domain", "IntegrationBlueprint")
 
 # Instructions files that are meant to load in every session, so they carry no `paths`.
 UNCONDITIONAL_INSTRUCTIONS = {"blueprint.commit-message.instructions.md"}
+
+# The two hand-maintained catalogues of the shipped skill set. A skill missing from either
+# one is effectively invisible: AGENTS.md is the routing table every agent loads, and the
+# skills README is where a maintainer looks.
+CATALOGUE_FILES = (SKILLS_DIR / "README.md", Path("AGENTS.md"))
 
 LINK_PATTERN = re.compile(r"\[[^\]]*\]\((?!https?:|mailto:|#)([^)]+)\)")
 
@@ -291,6 +297,72 @@ def check_instruction_paths() -> list[Report]:
     return reports
 
 
+def _pointer_files() -> list[Path]:
+    """
+    Return the markdown outside .agents/skills/ that points into it.
+
+    Each instructions file with a partner skill opens with a ``**Procedure:**`` link, and
+    both catalogues link every skill. check_skill() only walks the skill directories, so
+    without this list a removed skill leaves dangling pointers in exactly the files agents
+    rely on to find their way to a skill in the first place.
+    """
+    return [*sorted(INSTRUCTIONS_DIR.glob("*.md")), *CATALOGUE_FILES]
+
+
+def check_pointer_links() -> list[Report]:
+    """Verify that the links from those files still resolve."""
+    reports: list[Report] = []
+    for path in _pointer_files():
+        report = Report(skill=str(path))
+        if not path.is_file():
+            report.error("file is missing — it carries the pointers into .agents/skills/")
+        else:
+            check_links(path, report)
+        reports.append(report)
+    return reports
+
+
+def linked_skills(path: Path) -> set[str]:
+    """Return the names of the skill directories a markdown file links into."""
+    skills_root = SKILLS_DIR.resolve()
+    linked: set[str] = set()
+    for target in LINK_PATTERN.findall(path.read_text()):
+        resolved = (path.parent / target.split("#", 1)[0]).resolve()
+        if resolved == skills_root:
+            continue
+        try:
+            relative = resolved.relative_to(skills_root)
+        except ValueError:
+            continue
+        linked.add(relative.parts[0])
+    return linked
+
+
+def check_catalogue(skill_dirs: list[Path]) -> list[Report]:
+    """
+    Verify that every skill is listed in both catalogues.
+
+    There is no generator behind them, so a new skill is only ever added by hand and is
+    silently undiscoverable until it is. The reverse direction — a catalogue entry for a
+    skill that no longer exists — is covered by check_pointer_links().
+
+    Matching is by link target rather than by table row on purpose: the same skill appears
+    as a routing-table row in AGENTS.md, as a "Use when" row in the README, and as prose in
+    both, and all three forms are legitimate.
+    """
+    expected = {d.name for d in skill_dirs}
+    reports: list[Report] = []
+    for path in CATALOGUE_FILES:
+        report = Report(skill=str(path))
+        if not path.is_file():
+            report.error("catalogue file is missing")
+        else:
+            for name in sorted(expected - linked_skills(path)):
+                report.error(f"{name} is not linked from this catalogue — an unlisted skill is never discovered")
+        reports.append(report)
+    return reports
+
+
 def main() -> int:
     """Validate every skill and print a summary."""
     if not SKILLS_DIR.is_dir():
@@ -304,6 +376,7 @@ def main() -> int:
 
     reports = [check_skill(d) for d in skill_dirs]
     instruction_reports = check_instruction_paths()
+    pointer_reports = [*check_pointer_links(), *check_catalogue(skill_dirs)]
     marker_reports = [*check_blueprint_only_markers(), check_repo_role_markers()]
 
     for report in reports:
@@ -324,13 +397,23 @@ def main() -> int:
         if not broken_instructions:
             print(f"  ✓ {len(instruction_reports)} instruction files: applyTo and paths agree")
 
+    broken_pointers = [r for r in pointer_reports if r.errors]
+    if broken_pointers:
+        print()
+        for report in broken_pointers:
+            print(f"  ✗ {report.skill}")
+            for error in report.errors:
+                print(f"      {error}")
+    else:
+        print(f"  ✓ {len(_pointer_files())} pointer files: every skill link resolves and both catalogues are complete")
+
     broken_markers = [r for r in marker_reports if r.errors]
     for report in broken_markers:
         print(f"  ✗ {report.skill}")
         for error in report.errors:
             print(f"      {error}")
 
-    failed = [r for r in reports if r.errors] + broken_instructions + broken_markers
+    failed = [r for r in reports if r.errors] + broken_instructions + broken_pointers + broken_markers
     print()
     if failed:
         print(f"{len(failed)} file(s) have problems.")

@@ -26,6 +26,10 @@ paths:
 
 # Entity Platform Instructions
 
+**Procedure:** [`ha-entity-platform`](../skills/ha-entity-platform/SKILL.md) — load it before adding a platform or an
+entity. This file is the rule set; the skill is the order the layers get built in and the decisions that rule set
+assumes have already been made.
+
 **Applies to:** All entity platform implementations (sensor, binary_sensor, switch, etc.), entity base classes, and entity utilities
 
 ## Shared Infrastructure

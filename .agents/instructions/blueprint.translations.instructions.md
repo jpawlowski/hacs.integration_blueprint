@@ -8,6 +8,10 @@ paths:
 
 # Translation Files Instructions
 
+**Procedure:** [`ha-translations`](../skills/ha-translations/SKILL.md) — load it before adding or changing strings.
+This file is the rule set; the skill is which keys a given change actually needs, which is where most missing-key
+findings from `script/hassfest` come from.
+
 **Applies to:** `custom_components/<your_domain>/translations/*.json`
 
 ## Schema Validation

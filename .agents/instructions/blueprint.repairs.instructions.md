@@ -8,6 +8,10 @@ paths:
 
 # Repairs Instructions
 
+**Procedure:** [`ha-breaking-changes`](../skills/ha-breaking-changes/SKILL.md) — load it before creating an issue.
+This file is the rule set; the skill is what a repair issue is _for_ — a migration or a deprecation the user has to
+act on — and the warn-first policy that comes before either.
+
 **Official Documentation:**
 
 - [Repairs Framework](https://developers.home-assistant.io/docs/core/platform/repairs)

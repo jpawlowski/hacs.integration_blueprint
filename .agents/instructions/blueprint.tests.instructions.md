@@ -8,6 +8,10 @@ paths:
 
 # Test Instructions
 
+**Procedure:** [`ha-testing`](../skills/ha-testing/SKILL.md) — load it before writing or repairing a test. This file is
+the rule set; the skill is the scaffolding and the judgement calls — what a behavioural change is worth testing for,
+and how to diagnose a failure rather than silence it.
+
 **Applies to:** `tests/` directory
 
 **Official documentation:** [Home Assistant Testing](https://developers.home-assistant.io/docs/development_testing)

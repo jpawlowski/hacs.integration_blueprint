@@ -5,10 +5,11 @@ description: >-
   asked to "add a skill", "update the skills", "this skill is out of date", "split this skill", "remove a skill",
   "the skills disagree with the instructions", or after bumping the pinned Home Assistant version, which can
   invalidate advice in several skills at once. Covers the shipped-set checklist, the rule-versus-procedure seam
-  against .agents/instructions, where the catalogue is duplicated, template-sync safety, and the validation and
-  eval loop. SYMPTOMS — load this if you are about to: write a concrete domain or class name into a skill; add a
-  skill without evals or without listing it in the catalogue; restate in a skill a rule that already lives in an
-  instructions file; or edit a skill through one of the symlinked paths instead of .agents/skills/.
+  against .agents/instructions, the pointers that must exist on both sides of it, where the catalogue is duplicated,
+  template-sync safety, and the validation loop. SYMPTOMS — load this if you are about to: write a concrete domain or
+  class name into a skill; add a skill without listing it in the catalogue or without a pointer from its partner
+  instructions file; restate in a skill a rule that already lives in an instructions file; or edit a skill through one
+  of the symlinked paths instead of .agents/skills/.
 ---
 
 # Maintain the shipped skill set
@@ -44,6 +45,14 @@ Copilot, VS Code and Claude Code all inject the matching instructions file autom
 touched. Codex does not — its nested `AGENTS.md` support keys off the working directory, not the edited file. That is
 why the pointer at the top of each skill names _what_ is in the instructions file rather than just linking it: for
 Codex the skill is the only bridge.
+
+**The pointer runs both ways, and a pair is only done when both ends exist.** The skill opens with a
+`**Read … first**` block; its instructions file opens with a `**Procedure:**` line naming the skill. They cover
+opposite failures. The skill's block is for an agent that already knows which task it is on but not which rules bind
+it. The instructions file's line is for the commoner case: an agent that went straight into the code, loaded no skill,
+and gets that file injected on the first read — the pointer is the only thing that still routes it. Neither end
+summarises the other; both are links. When you rename or remove a skill, both ends move — `script/skills-check`
+catches a link that no longer resolves, but it cannot invent a pointer that was never written.
 
 When you add or change an instructions file, keep `applyTo` (Copilot, VS Code — one comma-separated string) and
 `paths` (Claude Code, via the `.claude/rules/instructions` symlink — a YAML list) describing the same patterns. A file
@@ -81,16 +90,21 @@ not a reliable substitute.
    the next template sync will overwrite the result with the blueprint's own names. `script/skills-check` fails the
    build if a concrete identifier slips in, including in a code sample or a negative example.
 3. Add it to the catalogue in **every** place listed below.
-4. `script/skills-check && script/markdown`.
+4. If it has a partner instructions file, add the `**Procedure:**` pointer there (see the seam above) and fill in the
+   instructions column of the `AGENTS.md` routing table. A skill with no partner file leaves that column `—`.
+5. `script/skills-check && script/markdown`.
 
 ## Where the catalogue is duplicated
 
-Adding or renaming a skill means touching these. There is no generator, so this list is the safeguard:
+Adding or renaming a skill means touching these:
 
 | File                       | Form                                                     |
 | -------------------------- | -------------------------------------------------------- |
 | `.agents/skills/README.md` | table with a "Use when" column                           |
 | `AGENTS.md`                | routing table: task → skill → matching instructions file |
+
+There is no generator, but `script/skills-check` verifies both directions: every skill directory is linked from both
+files, and every skill link in them resolves. It cannot check that the "Use when" text is any good.
 
 No other file carries a catalogue, and none should. Codex and Copilot read `AGENTS.md` natively, and `CLAUDE.md`
 imports it — all three already have the table. Every extra copy is another place to forget.
@@ -112,8 +126,9 @@ stale silently and is wrong downstream anyway, where this skill has been removed
 
 Renaming changes the invocation name (`/skill-name`) and every catalogue entry, and silently breaks any downstream
 `.templatesyncignore` entry that pinned the old path. Prefer rewriting a skill in place over renaming it. If it must
-go, remove the directory, all catalogue entries, and any cross-links from other skills — `script/skills-check`
-verifies that no link dangles.
+go, remove the directory, all catalogue entries, the `**Procedure:**` pointer in its partner instructions file, and any
+cross-links from other skills. `script/skills-check` covers all four — it link-checks the skills, the two catalogues
+and `.agents/instructions/` — so run it and fix what it names rather than hunting by hand.
 
 ## After a Home Assistant version bump
 

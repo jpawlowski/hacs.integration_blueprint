@@ -8,6 +8,10 @@ paths:
 
 # Service Actions Instructions
 
+**Procedure:** [`ha-service-action`](../skills/ha-service-action/SKILL.md) — load it before adding, changing or
+removing an action. This file is the rule set; the skill is the order of operations and the design decisions, and it
+covers the `services.yaml` half of the change too.
+
 **Applies to:** Service action implementation files
 
 **Reference:** [Home Assistant Service Actions Documentation](https://developers.home-assistant.io/docs/dev_101_services/)

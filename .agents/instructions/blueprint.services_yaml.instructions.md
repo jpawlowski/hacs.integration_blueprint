@@ -8,6 +8,10 @@ paths:
 
 # Service Actions Definition Instructions
 
+**Procedure:** [`ha-service-action`](../skills/ha-service-action/SKILL.md) — load it before editing this file. A
+`services.yaml` entry is never a change on its own: the handler, the schema and the translations move with it, and the
+skill is what keeps those four in step.
+
 **Applies to:** `services.yaml` files (legacy filename)
 
 **Note:** This file defines service action schemas. The filename `services.yaml` is legacy from when these were called "services". Use "service actions" in code/documentation and "actions" for users.

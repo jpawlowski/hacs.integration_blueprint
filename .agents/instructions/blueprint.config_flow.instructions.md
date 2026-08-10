@@ -9,6 +9,10 @@ paths:
 
 # Config Flow Instructions
 
+**Procedure:** [`ha-config-flow`](../skills/ha-config-flow/SKILL.md) — load it before touching setup, options, reauth,
+reconfigure, discovery or subentries. This file is the rule set; the skill is which flow a request actually needs and
+what has to happen alongside it, including the entry migration a shape change forces.
+
 **Official Documentation:**
 
 - [Data Entry Flow Index](https://developers.home-assistant.io/docs/data_entry_flow_index) - Fundamental flow concepts and result types

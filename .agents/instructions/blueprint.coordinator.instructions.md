@@ -9,6 +9,10 @@ paths:
 
 # Coordinator Instructions
 
+**Procedure:** [`ha-coordinator-debug`](../skills/ha-coordinator-debug/SKILL.md) — load it when data is stale, entities
+are unavailable or setup fails. This file is the rule set; the skill is the local run loop, how to read the log, and
+the four coordinator failures no exception-mapping table can express.
+
 **Applies to:** Coordinator implementation files (always sent together with `blueprint.api.instructions.md`)
 
 ## Using the Coordinator

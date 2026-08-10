@@ -30,9 +30,10 @@ job is done. Leaving them in place costs context in every later session.
 
 <!-- blueprint-only:start -->
 
-`blueprint-skill-maintenance` covers maintaining this shipped set — the rule-versus-procedure seam, the catalogue
-duplication, and what to re-verify after a Home Assistant version bump. `initialize.sh` removes it when a project is
-initialised from the template, because it is only meaningful in the blueprint repository itself.
+[`blueprint-skill-maintenance`](blueprint-skill-maintenance/SKILL.md) covers maintaining this shipped set — the
+rule-versus-procedure seam, the catalogue duplication, and what to re-verify after a Home Assistant version bump.
+`initialize.sh` removes it when a project is initialised from the template, because it is only meaningful in the
+blueprint repository itself.
 
 <!-- blueprint-only:end -->
 

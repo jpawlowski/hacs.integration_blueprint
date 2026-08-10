@@ -9,6 +9,10 @@ paths:
 
 # API and Coordinator Instructions
 
+**Procedure:** [`ha-coordinator-debug`](../skills/ha-coordinator-debug/SKILL.md) — load it before debugging a failing
+client or a coordinator that returns nothing useful. This file is the rule set; the skill is the diagnostic loop,
+starting with logging the real payload instead of guessing its shape.
+
 **Applies to:** API client and coordinator implementation files
 
 ## Three-Layer Architecture (CRITICAL)

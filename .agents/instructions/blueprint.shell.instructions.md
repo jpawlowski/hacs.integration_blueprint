@@ -9,6 +9,10 @@ paths:
 
 # Shell Script Instructions
 
+**Procedure:** [`blueprint-tooling`](../skills/blueprint-tooling/SKILL.md) — load it before changing anything under
+`script/`. This file is the style rule set; the skill is which script a change belongs in, and when a hook script is
+the answer instead — most files here are template-managed and an edit is reverted by the next sync.
+
 **Applies to:** Shell scripts in `script/` (extensionless by convention) and `**/.devcontainer/*.sh`
 
 ## Formatting Standards

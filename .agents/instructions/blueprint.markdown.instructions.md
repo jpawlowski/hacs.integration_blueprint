@@ -127,3 +127,9 @@ visible: it verifies that `paths` equals `applyTo` split on commas, and rejects 
 - Keep focused and concise (~50-300 lines)
 - Enforce standards, not tutorials — procedures belong in an agent skill
 - Use compact examples over verbose explanations
+
+Every file with a partner skill **opens with a `Procedure:` line naming it**, directly under the `#` heading — see the
+routing table in `AGENTS.md` for the pairing. Link the skill, do not summarise what it says; a rule lives in exactly
+one of the two files. This is the recovery path: an agent that started editing without loading the skill gets this
+file injected automatically, and the pointer is its only second chance. Files with no partner skill (`—` in the
+routing table) get no line. `script/skills-check` verifies the link resolves.
