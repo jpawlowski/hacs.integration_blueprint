@@ -51,9 +51,12 @@ def get_options_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
                 "enable_debugging",
                 default=defaults.get("enable_debugging", DEFAULT_ENABLE_DEBUGGING),
             ): selector.BooleanSelector(),
+            # An optional free-text field carries its current value as a suggestion,
+            # never as a default: a default of None is injected by voluptuous when
+            # the field is left empty, and IconSelector rejects it.
             vol.Optional(
                 "custom_icon",
-                default=defaults.get("custom_icon"),
+                description={"suggested_value": defaults.get("custom_icon")},
             ): selector.IconSelector(),
         },
     )
