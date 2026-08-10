@@ -48,27 +48,16 @@ Translation files define user-facing text for config flows, options, entities, a
 
 **Note:** This is about quotes _inside the string value_, not the JSON delimiter quotes (which must always be double quotes per JSON spec).
 
-**Key references:** Use `[%key:...]` syntax to reuse translations
+**NEVER use `[%key:...%]` references, and never create `strings.json`.** Both are Home Assistant **Core**
+build-time features. Core compiles `strings.json` into `translations/en.json` and resolves the references on the way;
+a custom integration has no such build step, so its `translations/*.json` is served exactly as written.
 
-```json
-{
-  "config": {
-    "error": {
-      "invalid_auth": "Invalid credentials",
-      "stale_auth": "[%key:component::{domain}::config::error::invalid_auth%]"
-    }
-  }
-}
-```
+- ❌ `"stale_auth": "[%key:component::{domain}::config::error::invalid_auth%]"` — the UI shows that literal string
+- ❌ `"off": "[%key:common::state::off%]"` — Core's `common` strings do not exist here
+- ✅ Write out the full English text for every key, even when it duplicates another key or a Core string
 
-**Reference Home Assistant common strings:**
-
-```json
-"state": {
-  "off": "[%key:common::state::off%]",
-  "on": "[%key:common::state::on%]"
-}
-```
+Symptom when this is wrong: the config flow shows raw keys (`username` instead of `Enter Username`) instead of
+translated labels.
 
 ### Entity Translations
 
@@ -152,7 +141,7 @@ All language files must have identical structure - only values differ:
 - ❌ Using entity translations without `has_entity_name=True`
 - ❌ Inconsistent key structure across language files
 - ❌ Invalid JSON syntax (trailing commas, comments)
-- ❌ Wrong key reference syntax (must be exact: `[%key:...]`)
+- ❌ Any `[%key:...%]` reference, or a `strings.json` file — Core-only, and they break translations here
 
 ## Best Practices
 
@@ -162,7 +151,7 @@ All language files must have identical structure - only values differ:
 2. **Stick to [Material Design guidelines](https://material.io/design/communication/writing.html)** for writing
 3. **Don't translate proper nouns** (Home Assistant, Supervisor, brand names)
 4. **Keep badge labels short** - Test `state_badge` translations fit in UI without overflowing
-5. **Use key references** `[%key:...]` to avoid duplicate translations
+5. **Accept duplicated text** — there is no reference syntax here, so the same sentence is written out per key
 6. **Keep consistent terminology** within and across languages
 7. **Provide helpful descriptions** for non-obvious fields in `data_description`
 
@@ -171,5 +160,6 @@ All language files must have identical structure - only values differ:
 ## References
 
 - [Custom Integration Localization](https://developers.home-assistant.io/docs/internationalization/custom_integration) - **Primary reference**
-- [Backend Localization](https://developers.home-assistant.io/docs/internationalization/core) - Complete structure documentation
+- [Backend Localization](https://developers.home-assistant.io/docs/internationalization/core) - Key structure only; it
+  documents Core's `strings.json` and its `[%key:...%]` syntax, neither of which applies here
 - [ICU Message Format](https://formatjs.github.io/docs/core-concepts/icu-syntax/) - Placeholder syntax for plurals

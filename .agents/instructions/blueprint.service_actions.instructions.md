@@ -18,7 +18,7 @@ covers the `services.yaml` half of the change too.
 
 ## Critical Rules
 
-**Registration location (Silver Quality Scale requirement):**
+**Registration location (Bronze Quality Scale requirement `action-setup`):**
 
 - ✅ Register service actions in `async_setup()` (component level)
 - ❌ Never register in `async_setup_entry()` (per config entry)
@@ -59,6 +59,10 @@ SERVICE_SCHEMA = vol.Schema({
 - `HomeAssistantError` - Device/communication errors (full stack trace in logs)
 
 Both exceptions support translation keys for localization.
+
+**Authentication failures need `entry.async_start_reauth(hass)`.** `ConfigEntryAuthFailed` only triggers the reauth
+flow when it is raised from `async_setup_entry` in `__init__.py` or from the coordinator. Raised in an action handler
+it does nothing but log, so start the flow explicitly and raise a translated `HomeAssistantError` for the caller.
 
 ## Target Field
 

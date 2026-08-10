@@ -85,9 +85,12 @@ Use `if TYPE_CHECKING:` block for type-only imports that would cause circular de
 - `await hass.async_add_executor_job(sync_function, arg1, arg2)` - Run blocking I/O in executor thread
 - Avoid if sync function also uses executor internally (deadlock risk)
 
-**Background tasks:**
+**Background tasks:** inside an integration, create tasks on the **config entry**, not on `hass` — the entry cancels
+them on unload, which `hass.async_create_task` does not.
 
-- `hass.async_create_task(coroutine)` - Fire-and-forget parallel execution
+- `entry.async_create_task(hass, coroutine)` - Work that must finish before the entry unloads
+- `entry.async_create_background_task(hass, coroutine, name)` - Long-lived loops (a listener, a reconnect loop)
+- `hass.async_create_task(coroutine)` - Only in `async_setup()` scope, where there is no entry
 - `asyncio.run_coroutine_threadsafe(coro, hass.loop).result()` - From sync thread (rare)
 
 **Callback decorator:**
@@ -162,9 +165,10 @@ See [Integration Setup Failures](https://developers.home-assistant.io/docs/integ
 
 **PARALLEL_UPDATES:**
 
-- Define in platform `__init__.py` if needed
-- Controls concurrent entity updates (default: 0 for async, 1 for sync)
-- Import from `const.py` if shared across platforms
+- Required in **every** platform `__init__.py`, not optional — a missing one fails the `parallel-updates` rule
+- A module-level literal, never imported from `const.py`; `0` or `1` is decided per platform in
+  [`blueprint.entities`](blueprint.entities.instructions.md)
+- Left undefined, Home Assistant derives it: `0` when the entity defines `async_update`, otherwise `1`
 
 ## Imports
 

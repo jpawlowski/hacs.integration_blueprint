@@ -2,10 +2,12 @@
 
 from typing import TYPE_CHECKING
 
-from custom_components.ha_integration_domain.const import PARALLEL_UPDATES as PARALLEL_UPDATES
 from homeassistant.components.switch import SwitchEntityDescription
 
 from .example_switch import ENTITY_DESCRIPTIONS as SWITCH_DESCRIPTIONS, IntegrationBlueprintSwitch
+
+# Acts on the device: the coordinator does not limit outbound calls.
+PARALLEL_UPDATES = 1
 
 if TYPE_CHECKING:
     from custom_components.ha_integration_domain.data import IntegrationBlueprintConfigEntry

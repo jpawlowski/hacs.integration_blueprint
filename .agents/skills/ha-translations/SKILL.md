@@ -18,9 +18,10 @@ description: >-
 when a string is missing, so a missing key is a visible bug, not a cosmetic one.
 
 **Read [`blueprint.translations.instructions.md`](../../instructions/blueprint.translations.instructions.md)
-first** — it holds the rules: placeholder syntax and the single-quote trap that breaks hassfest, `[%key:…%]` references
-to common strings, entity translation requirements, which fields accept Markdown, proper nouns, the informal-address
-rule per language, and cross-language structure. This skill is which keys a given change needs, and how to write them.
+first** — it holds the rules: placeholder syntax and the single-quote trap that breaks hassfest, why `[%key:…%]` and
+`strings.json` must never appear here, entity translation requirements, which fields accept Markdown, proper nouns, the
+informal-address rule per language, and cross-language structure. This skill is which keys a given change needs, and
+how to write them.
 
 ## The project rule on languages
 
@@ -102,8 +103,9 @@ raise HomeAssistantError(
 - Do not repeat the device or integration name in an entity name — `_attr_has_entity_name = True` means Home Assistant
   prefixes it already. "Temperature", not "Blueprint device temperature".
 - Error messages say what happened and what to do, and never leak credentials, tokens, or raw stack traces.
-- Reuse Home Assistant's common strings where they exist instead of writing a new variant of "Failed to connect" — see
-  the `[%key:…%]` section in the instructions file.
+- Match the wording Home Assistant uses for the same situation ("Failed to connect", "Invalid authentication") rather
+  than inventing a variant — but write the text out. Core's `[%key:…%]` references do not resolve in a custom
+  integration, so duplication is the correct outcome here, not a smell.
 - Use the word the project already settled on. If `docs/development/GLOSSARY.md` exists it decides the wording here,
   because renaming an entity later is a breaking change ([`ha-grill`](../ha-grill/SKILL.md) is where those terms are
   agreed).

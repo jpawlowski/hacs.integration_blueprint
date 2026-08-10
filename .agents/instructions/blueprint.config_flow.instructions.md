@@ -98,7 +98,8 @@ Every step method must return one of these result types (see [Data Entry Flow do
 - `SHOW_MENU` - Navigation menu: `async_show_menu(step_id, menu_options=[...])`
 - `EXTERNAL_STEP` - OAuth2 redirect: `async_external_step(step_id, url)` then `async_external_step_done(next_step_id)`
 - `SHOW_PROGRESS` - Long tasks: `async_show_progress(step_id, progress_action, progress_task)` then `async_show_progress_done(next_step_id)`
-- Progress decorator: `@progress_step("translation_key")` for simplified handling
+  - Report a fraction with `self.async_update_progress(0.5)` (0–1)
+  - While the task is still running, call `async_show_progress` again — never start a second task
 
 ### Form Schemas
 
@@ -292,9 +293,12 @@ vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): selector.Number
 
 **Translation keys:**
 
-- `config.step.reauth_confirm.title` - Use `[%key:common::config_flow::title::reauth%]`
+- `config.step.reauth_confirm.title` - Write the text out, e.g. `"Re-authenticate {name}"`
 - `config.step.reauth_confirm.description` - Explain what expired
-- `config.abort.reauth_successful` - Use `[%key:common::config_flow::abort::reauth_successful%]`
+- `config.abort.reauth_successful` - Write the text out, e.g. `"Re-authentication was successful"`
+
+Core's `[%key:common::…%]` references do not resolve in a custom integration — see
+[`blueprint.translations`](blueprint.translations.instructions.md).
 
 ## Reconfigure Flow
 
@@ -339,9 +343,18 @@ vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): selector.Number
 
 ## Subentry Flows
 
-**MUST:** Return types via `async_get_supported_subentry_types()`, implement `async_step_user()`, use `async_create_subentry()`
+**MUST:** Return types via `async_get_supported_subentry_types()`, implement `async_step_user()`, finish with
+`async_create_entry()` — on `ConfigSubentryFlow` it returns a `SubentryFlowResult`. There is no
+`async_create_subentry()`.
 
-**NEVER:** Support discovery/reauth in subentries
+**Access and reconfigure:** `self._get_entry()` for the parent entry, `self._get_reconfigure_subentry()` for the
+subentry being edited, and `async_update_and_abort()` to finish a reconfigure step.
+
+**NEVER:** Support discovery or reauth in subentries — a subentry flow can only start from `user` or `reconfigure`.
+
+**Unique IDs:** a subentry's unique ID only has to be unique within its config entry, not globally.
+
+**Translations:** subentry strings live under `config_subentries.<type>.…`, not under `config`.
 
 **Device ownership (Home Assistant 2026.8+):**
 

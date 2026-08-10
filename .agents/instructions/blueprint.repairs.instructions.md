@@ -150,14 +150,28 @@ async def async_step_init(self, user_input=None):
 
 ## Translations
 
-**Required keys:**
+**Exactly one of `fix_flow` and `description` per issue** — never both. Which one depends on `is_fixable`.
+
+Not fixable (`is_fixable=False`) — the user reads it and acts elsewhere:
 
 ```json
 {
   "issues": {
-    "issue_id": {
+    "api_key_expired": {
       "title": "Issue title",
-      "description": "Description with {placeholder}",
+      "description": "Description with {placeholder}"
+    }
+  }
+}
+```
+
+Fixable (`is_fixable=True`) — the flow's own steps carry the text:
+
+```json
+{
+  "issues": {
+    "deprecated_option": {
+      "title": "Issue title",
       "fix_flow": {
         "step": {
           "init": {
@@ -181,7 +195,9 @@ async def async_step_init(self, user_input=None):
 - Set `is_fixable=True` only if repair flow exists
 - Provide translations for all text (title, description, fix_flow steps)
 - Validate user input before applying fixes
-- Use appropriate severity: WARNING (non-critical) / ERROR (important) / CRITICAL (urgent)
+- Pick severity by tense, not by urgency: `ERROR` — something is broken **now** and needs attention; `WARNING` —
+  something breaks **later** (an API shutdown, a removal). `CRITICAL` is reserved for true panic and has no use in
+  this integration.
 
 **SHOULD:**
 

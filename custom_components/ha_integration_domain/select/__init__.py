@@ -2,10 +2,12 @@
 
 from typing import TYPE_CHECKING
 
-from custom_components.ha_integration_domain.const import PARALLEL_UPDATES as PARALLEL_UPDATES
 from homeassistant.components.select import SelectEntityDescription
 
 from .fan_speed import ENTITY_DESCRIPTIONS as FAN_SPEED_DESCRIPTIONS, IntegrationBlueprintFanSpeedSelect
+
+# Acts on the device: the coordinator does not limit outbound calls.
+PARALLEL_UPDATES = 1
 
 if TYPE_CHECKING:
     from custom_components.ha_integration_domain.data import IntegrationBlueprintConfigEntry

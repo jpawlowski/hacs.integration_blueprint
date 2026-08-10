@@ -17,19 +17,30 @@ rg -n "deprecated|breaks_in_ha_version" .venv/lib/python*/site-packages/homeassi
 Since Home Assistant 2026.8 a device is owned by **exactly one** config entry and at most one config subentry.
 Identifiers and connections are unique only _within_ the owning entry, never globally.
 
-| Do not use                                            | Use instead                                                            |
-| ----------------------------------------------------- | ---------------------------------------------------------------------- |
-| `async_get_device(identifiers=…)` (unscoped)          | `async_get_device_by_identifier(identifier, config_entry_id)`          |
-| `async_get_device(connections=…)` (unscoped)          | `async_get_device_by_connection(connection, config_entry_id)`          |
-| `DeviceEntry.config_entries` (plural)                 | `DeviceEntry.config_entry_id`                                          |
-| `DeviceEntry.config_entries_subentries`               | `DeviceEntry.config_subentry_id`                                       |
-| `DeviceEntry.primary_config_entry`                    | `DeviceEntry.config_entry_id`                                          |
-| `via_device=(DOMAIN, identifier)`                     | `via_device_id=<device id>` (removal in HA Core 2027.8)                |
-| `async_update_device(add_config_entry_id=…/remove_…)` | `async_update_device(new_config_entry_id=…, new_config_subentry_id=…)` |
-| `DeviceEntry.suggested_area`                          | Nothing — ignore it; removed in HA Core 2026.9                         |
+**Deprecated in the source, with a removal version** — these carry `@deprecated_function` or a reported usage, so
+grepping confirms them:
+
+| Do not use                                                                                            | Use instead                                                            | Removed |
+| ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------- |
+| `via_device=(DOMAIN, identifier)`                                                                     | `via_device_id=<device id>`                                            | 2027.8  |
+| `DeviceEntry.suggested_area`, `DeviceInfo["suggested_area"]`, `async_get_or_create(suggested_area=…)` | Nothing — the user places devices in areas                             | 2026.9  |
+| `async_update_device(add_config_entry_id=…/remove_…)`                                                 | `async_update_device(new_config_entry_id=…, new_config_subentry_id=…)` | —       |
+| `DeviceEntry.config_entries` (plural)                                                                 | `DeviceEntry.config_entry_id`                                          | shim    |
+| `DeviceEntry.config_entries_subentries`                                                               | `DeviceEntry.config_subentry_id`                                       | shim    |
+| `DeviceEntry.primary_config_entry`                                                                    | `DeviceEntry.config_entry_id`                                          | shim    |
+
+**Not deprecated in the source, but banned in this project** — grepping will find no warning, so the reason matters:
+
+| Do not use                                   | Use instead                                                   | Why                                                                                                  |
+| -------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `async_get_device(identifiers=…)` (unscoped) | `async_get_device_by_identifier(identifier, config_entry_id)` | Resolves ambiguously across entries — it prefers a matching domain, then falls back to the first hit |
+| `async_get_device(connections=…)` (unscoped) | `async_get_device_by_connection(connection, config_entry_id)` | Same                                                                                                 |
 
 Additional rules:
 
+- Passing **both** `via_device` and `via_device_id` raises at runtime. When migrating, remove the old one.
+- Passing a pre-migration composite device id as `via_device_id` is reported and breaks in 2027.8 — pass the id of a
+  single device.
 - Inside an entity use `self.device_entry`; do not look the device up again.
 - Never attach this integration's config entry to a device owned by another integration. A helper entity links to the
   source device through `self.device_entry`.
@@ -73,14 +84,14 @@ These rules apply to migrations, repairs, diagnostics, registry listeners, **and
 
 ## Async and I/O
 
-| Do not use                                 | Use instead                                                     |
-| ------------------------------------------ | --------------------------------------------------------------- |
-| `requests`, `urllib`, blocking SDK calls   | `aiohttp` via `async_get_clientsession(hass)`                   |
-| Creating your own `aiohttp.ClientSession`  | `async_get_clientsession(hass)` (Platinum `inject-websession`)  |
-| `async_timeout.timeout(...)`               | `asyncio.timeout(...)`                                          |
-| `time.sleep`, `datetime.now()`             | `asyncio.sleep`, `homeassistant.util.dt.utcnow()`               |
-| `open()` / `json.load()` in the event loop | `await hass.async_add_executor_job(...)`                        |
-| `hass.async_add_job`                       | `hass.async_create_task` / `entry.async_create_background_task` |
+| Do not use                                 | Use instead                                                      |
+| ------------------------------------------ | ---------------------------------------------------------------- |
+| `requests`, `urllib`, blocking SDK calls   | `aiohttp` via `async_get_clientsession(hass)`                    |
+| Creating your own `aiohttp.ClientSession`  | `async_get_clientsession(hass)` (Platinum `inject-websession`)   |
+| `async_timeout.timeout(...)`               | `asyncio.timeout(...)`                                           |
+| `time.sleep`, `datetime.now()`             | `asyncio.sleep`, `homeassistant.util.dt.utcnow()`                |
+| `open()` / `json.load()` in the event loop | `await hass.async_add_executor_job(...)`                         |
+| `hass.async_add_job`                       | `entry.async_create_task` / `entry.async_create_background_task` |
 
 ## Diagnostics
 

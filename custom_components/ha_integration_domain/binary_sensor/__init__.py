@@ -2,11 +2,13 @@
 
 from typing import TYPE_CHECKING
 
-from custom_components.ha_integration_domain.const import PARALLEL_UPDATES as PARALLEL_UPDATES
 from homeassistant.components.binary_sensor import BinarySensorEntityDescription
 
 from .connectivity import ENTITY_DESCRIPTIONS as CONNECTIVITY_DESCRIPTIONS, IntegrationBlueprintConnectivitySensor
 from .filter import ENTITY_DESCRIPTIONS as FILTER_DESCRIPTIONS, IntegrationBlueprintFilterSensor
+
+# Read-only platform: the coordinator already serializes the fetch.
+PARALLEL_UPDATES = 0
 
 if TYPE_CHECKING:
     from custom_components.ha_integration_domain.data import IntegrationBlueprintConfigEntry

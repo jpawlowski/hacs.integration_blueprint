@@ -1,7 +1,7 @@
 ---
 name: "Entity Platforms"
 description: "Entity descriptions, translation keys, device registry ownership, and platform members"
-applyTo: "custom_components/**/alarm_control_panel/**/*.py, custom_components/**/binary_sensor/**/*.py, custom_components/**/button/**/*.py, custom_components/**/camera/**/*.py, custom_components/**/climate/**/*.py, custom_components/**/cover/**/*.py, custom_components/**/fan/**/*.py, custom_components/**/humidifier/**/*.py, custom_components/**/light/**/*.py, custom_components/**/lock/**/*.py, custom_components/**/number/**/*.py, custom_components/**/select/**/*.py, custom_components/**/sensor/**/*.py, custom_components/**/siren/**/*.py, custom_components/**/switch/**/*.py, custom_components/**/vacuum/**/*.py, custom_components/**/water_heater/**/*.py, custom_components/**/entity/**/*.py, custom_components/**/entity_utils/**/*.py"
+applyTo: "custom_components/**/alarm_control_panel/**/*.py, custom_components/**/binary_sensor/**/*.py, custom_components/**/button/**/*.py, custom_components/**/camera/**/*.py, custom_components/**/climate/**/*.py, custom_components/**/cover/**/*.py, custom_components/**/device_tracker/**/*.py, custom_components/**/event/**/*.py, custom_components/**/fan/**/*.py, custom_components/**/humidifier/**/*.py, custom_components/**/image/**/*.py, custom_components/**/light/**/*.py, custom_components/**/lock/**/*.py, custom_components/**/notify/**/*.py, custom_components/**/number/**/*.py, custom_components/**/select/**/*.py, custom_components/**/sensor/**/*.py, custom_components/**/siren/**/*.py, custom_components/**/switch/**/*.py, custom_components/**/text/**/*.py, custom_components/**/time/**/*.py, custom_components/**/todo/**/*.py, custom_components/**/update/**/*.py, custom_components/**/vacuum/**/*.py, custom_components/**/valve/**/*.py, custom_components/**/water_heater/**/*.py, custom_components/**/entity/**/*.py, custom_components/**/entity_utils/**/*.py"
 paths:
   - "custom_components/**/alarm_control_panel/**/*.py"
   - "custom_components/**/binary_sensor/**/*.py"
@@ -9,16 +9,25 @@ paths:
   - "custom_components/**/camera/**/*.py"
   - "custom_components/**/climate/**/*.py"
   - "custom_components/**/cover/**/*.py"
+  - "custom_components/**/device_tracker/**/*.py"
+  - "custom_components/**/event/**/*.py"
   - "custom_components/**/fan/**/*.py"
   - "custom_components/**/humidifier/**/*.py"
+  - "custom_components/**/image/**/*.py"
   - "custom_components/**/light/**/*.py"
   - "custom_components/**/lock/**/*.py"
+  - "custom_components/**/notify/**/*.py"
   - "custom_components/**/number/**/*.py"
   - "custom_components/**/select/**/*.py"
   - "custom_components/**/sensor/**/*.py"
   - "custom_components/**/siren/**/*.py"
   - "custom_components/**/switch/**/*.py"
+  - "custom_components/**/text/**/*.py"
+  - "custom_components/**/time/**/*.py"
+  - "custom_components/**/todo/**/*.py"
+  - "custom_components/**/update/**/*.py"
   - "custom_components/**/vacuum/**/*.py"
+  - "custom_components/**/valve/**/*.py"
   - "custom_components/**/water_heater/**/*.py"
   - "custom_components/**/entity/**/*.py"
   - "custom_components/**/entity_utils/**/*.py"
@@ -181,14 +190,24 @@ if TYPE_CHECKING:
 
 ## PARALLEL_UPDATES
 
-Home Assistant reads `PARALLEL_UPDATES` from the platform module, so every platform `__init__.py` must re-export it
-with the redundant-looking alias — without it Ruff flags the import as unused:
+Home Assistant reads `PARALLEL_UPDATES` from the platform module, so every platform `__init__.py` declares it as a
+module-level literal — the same way Core integrations do. Do not import it from `const.py`: the value is a per-platform
+decision, and a shared constant can only get it wrong for half the platforms.
 
 ```python
-from custom_components.<domain>.const import PARALLEL_UPDATES as PARALLEL_UPDATES
+# Read-only platform: the coordinator already serializes the fetch.
+PARALLEL_UPDATES = 0
 ```
 
-The value is defined once in `const.py`. Missing it on a platform is a quality scale failure (`parallel-updates`).
+**The value depends on whether the platform acts on the device**, because a coordinator only centralizes the inbound
+fetch — it does not limit outbound calls:
+
+| Value | Platforms                                                                                                                                                                        |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0`   | Read-only: `sensor`, `binary_sensor`, `event`, `image`, `device_tracker`. Throttling these only slows startup.                                                                   |
+| `1`   | Everything that writes: `switch`, `light`, `number`, `select`, `button`, `climate`, `cover`, `fan`, `lock`, `valve`, `text`, `time`, `todo`, `update`, `notify`, `water_heater`. |
+
+Missing it on a platform is a quality scale failure (`parallel-updates`).
 
 ## Dynamic Entity Creation
 

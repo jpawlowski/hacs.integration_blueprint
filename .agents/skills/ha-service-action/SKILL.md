@@ -26,12 +26,20 @@ the `icons.json` shape. This skill is the order of operations and the design dec
 
 ## Decide the shape first
 
+Target the thing the action actually acts on — there are three levels, and picking the wrong one is what makes an
+action awkward to call:
+
 | Question                                            | Consequence                                                                      |
 | --------------------------------------------------- | -------------------------------------------------------------------------------- |
 | Does it act on one entity?                          | Add a `target:` with an `entity:` selector — do not invent an `entity_id` field. |
-| Does it act on the whole account/hub?               | Integration-wide action, no `target:`.                                           |
+| Does it act on one device?                          | A required `device_id` field with a `device:` selector.                          |
+| Does it act on the whole account/hub?               | A required `config_entry_id` field with a `config_entry:` selector.              |
 | Does the caller need data back?                     | `SupportsResponse.ONLY` or `.OPTIONAL` and return a `ServiceResponse` dict.      |
 | Could an entity attribute or a button entity do it? | Prefer the entity. Actions are for things that do not map onto entity state.     |
+
+**A target is never optional and never defaulted.** Picking "the only entry" when the caller named none makes every
+automation break the day a second entry is added. The one exception is `single_config_entry: true` in the manifest,
+where there can only ever be one.
 
 If an entity would model it better, say so before implementing — a `button` or `number` entity is more discoverable
 than an action.
@@ -45,6 +53,13 @@ set_target_value:
   name: Set target value
   description: Write a new target value to the device.
   fields:
+    config_entry_id:
+      name: Integration entry
+      description: The configured entry to write to.
+      required: true
+      selector:
+        config_entry:
+          integration: <domain>
     value:
       name: Value
       description: The new target value.
@@ -78,7 +93,11 @@ async def async_handle_set_target_value(
     try:
         await client.async_set_target_value(value)
     except {ClassPrefix}ApiClientAuthenticationError as err:
-        raise ConfigEntryAuthFailed from err
+        entry.async_start_reauth(hass)
+        raise HomeAssistantError(
+            translation_domain=DOMAIN,
+            translation_key="auth_failed",
+        ) from err
     except {ClassPrefix}ApiClientError as err:
         raise HomeAssistantError(
             translation_domain=DOMAIN,
@@ -91,6 +110,9 @@ async def async_handle_set_target_value(
 Every raised exception needs a matching `exceptions.<key>.message` entry in `translations/en.json`
 ([`ha-translations`](../ha-translations/SKILL.md)) — that is the step most easily forgotten, and hassfest will catch it.
 
+`ConfigEntryAuthFailed` is deliberately absent: it only starts the reauth flow from `async_setup_entry` in
+`__init__.py` or from the coordinator. In a handler it would just log, so the flow is started explicitly.
+
 ### 3. Register in `async_setup()` — not `async_setup_entry()`
 
 Actions must exist even when no config entry is loaded, so automations referencing them validate and produce a helpful
@@ -99,18 +121,28 @@ error instead of "unknown service". Add the wrapper and registration in `service
 ```python
 SERVICE_SET_TARGET_VALUE = "set_target_value"
 
-SET_TARGET_VALUE_SCHEMA = vol.Schema({vol.Required(ATTR_VALUE): vol.Coerce(float)})
+SET_TARGET_VALUE_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_CONFIG_ENTRY_ID): cv.string,
+        vol.Required(ATTR_VALUE): vol.Coerce(float),
+    }
+)
 
 
 async def async_setup_services(hass: HomeAssistant) -> None:
     async def handle_set_target_value(call: ServiceCall) -> None:
-        entries = hass.config_entries.async_entries(DOMAIN)
-        if not entries:
+        entry = hass.config_entries.async_get_entry(call.data[ATTR_CONFIG_ENTRY_ID])
+        if entry is None or entry.domain != DOMAIN:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
-                translation_key="no_config_entry",
+                translation_key="entry_not_found",
             )
-        await async_handle_set_target_value(hass, entries[0], call)
+        if entry.state is not ConfigEntryState.LOADED:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="entry_not_loaded",
+            )
+        await async_handle_set_target_value(hass, entry, call)
 
     if not hass.services.has_service(DOMAIN, SERVICE_SET_TARGET_VALUE):
         hass.services.async_register(
@@ -123,6 +155,9 @@ async def async_setup_services(hass: HomeAssistant) -> None:
 
 `async_setup_services(hass)` is already called from `async_setup()` in `__init__.py` — do not add a second call in
 `async_setup_entry()`.
+
+The two checks are the other half of `action-setup`: because the action now exists while no entry is loaded, the
+handler is the only thing standing between an unloaded entry and an `AttributeError` on `entry.runtime_data`.
 
 ### 4. Translations and icons
 

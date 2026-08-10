@@ -47,7 +47,9 @@ This schema combines Home Assistant's official manifest requirements with HACS-s
 **Integration behavior:**
 
 - `config_flow` - Boolean, true if integration has UI config
-- `integration_type` - One of: `device`, `hub`, `service`, `helper`, `system`, `virtual`
+- `integration_type` - One of: `device`, `hub`, `service`, `helper`. `virtual` can only be provided by Home Assistant
+  Core, and `entity`, `hardware` and `system` are not for integrations like this one. Unset defaults to `hub` — set it
+  explicitly.
 - `iot_class` - Connectivity type (see below)
 - `requirements` - Python package dependencies
 
@@ -75,7 +77,6 @@ Use package name with version constraint:
 
 ```json
 "requirements": [
-  "aiohttp>=3.9.0",
   "some-package==1.2.3"
 ]
 ```
@@ -89,6 +90,10 @@ GitHub usernames with `@` prefix:
   "@jpawlowski"
 ]
 ```
+
+**Only list what Home Assistant does not already ship.** A custom integration must not repeat a package from Core's
+own `requirements.txt` — `aiohttp`, `voluptuous`, `httpx`, `awesomeversion` and friends are already there, and
+pinning them from here can only conflict with Core.
 
 ## Version
 

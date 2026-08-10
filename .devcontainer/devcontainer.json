@@ -66,6 +66,7 @@
         "ffmpeg",
         "fzf",
         "git-delta",
+        "gron",
         "httpie",
         "hyperfine",
         "ipython3",
