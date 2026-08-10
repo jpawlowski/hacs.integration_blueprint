@@ -284,7 +284,7 @@ This repository uses the [Scripts to Rule Them All](https://github.com/github/sc
 
 #### Setup & Maintenance
 
-- **`script/setup/bootstrap`** - First-time setup after cloning (installs dependencies and pre-commit hooks)
+- **`script/setup/bootstrap`** - First-time setup after cloning (installs dependencies and git hooks)
 - **`script/setup/setup`** - Complete project setup (runs bootstrap + additional configuration)
 - **`script/setup/reset`** - Reset development environment to fresh state
 - **`script/setup/sync-hacs`** - Sync HACS-installed integrations to `custom_components/` for development
@@ -733,7 +733,7 @@ The container runs `script/setup/setup` automatically, which:
 2. Installs all dependencies
 3. Downloads Home Assistant
 4. Sets up HACS
-5. Installs pre-commit hooks
+5. Installs the git hooks
 
 Just wait for the setup to complete (check the terminal), then run `script/develop`.
 
@@ -796,21 +796,23 @@ As your integration evolves, keep these files updated. They should reflect your 
 <details>
 <summary><strong>Pre-commit hooks</strong></summary>
 
-The repository uses [pre-commit](https://pre-commit.com/) to automatically check code before commits:
+The repository uses [prek](https://github.com/j178/prek) to automatically check code before commits. It reads the
+standard `.pre-commit-config.yaml`, the same file [pre-commit](https://pre-commit.com/) uses.
 
 **What's checked:**
 
-- Ruff formatting (auto-fixes)
-- Ruff linting (auto-fixes when possible)
-- YAML syntax
-- JSON syntax
-- Trailing whitespace
-- File endings
+- Ruff formatting and linting (auto-fixes)
+- YAML with yamllint, GitHub Actions workflows with zizmor
+- Shell scripts with shfmt and shellcheck
+- Markdown with Prettier and markdownlint-cli2
+- Spelling with codespell
+- Agent skill structure, and the pinned Home Assistant version across config files
+- Commit messages against Conventional Commits
 
 Hooks are installed automatically by `script/setup/bootstrap`. Run manually with:
 
 ```bash
-pre-commit run --all-files
+prek run --all-files
 ```
 
 </details>

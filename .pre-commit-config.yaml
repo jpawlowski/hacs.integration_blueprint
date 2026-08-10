@@ -1,5 +1,7 @@
-# See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
+# Hooks are run by prek (https://github.com/j178/prek), which reads this file —
+# the filename stays `.pre-commit-config.yaml` because that is the format's
+# name, not the runner's.
+# See https://pre-commit.com for the configuration format.
 #
 # This configuration uses local hooks that rely on packages
 # installed in the virtual environment (via requirements.txt) or
@@ -9,7 +11,7 @@
 # to the standard location at $HOME/.local/ha-venv.
 # Node hooks use ./node_modules/.bin/ (installed via npm install).
 #
-# Install both hook types with a plain `pre-commit install` — without this,
+# Install both hook types with a plain `prek install` — without this,
 # the commit-msg hook below would need an explicit --hook-type flag and would
 # silently never run for anyone who forgot it.
 default_install_hook_types: [pre-commit, commit-msg]

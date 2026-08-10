@@ -18,7 +18,7 @@ AI-assisted contributions are welcome, including substantially AI-generated work
 automated checks as human review or real-device testing.
 
 1. Fork the repo and create your branch from `main`.
-2. Run `script/setup/bootstrap` to install dependencies and pre-commit hooks.
+2. Run `script/setup/bootstrap` to install dependencies and git hooks.
 3. If you've changed something, update the documentation.
 4. Make sure your code passes all checks (using `script/check` for linting and type checking).
 5. Test your contribution.
