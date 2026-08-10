@@ -65,9 +65,10 @@ initialised integration repositories generated from it. The same sentence has to
 The `blueprint-` prefix names where a skill came from, not what the repository is. `blueprint-tooling` is about the
 tooling the template ships, and it applies in an initialised integration exactly as it does here.
 
-Which role a repository is in is declared in the `repo-role` block at the top of `AGENTS.md`; `initialize.sh` rewrites
-it and then deletes itself, so a repository without `initialize.sh` is an initialised integration. A skill never needs
-to work that out for itself — `AGENTS.md` is always loaded.
+The `repo-role` block at the top of `AGENTS.md` settles which role a repository is in, and `AGENTS.md` is always
+loaded — a skill never needs to work it out for itself, and must not try to. In particular, the upstream template and
+a not-yet-initialised copy are byte-identical, so no file in the working tree distinguishes them and the git remote is
+not a reliable substitute.
 
 ## Adding a skill to the shipped set
 

@@ -10,27 +10,25 @@ does not; this project's identity, layering, workflow policy and traps do.
 
 ## Which repository is this?
 
-**This repository is the blueprint template itself — `initialize.sh` has not run here.** That holds both for the
-upstream template and for a fresh copy made with GitHub's "Use this template" button: the two are byte-identical, and
-only the git remote separates them.
+`initialize.sh` is present, so **this repository has not been initialised yet** — the domain, class prefix and
+directory names below are still the template's placeholders. The script replaces them across the whole repository and
+then deletes itself, and template sync never restores it. **Its absence, not any wording here, is what marks an
+initialised integration.**
 
-```bash
-git remote get-url origin   # jpawlowski/hacs.integration_blueprint → upstream; anything else → a copy
-```
+Two kinds of repository are in this state, and they are byte-identical — nothing in the working tree tells them apart:
 
-**In the upstream template**, every change ships to every downstream repository through the weekly template-sync pull
-request. Skills and instruction files must use the `<domain>` and `{ClassPrefix}` placeholders rather than the
-concrete identifiers below, and [`blueprint-skill-maintenance`](.agents/skills/blueprint-skill-maintenance/SKILL.md)
-governs changes to the shipped skill set.
+- **The upstream template.** The placeholders are permanent here, and the example integration is itself the thing
+  being maintained. Every change ships to every downstream repository through the weekly template-sync pull request,
+  so skills and instruction files must use the `<domain>` and `{ClassPrefix}` placeholders rather than the concrete
+  identifiers, and [`blueprint-skill-maintenance`](.agents/skills/blueprint-skill-maintenance/SKILL.md) governs the
+  shipped skill set.
+- **A fresh copy** made with GitHub's "Use this template" button, which still has to be initialised. **Do not write
+  integration code first** — `initialize.sh` would overwrite it. Run `./initialize.sh`, then
+  [`blueprint-scaffold`](.agents/skills/blueprint-scaffold/SKILL.md); when existing integration code is being migrated
+  in, [`blueprint-import`](.agents/skills/blueprint-import/SKILL.md) covers the order instead.
 
-**In a copy, do not write integration code yet.** `initialize.sh` still has to replace the domain, the class prefix,
-directory names and file contents across the whole repository — anything written before it runs is overwritten or has
-to be redone by hand. Say so plainly and decline the feature work until the repository is initialised. Run
-`./initialize.sh`, then [`blueprint-scaffold`](.agents/skills/blueprint-scaffold/SKILL.md); when existing integration
-code is being migrated in, [`blueprint-import`](.agents/skills/blueprint-import/SKILL.md) covers the order instead.
-
-`initialize.sh` rewrites this section and then deletes itself, and template sync never restores either. **A repository
-without `initialize.sh` is an initialised integration, never a template.**
+When the request does not make clear which of the two this is, ask. **Do not infer it from the git remote** — a
+contributor's fork of the template is not a copy awaiting initialisation.
 
 <!-- repo-role:end -->
 
