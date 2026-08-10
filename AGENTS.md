@@ -241,6 +241,14 @@ Log reading, failure triage and the debugging loop: [`ha-coordinator-debug`](.ag
 their input through unchanged when the caller is not a TTY, and the other two only prettify what `ls` and `fd`
 already gave you. A tool that _reduces_ output earns its place here; one that formats it does not.
 
+**Never start a search at `custom_components/`** — `rg` and `fd` silently skip every subdirectory of the integration
+when the walk begins there, so a search returns the handful of top-level modules and nothing from `api/`,
+`coordinator/`, `entity/` or any platform. Search from the repository root, or point straight at
+`custom_components/<domain>/`; both are complete. The cause is the deliberate `custom_components/*` rule in
+`.gitignore` that keeps HACS-installed third-party integrations out of the repository, and it cannot be fixed there
+without weakening that protection. `git`, `ruff` and the `script/*` gates resolve the same rule correctly, so nothing
+in the validation output reveals the gap — an empty result is not evidence of absence.
+
 ## Working With Developers
 
 ### Community AI policy
