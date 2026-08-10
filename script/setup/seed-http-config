@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# script/setup/seed-http-config: Seed the HTTP integration's UI-managed config store
+# script/seed-http-config: Seed the HTTP integration's UI-managed config store
 #
 # Since Home Assistant 2026.8, the `http:` YAML block is imported into
 # config/.storage/http on first boot and ignored on every boot after that
@@ -27,6 +27,8 @@ cd "$SCRIPT_DIR/.."
 
 # shellcheck source=script/.lib/output.sh
 source "$SCRIPT_DIR/.lib/output.sh"
+
+run_hook "setup/seed-http-config" "pre"
 
 activate_venv
 
@@ -101,3 +103,5 @@ except BaseException:
 PY
 
 log_success "Wrote config/.storage/http with development-friendly network settings"
+
+run_hook "setup/seed-http-config" "post"
