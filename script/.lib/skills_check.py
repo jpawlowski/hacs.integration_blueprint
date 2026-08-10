@@ -40,6 +40,9 @@ BODY_MAX_LINES = 500
 # with the blueprint's own names.
 FORBIDDEN_IDENTIFIERS = ("ha_integration_domain", "IntegrationBlueprint")
 
+# Instructions files that are meant to load in every session, so they carry no `paths`.
+UNCONDITIONAL_INSTRUCTIONS = {"blueprint.commit-message.instructions.md"}
+
 LINK_PATTERN = re.compile(r"\[[^\]]*\]\((?!https?:|mailto:|#)([^)]+)\)")
 
 # Sections initialize.sh strips when a project is initialised from the template.
@@ -249,32 +252,54 @@ def check_blueprint_only_markers() -> list[Report]:
     return reports
 
 
-def check_instruction_globs() -> list[Report]:
+def check_instruction_paths() -> list[Report]:
     """
-    Verify that every instructions file declares the same globs twice.
+    Verify the frontmatter contract of every instructions file.
 
-    Copilot and VS Code read ``applyTo``; Claude Code reads ``globs`` through the
-    .claude/rules/instructions symlink. Both take the same comma-separated string, so they
-    must be byte-identical.
+    Copilot and VS Code read ``applyTo`` as one comma-separated string; Claude Code reads
+    ``paths`` as a YAML list, through the .claude/rules/instructions symlink. The two must
+    describe the same set, so ``paths`` has to equal ``applyTo`` split on commas.
 
-    ``globs`` rather than the officially documented ``paths``: community testing
-    (anthropics/claude-code#17204) reports that ``paths`` as a quoted YAML list never
-    matches, and that it fails silently — a rule that quietly stops scoping is worse than
-    one that errors.
+    ``name`` and ``description`` are documented Copilot keys — the display name and the
+    hover text in the Chat view. Claude Code ignores them, which is harmless, but they are
+    required here so the two agents present the same set consistently.
+
+    ``paths`` is the only key Claude Code recognises. An unknown key is not rejected — the
+    file is simply treated as unscoped and loaded into every session, which is why a wrong
+    key here is invisible without this check. Files in UNCONDITIONAL_INSTRUCTIONS want that
+    behaviour and therefore declare no ``paths`` at all.
     """
     reports: list[Report] = []
     for path in sorted(INSTRUCTIONS_DIR.glob("*.instructions.md")):
         report = Report(skill=str(path))
         fields, _ = parse_frontmatter(path.read_text(), report)
-        if not report.errors:
-            apply_to = fields.get("applyTo")
-            globs = fields.get("globs")
-            if not isinstance(apply_to, str) or not apply_to.strip():
-                report.error("frontmatter is missing 'applyTo' (Copilot and VS Code need it)")
-            elif not isinstance(globs, str) or not globs.strip():
-                report.error("frontmatter is missing 'globs' — Claude Code would load this file into every session")
-            elif apply_to.strip() != globs.strip():
-                report.error("'applyTo' and 'globs' differ — they must be the identical comma-separated string")
+        if report.errors:
+            reports.append(report)
+            continue
+
+        apply_to = fields.get("applyTo")
+        paths = fields.get("paths")
+        unconditional = path.name in UNCONDITIONAL_INSTRUCTIONS
+
+        if "globs" in fields:
+            report.error(
+                "'globs' is Cursor's key and is ignored by Claude Code — use 'paths' (see the module docstring)"
+            )
+        for label in ("name", "description"):
+            value = fields.get(label)
+            if not isinstance(value, str) or not value.strip():
+                report.error(f"frontmatter is missing '{label}' (Copilot shows it in the Chat view)")
+        if not isinstance(apply_to, str) or not apply_to.strip():
+            report.error("frontmatter is missing 'applyTo' (Copilot and VS Code need it)")
+        elif unconditional:
+            if paths is not None:
+                report.error(f"{path.name} is listed as unconditional — it must not declare 'paths'")
+        elif paths is None:
+            report.error("frontmatter is missing 'paths' — Claude Code would load this file into every session")
+        elif not isinstance(paths, list) or not all(isinstance(p, str) and p.strip() for p in paths):
+            report.error("'paths' must be a YAML list of non-empty pattern strings, not a comma-separated string")
+        elif [p.strip() for p in paths] != [p.strip() for p in apply_to.split(",")]:
+            report.error("'paths' and 'applyTo' describe different patterns — 'paths' is 'applyTo' split on commas")
         reports.append(report)
     return reports
 
@@ -291,7 +316,7 @@ def main() -> int:
         return 0
 
     reports = [check_skill(d) for d in skill_dirs]
-    instruction_reports = check_instruction_globs()
+    instruction_reports = check_instruction_paths()
     marker_reports = check_blueprint_only_markers()
 
     for report in reports:
@@ -310,7 +335,7 @@ def main() -> int:
             for error in report.errors:
                 print(f"      {error}")
         if not broken_instructions:
-            print(f"  ✓ {len(instruction_reports)} instruction files: applyTo and globs agree")
+            print(f"  ✓ {len(instruction_reports)} instruction files: applyTo and paths agree")
 
     broken_markers = [r for r in marker_reports if r.errors]
     for report in broken_markers:

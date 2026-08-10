@@ -1,6 +1,9 @@
 ---
+name: "Diagnostics"
+description: "Redacting credentials and personal data from diagnostics output"
 applyTo: "custom_components/**/diagnostics.py"
-globs: "custom_components/**/diagnostics.py"
+paths:
+  - "custom_components/**/diagnostics.py"
 ---
 
 # Diagnostics Instructions

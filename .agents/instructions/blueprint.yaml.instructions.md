@@ -1,6 +1,10 @@
 ---
+name: "YAML Files"
+description: "Formatting rules, HA conventions, and yamllint validation"
 applyTo: "**/*.yaml, **/*.yml"
-globs: "**/*.yaml, **/*.yml"
+paths:
+  - "**/*.yaml"
+  - "**/*.yml"
 ---
 
 # YAML Instructions

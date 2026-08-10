@@ -1,6 +1,9 @@
 ---
+name: "Python Code"
+description: "Module layout, type hints, async patterns, imports, logging, and validation"
 applyTo: "**/*.py"
-globs: "**/*.py"
+paths:
+  - "**/*.py"
 ---
 
 # Python Code Instructions

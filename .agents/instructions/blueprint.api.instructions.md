@@ -1,6 +1,10 @@
 ---
+name: "API Client and Coordinator"
+description: "Three-layer architecture, session handling, and the API exception hierarchy"
 applyTo: "custom_components/**/api/**/*.py, custom_components/**/coordinator/**/*.py"
-globs: "custom_components/**/api/**/*.py, custom_components/**/coordinator/**/*.py"
+paths:
+  - "custom_components/**/api/**/*.py"
+  - "custom_components/**/coordinator/**/*.py"
 ---
 
 # API and Coordinator Instructions

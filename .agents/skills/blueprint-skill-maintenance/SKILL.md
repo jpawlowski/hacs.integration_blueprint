@@ -45,9 +45,12 @@ touched. Codex does not — its nested `AGENTS.md` support keys off the working 
 why the pointer at the top of each skill names _what_ is in the instructions file rather than just linking it: for
 Codex the skill is the only bridge.
 
-When you add or change an instructions file, keep `applyTo` (Copilot, VS Code) and `globs` (Claude Code, via the
-`.claude/rules/instructions` symlink) byte-identical. A file without `globs` is loaded by Claude Code into every
-session. `script/skills-check` verifies both.
+When you add or change an instructions file, keep `applyTo` (Copilot, VS Code — one comma-separated string) and
+`paths` (Claude Code, via the `.claude/rules/instructions` symlink — a YAML list) describing the same patterns. A file
+without `paths` is loaded by Claude Code into every session. The full frontmatter contract, including the `name` and
+`description` keys and the one deliberately unscoped file, is in
+[`../../instructions/blueprint.markdown.instructions.md`](../../instructions/blueprint.markdown.instructions.md);
+`script/skills-check` enforces it.
 
 ## Adding a skill to the shipped set
 

@@ -1,6 +1,9 @@
 ---
+name: "Markdown Documentation"
+description: "markdownlint rules, document structure, and the instructions-file frontmatter contract"
 applyTo: "**/*.md"
-globs: "**/*.md"
+paths:
+  - "**/*.md"
 ---
 
 # Markdown Instructions
@@ -90,25 +93,36 @@ globs: "**/*.md"
 
 **Path-scoped instructions (`.agents/instructions/*.instructions.md`):**
 
-These files are shared by two agents through different frontmatter keys, so every file needs **both**, listing the
-same globs:
+These files are shared by two agents through different frontmatter keys, so every file needs **both**, describing the
+same set of patterns in the two shapes each agent expects:
 
 ```yaml
 ---
-applyTo: "custom_components/**/sensor/**/*.py" # Copilot and VS Code
-globs: "custom_components/**/sensor/**/*.py" # Claude Code — identical string
+name: "Entity Platforms" # Copilot — display name in the Chat view
+description: "Entity descriptions, translation keys, and device registry ownership" # Copilot — hover text
+applyTo: "custom_components/**/sensor/**/*.py, custom_components/**/entity/**/*.py" # Copilot and VS Code
+paths: # Claude Code — the same patterns as a YAML list
+  - "custom_components/**/sensor/**/*.py"
+  - "custom_components/**/entity/**/*.py"
 ---
 ```
 
-`.claude/rules/instructions` is a symlink to this directory, so Claude Code reads the same files. A file **without**
-`globs` is loaded by Claude Code unconditionally into every session — the key is not optional, and
-`script/skills-check` verifies that both keys match exactly.
+`name` and `description` are documented Copilot keys and are only cosmetic there; Claude Code ignores them. They are
+required on every file anyway, so the set reads consistently in the Chat view — `script/skills-check` enforces that.
+
+`applyTo` takes one comma-separated string; `paths` takes a YAML list with one pattern per item. `paths` is the only
+key Claude Code recognises — `globs` belongs to Cursor and is silently ignored here. `.claude/rules/instructions` is a
+symlink to this directory, so Claude Code reads the same files.
+
+A file **without** `paths` is loaded by Claude Code into every session. That is the documented behaviour for unscoped
+rules, so a wrong or missing key never errors — it just quietly stops scoping. `script/skills-check` is what makes it
+visible: it verifies that `paths` equals `applyTo` split on commas, and rejects a stray `globs`.
 
 > [!NOTE]
-> Claude Code's documentation names the key `paths`, but community testing
-> ([anthropics/claude-code#17204](https://github.com/anthropics/claude-code/issues/17204)) reports that `paths` as a
-> quoted YAML list never matches and fails **silently**. `globs` with a comma-separated string is reported to work and
-> happens to take the same value as `applyTo`. Re-test if Claude Code changes this.
+> Path-scoped rules load when Claude Code **reads** a matching file, not at session start and not when the file is
+> merely open in the editor. They are also not re-injected after `/compact`. Only
+> `blueprint.commit-message.instructions.md` is deliberately unscoped, because commit conventions are not tied to
+> reading a particular file; it is allowlisted in `script/.lib/skills_check.py`.
 
 - Keep focused and concise (~50-300 lines)
 - Enforce standards, not tutorials — procedures belong in an agent skill

@@ -1,6 +1,9 @@
 ---
+name: "Translation Files"
+description: "Key structure, placeholders, entity translations, and formality rules"
 applyTo: "**/translations/*.json"
-globs: "**/translations/*.json"
+paths:
+  - "**/translations/*.json"
 ---
 
 # Translation Files Instructions

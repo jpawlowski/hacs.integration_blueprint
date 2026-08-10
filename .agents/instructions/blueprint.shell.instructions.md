@@ -1,6 +1,10 @@
 ---
+name: "Shell Scripts"
+description: "Script structure, shfmt formatting, and shellcheck suppression rules"
 applyTo: "script/**, .devcontainer/*.sh"
-globs: "script/**, .devcontainer/*.sh"
+paths:
+  - "script/**"
+  - ".devcontainer/*.sh"
 ---
 
 # Shell Script Instructions

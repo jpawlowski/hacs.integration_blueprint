@@ -1,6 +1,9 @@
 ---
+name: "Service Action Definitions"
+description: "services.yaml structure, fields, selectors, and target"
 applyTo: "**/services.yaml"
-globs: "**/services.yaml"
+paths:
+  - "**/services.yaml"
 ---
 
 # Service Actions Definition Instructions

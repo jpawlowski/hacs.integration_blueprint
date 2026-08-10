@@ -1,6 +1,9 @@
 ---
+name: "Home Assistant Configuration"
+description: "Modern configuration.yaml syntax for the local test instance"
 applyTo: "**/configuration.yaml"
-globs: "**/configuration.yaml"
+paths:
+  - "**/configuration.yaml"
 ---
 
 # Home Assistant Configuration Instructions

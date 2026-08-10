@@ -5,11 +5,12 @@ description: >-
   when a DeprecationWarning or "will be removed in HA Core X.Y" appears in logs or tests, when tests fail because
   warnings are errors, when asked to "modernize", "update to the latest HA version", "fix deprecations", "is this
   still the right API", "bump the HA version", or before copying a pattern from an older integration, blog post,
-  or model memory. Covers how to check the installed Home Assistant source instead of guessing, the device
+  or model memory. Covers checking the installed Home Assistant source instead of guessing, the device
   registry single-owner rules from 2026.8, runtime_data, config flow helpers, entity metadata, async I/O, and the
   version bump procedure. SYMPTOMS — load this if you are about to: write `hass.data[DOMAIN]` instead of
   `runtime_data`; call the unscoped `async_get_device()`; use `FlowResult`, `DEVICE_CLASS_*`, or `async_timeout`;
-  create your own aiohttp session; or add a warning filter to make a deprecation go away.
+  create your own aiohttp session; add a warning filter to make a deprecation go away; or adopt an undocumented API
+  or config key on an issue's say-so.
 ---
 
 # Keep the integration on current Home Assistant APIs
@@ -38,6 +39,31 @@ any secondary source.
 
 When the installed source is not enough — a pattern that is new rather than deprecated — check
 <https://developers.home-assistant.io/blog/> before implementing.
+
+## The same rule, generalised: what counts as verified
+
+This applies past Home Assistant, to any API, tool or configuration key you are about to commit to. Exactly one class
+of source settles a question: the **primary** one — the installed source you import, or the current documentation of
+the tool you are configuring. A GitHub issue, a blog post, another tool's convention and your own recall are all
+secondary. Secondary sources are fine for finding a lead; they never close the question.
+
+Three traps make a secondary source feel like a primary one:
+
+- **Silent failure.** Most configuration rejects nothing. An unknown key is ignored, and the default behaviour that
+  results often looks like success. Before believing "X works", ask what a broken X would look like — if the answer
+  is "the same thing", the observation proved nothing. Test the case that can fail: the file that should _not_ match,
+  the entry that should _not_ load.
+- **A key that belongs to a neighbouring tool.** Copilot, Cursor and Claude Code each name the same idea differently
+  (`applyTo`, `globs`, `paths`). That a key works in one tool is no evidence at all for the next one, and the wrong
+  one will not complain.
+- **An unresolved report read as a finding.** A GitHub issue is a claim by a stranger about one version on one
+  machine. Closed as _not planned_, or open with no maintainer reply, means nobody confirmed it. If the vendor's
+  documentation still says otherwise, the documentation wins until you have reproduced the contradiction yourself.
+
+So when you deviate from documented behaviour, the bar is: name the primary source you checked, and design an
+observation that could have come out the other way. If neither is possible, do not deviate — follow the documentation
+and say that you could not verify it. And when the answer matters enough to encode, encode it: a check in
+`script/` that fails loudly beats a comment explaining what someone once tested.
 
 ## Reference files
 

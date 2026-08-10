@@ -1,6 +1,9 @@
 ---
+name: "Repair Flows"
+description: "Creating issues, implementing RepairsFlow, and deleting issues after a fix"
 applyTo: "custom_components/**/repairs.py"
-globs: "custom_components/**/repairs.py"
+paths:
+  - "custom_components/**/repairs.py"
 ---
 
 # Repairs Instructions

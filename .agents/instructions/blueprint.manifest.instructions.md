@@ -1,6 +1,9 @@
 ---
+name: "Integration Manifest"
+description: "Required manifest.json fields, integration types, and IoT classes"
 applyTo: "**/manifest.json"
-globs: "**/manifest.json"
+paths:
+  - "**/manifest.json"
 ---
 
 # Manifest Instructions

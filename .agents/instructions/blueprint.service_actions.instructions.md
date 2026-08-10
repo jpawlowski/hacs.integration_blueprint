@@ -1,6 +1,9 @@
 ---
+name: "Service Action Implementation"
+description: "Registration in async_setup(), schemas, exceptions, and response data"
 applyTo: "custom_components/**/service_actions/**/*.py"
-globs: "custom_components/**/service_actions/**/*.py"
+paths:
+  - "custom_components/**/service_actions/**/*.py"
 ---
 
 # Service Actions Instructions

@@ -1,6 +1,9 @@
 ---
+name: "Tests"
+description: "Test layout, fixtures, mocking, registry assertions, and snapshots"
 applyTo: "tests/**/*.py"
-globs: "tests/**/*.py"
+paths:
+  - "tests/**/*.py"
 ---
 
 # Test Instructions

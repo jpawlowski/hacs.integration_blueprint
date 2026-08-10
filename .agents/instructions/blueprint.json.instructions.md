@@ -1,6 +1,9 @@
 ---
+name: "JSON Files"
+description: "Formatting rules and the schemas under schemas/json/"
 applyTo: "**/*.json"
-globs: "**/*.json"
+paths:
+  - "**/*.json"
 ---
 
 # JSON Instructions

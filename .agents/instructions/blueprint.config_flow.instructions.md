@@ -1,6 +1,10 @@
 ---
+name: "Config Flow"
+description: "Setup, options, reauth, reconfigure, discovery, unique IDs, and entry migration"
 applyTo: "custom_components/**/config_flow_handler/**/*.py, custom_components/**/config_flow.py"
-globs: "custom_components/**/config_flow_handler/**/*.py, custom_components/**/config_flow.py"
+paths:
+  - "custom_components/**/config_flow_handler/**/*.py"
+  - "custom_components/**/config_flow.py"
 ---
 
 # Config Flow Instructions
