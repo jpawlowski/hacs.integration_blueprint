@@ -24,8 +24,11 @@ globs: "custom_components/**/service_actions/**/*.py"
 **Implementation structure:**
 
 - Call `await async_setup_services(hass)` from `async_setup()` in `__init__.py`
-- Implement handlers in `service_actions/__init__.py`
-- Handlers iterate over `hass.data[DOMAIN]` to access config entries
+- Register the actions in `service_actions/__init__.py`; put the handler bodies in a module per logical group
+- Resolve entries with `hass.config_entries.async_entries(DOMAIN)`, then reach state through `entry.runtime_data`.
+  **NEVER** use `hass.data[DOMAIN]` — this integration stores runtime state on the config entry.
+- When no entry is loaded, raise `ServiceValidationError` with a translation key rather than logging and returning —
+  the caller's automation must see the failure
 
 ## Service Schema
 

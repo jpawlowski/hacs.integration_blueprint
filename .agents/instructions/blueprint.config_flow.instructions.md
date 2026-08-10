@@ -144,6 +144,33 @@ Every step method must return one of these result types (see [Data Entry Flow do
 - Place validators in `config_flow_handler/validators/*.py`
 - **MUST** maintain `config_flow.py` at integration root (hassfest requirement) that imports from package
 
+## Data vs Options
+
+Where a value lives is decided once and changing it later requires a migration.
+
+| `entry.data`                                             | `entry.options`                                              |
+| -------------------------------------------------------- | ------------------------------------------------------------ |
+| Identity and connection: host, port, API key, account ID | Behaviour the user may tune later: poll interval, thresholds |
+| Anything needed to establish the connection at all       | Anything safe to change without re-validating credentials    |
+
+**MUST:**
+
+- Keep credentials in `entry.data` only — never in `entry.options`, never in the entry title.
+- Reuse `CONF_*` names from `homeassistant.const` where one exists; otherwise define them in `const.py`.
+- Give every schema field a `selector.*` and a default. A bare `vol.Coerce(int)` renders as an untyped box and is a
+  review blocker.
+- Give every field both a `data` and a `data_description` translation key.
+- Pre-fill with `self.add_suggested_values_to_schema(schema, entry.data)` on reconfigure and options.
+- Tolerate entries created before the field existed — supply a default at read time or migrate.
+
+```python
+vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): selector.NumberSelector(
+    selector.NumberSelectorConfig(min=1, max=60, unit_of_measurement="min", mode=selector.NumberSelectorMode.BOX),
+),
+```
+
+**Consumers:** the coordinator reads `entry.options`, the API client reads `entry.data`.
+
 ## Step Names
 
 **Reserved discovery steps** (require manifest entry):

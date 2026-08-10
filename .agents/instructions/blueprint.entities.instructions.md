@@ -31,9 +31,23 @@ globs: "custom_components/**/alarm_control_panel/**/*.py, custom_components/**/b
 
 **Required fields:**
 
-- `key` - Used in unique_id, must match coordinator data key
-- `name` - Display name
-- Platform-specific: `device_class`, `state_class`, `unit_of_measurement`, `options`, etc.
+- `key` - Used in unique_id, must match coordinator data key. Never rename it after release.
+- `translation_key` - Entity name comes from `translations/en.json`. **NEVER set `name=`** — the base entity sets
+  `_attr_has_entity_name = True`, and a hardcoded name breaks localisation (quality scale `entity-translations`).
+- Platform-specific: `device_class`, `state_class`, `native_unit_of_measurement`, `options`, etc.
+- **Set `device_class` whenever one fits** - drives unit conversion, icons and voice assistants.
+- **Set `state_class` on every numeric measurement** - without it there are no long-term statistics.
+- **NEVER set `icon=`** - icons belong in `icons.json` (quality scale `icon-translations`).
+
+**Value extraction:** Subclass the description dataclass with a `value_fn` rather than branching on `key` in the entity:
+
+```python
+@dataclass(frozen=True, kw_only=True)
+class {ClassPrefix}SensorEntityDescription(SensorEntityDescription):
+    """Describes a sensor and how to read it from coordinator data."""
+
+    value_fn: Callable[[dict[str, Any]], StateType]
+```
 
 **Entity Categories:**
 
@@ -78,14 +92,24 @@ globs: "custom_components/**/alarm_control_panel/**/*.py, custom_components/**/b
 
 ## Platform-Required Methods
 
-**Must implement per platform:**
+| Platform        | Required members                                                      | Notes                                                          |
+| --------------- | --------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `sensor`        | `native_value`                                                        | `state_class` for statistics; `device_class` drives conversion |
+| `binary_sensor` | `is_on`                                                               | `BinarySensorDeviceClass` instead of icons                     |
+| `switch`        | `is_on`, `async_turn_on`, `async_turn_off`                            | refresh after write                                            |
+| `button`        | `async_press`                                                         | stateless; no `is_on`                                          |
+| `number`        | `native_value`, `async_set_native_value`, min/max/step                | `NumberDeviceClass`, `mode`                                    |
+| `select`        | `current_option`, `options`, `async_select_option`                    | options are translated via `state` keys                        |
+| `fan`           | `is_on`, `percentage`, `async_set_percentage`, `supported_features`   | declare `FanEntityFeature` accurately                          |
+| `climate`       | `hvac_mode`, `hvac_modes`, `target_temperature`, `supported_features` | always set `_attr_temperature_unit`                            |
+| `cover`         | `is_closed`, `async_open_cover`, `async_close_cover`                  | `current_cover_position` when known                            |
+| `update`        | `installed_version`, `latest_version`                                 | `UpdateEntityFeature.INSTALL` only if it really installs       |
 
-- Sensors: `native_value`, `native_unit_of_measurement`
-- Binary Sensors: `is_on`
-- Switches: `is_on`, `turn_on()`, `turn_off()`
-- Buttons: `async_press()`
-- Numbers: `native_value`, `async_set_native_value()`
-- Selects: `current_option`, `async_select_option()`
+**Write operations:** call the API client through `entry.runtime_data`, then `await coordinator.async_request_refresh()`.
+Never mutate local state and assume it took. Wrap failures in `HomeAssistantError` with a `translation_key`.
+
+**Event subscriptions:** subscribe in `async_added_to_hass()` and release every subscription via `self.async_on_remove(...)`
+(quality scale `entity-event-setup`).
 
 **Reference:** [Entity Developer Docs](https://developers.home-assistant.io/docs/core/entity)
 
@@ -133,9 +157,14 @@ if TYPE_CHECKING:
 
 ## PARALLEL_UPDATES
 
-**Import from integration:** `from ..const import PARALLEL_UPDATES` in platform `__init__.py`
+Home Assistant reads `PARALLEL_UPDATES` from the platform module, so every platform `__init__.py` must re-export it
+with the redundant-looking alias — without it Ruff flags the import as unused:
 
-**Override to 1** only if platform requires sequential updates
+```python
+from custom_components.<domain>.const import PARALLEL_UPDATES as PARALLEL_UPDATES
+```
+
+The value is defined once in `const.py`. Missing it on a platform is a quality scale failure (`parallel-updates`).
 
 ## Dynamic Entity Creation
 

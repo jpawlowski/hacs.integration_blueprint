@@ -253,8 +253,15 @@ Repeat until both exit 0. Only manually edit files for errors that remain in the
 
 ## Verify Current Patterns
 
-Home Assistant APIs evolve - Always verify current patterns:
+Home Assistant APIs evolve fast enough that a remembered pattern is unreliable. **The installed source in the
+devcontainer is the authority** — grep it before trusting recall, a blog post, or an older integration:
+
+```bash
+rg -n "deprecated|breaks_in_ha_version" .venv/lib/python*/site-packages/homeassistant/helpers/<module>.py
+```
+
+For the procedure and the full deprecation table, see the `ha-modern-apis` agent skill
+(`.agents/skills/ha-modern-apis/SKILL.md`). Secondary sources:
 
 - [Home Assistant Developer Docs](https://developers.home-assistant.io/)
 - [Developer Blog](https://developers.home-assistant.io/blog/) for deprecations/changes
-- Search: `site:developers.home-assistant.io [feature type]`

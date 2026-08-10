@@ -19,7 +19,7 @@ globs: "**/*.md"
 **Key rules from `.markdownlint.json`:**
 
 - ✅ Fenced code blocks preferred (`code-block-style: fenced`)
-- ✅ Asterisk-style emphasis (`*italic*`, `**bold**`)
+- ✅ Underscore for emphasis (`_italic_`), asterisks for strong (`**bold**`) — MD049/MD050 enforce this split
 - ❌ MD013 disabled (no line length limit for prose)
 - ❌ MD033 disabled (inline HTML allowed: `<br>`, `<details>`, `<kbd>`, etc.)
 - ❌ MD041 disabled (first line doesn't need to be H1)
@@ -56,7 +56,7 @@ globs: "**/*.md"
 
 - `docs/development/` - Developer documentation (architecture, decisions)
 - `docs/user/` - End-user guides (installation, configuration)
-- `.ai-scratch/` - Temporary AI notes (not committed)
+- `.agents/scratch/` - Temporary AI notes (not committed)
 - Root `*.md` files - Project metadata (README, CONTRIBUTING, etc.)
 
 **Long documents (>500 lines):**
@@ -69,7 +69,7 @@ globs: "**/*.md"
 
 **Inline code:** Use backticks for `filenames`, `symbols`, `commands`
 
-**Emphasis:** Use `*italic*` for emphasis, `**bold**` for strong emphasis
+**Emphasis:** Use `_italic_` for emphasis, `**bold**` for strong emphasis
 
 **Tables:** Use proper alignment, pipes, and headers:
 
@@ -88,9 +88,28 @@ globs: "**/*.md"
 
 ## Instructions Files
 
-**GitHub Copilot instructions (`.github/instructions/*.instructions.md`):**
+**Path-scoped instructions (`.agents/instructions/*.instructions.md`):**
 
-- Must have frontmatter with `applyTo` glob pattern
+These files are shared by two agents through different frontmatter keys, so every file needs **both**, listing the
+same globs:
+
+```yaml
+---
+applyTo: "custom_components/**/sensor/**/*.py" # Copilot and VS Code
+globs: "custom_components/**/sensor/**/*.py" # Claude Code — identical string
+---
+```
+
+`.claude/rules/instructions` is a symlink to this directory, so Claude Code reads the same files. A file **without**
+`globs` is loaded by Claude Code unconditionally into every session — the key is not optional, and
+`script/skills-check` verifies that both keys match exactly.
+
+> [!NOTE]
+> Claude Code's documentation names the key `paths`, but community testing
+> ([anthropics/claude-code#17204](https://github.com/anthropics/claude-code/issues/17204)) reports that `paths` as a
+> quoted YAML list never matches and fails **silently**. `globs` with a comma-separated string is reported to work and
+> happens to take the same value as `applyTo`. Re-test if Claude Code changes this.
+
 - Keep focused and concise (~50-300 lines)
-- Enforce standards, not tutorials
+- Enforce standards, not tutorials — procedures belong in an agent skill
 - Use compact examples over verbose explanations

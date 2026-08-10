@@ -37,6 +37,10 @@ globs: "custom_components/**/api/**/*.py, custom_components/**/coordinator/**/*.
 - Issue tracker enabled for external libraries
 - OSI-approved license required
 
+This choice is expensive to reverse: record it in `docs/development/DECISIONS.md` (see the `ha-planning` agent skill).
+Adding the dependency itself — `manifest.json` **and** `requirements.txt`, kept in sync — is covered by the
+`blueprint-tooling` skill.
+
 ## API Client Rules
 
 **Session management:**
