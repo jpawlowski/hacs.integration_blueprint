@@ -26,6 +26,18 @@ if [[ -f "$_devcontainer_dir/hooks/setup-git.pre.sh" ]]; then
     source "$_devcontainer_dir/hooks/setup-git.pre.sh"
 fi
 
+# delta is for the human at the terminal; it passes its input through unchanged
+# when the caller is not a TTY, so scripted and agent git output is unaffected.
+configure_delta() {
+    if ! command -v delta >/dev/null 2>&1; then
+        return 0
+    fi
+    git config --global core.pager "delta"
+    git config --global interactive.diffFilter "delta --color-only"
+    git config --global delta.navigate true
+    echo "✓ Wired delta into git diff, git log and git add -p"
+}
+
 # Check if we're in Codespaces (GitHub automatically configures Git)
 if [ -n "$CODESPACES" ]; then
     echo "✓ Running in GitHub Codespaces - Git already configured by GitHub"
@@ -41,6 +53,7 @@ if [ -n "$CODESPACES" ]; then
     git config --global submodule.recurse true
     git config --global color.ui true
     echo "✓ Set Git defaults for Codespaces"
+    configure_delta
     exit 0
 fi
 
@@ -85,6 +98,7 @@ git config --global merge.conflictStyle diff3
 git config --global submodule.recurse true
 git config --global color.ui true
 echo "✓ Set Git defaults"
+configure_delta
 
 # Copy useful aliases (skip if they have macOS-specific paths)
 if grep -q '^\[alias\]' "$HOME/.gitconfig.host"; then
