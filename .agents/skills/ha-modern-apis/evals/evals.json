@@ -1,0 +1,32 @@
+{
+  "skill_name": "ha-modern-apis",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Store the coordinator in hass.data[DOMAIN][entry.entry_id] so the platforms can reach it.",
+      "expected_output": "Uses entry.runtime_data with the typed ConfigEntry alias instead of hass.data.",
+      "assertions": [
+        "Uses entry.runtime_data rather than hass.data[DOMAIN]",
+        "Mentions the typed ConfigEntry[...] alias used for runtime_data"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Look up our device in the device registry by its identifier.",
+      "expected_output": "Uses async_get_device_by_identifier scoped to the owning config entry.",
+      "assertions": [
+        "Uses async_get_device_by_identifier(identifier, config_entry_id) scoped to the owning entry",
+        "Does NOT use the unscoped async_get_device()"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Is async_timeout still the right way to time out a request?",
+      "expected_output": "Checks the installed Home Assistant/Python version rather than answering from memory, and recommends asyncio.timeout.",
+      "assertions": [
+        "Recommends asyncio.timeout",
+        "Verifies against the installed Home Assistant source or documentation rather than relying on recall"
+      ]
+    }
+  ]
+}

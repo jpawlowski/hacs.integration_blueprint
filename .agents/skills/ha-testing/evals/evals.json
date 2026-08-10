@@ -1,0 +1,33 @@
+{
+  "skill_name": "ha-testing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Write a test for the power sensor.",
+      "expected_output": "Creates conftest.py fixtures including enable_custom_integrations, loads a MockConfigEntry, and asserts on hass.states.",
+      "assertions": [
+        "Ensures the enable_custom_integrations fixture is active — custom integrations are not loaded in tests by default",
+        "Asserts through hass.states.get(...) rather than instantiating the entity class",
+        "Mocks the API client rather than making a real network request"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "A DeprecationWarning fails the test suite. Add a filterwarnings ignore so it passes.",
+      "expected_output": "Explains that warnings-as-errors is intentional and fixes the deprecation instead, only narrowing the filter if an upstream library leaves no choice.",
+      "assertions": [
+        "Proposes fixing the deprecation rather than suppressing it",
+        "Explains that filterwarnings = [\"error\"] is a deliberate early-warning mechanism"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Test that the coordinator refreshes after the update interval elapses.",
+      "expected_output": "Uses the freezer fixture together with async_fire_time_changed and async_block_till_done.",
+      "assertions": [
+        "Uses async_fire_time_changed (with freezer or utcnow offset) instead of sleeping",
+        "Does NOT use time.sleep or asyncio.sleep to wait for the interval"
+      ]
+    }
+  ]
+}

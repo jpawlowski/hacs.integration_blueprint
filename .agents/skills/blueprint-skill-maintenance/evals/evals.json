@@ -1,0 +1,37 @@
+{
+  "skill_name": "blueprint-skill-maintenance",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Add a new agent skill covering the recorder and long-term statistics API.",
+      "expected_output": "Creates .agents/skills/<name>/SKILL.md with folded-scalar frontmatter and placeholders, adds evals, updates the catalogue in every place it is duplicated, and validates.",
+      "assertions": [
+        "Uses the <domain> and {ClassPrefix} placeholders rather than the blueprint's concrete identifiers",
+        "Writes the description as a folded YAML block scalar, not a single-line value",
+        "Adds an evals/evals.json alongside the SKILL.md",
+        "Updates the catalogue in both .agents/skills/README.md and AGENTS.md",
+        "Runs script/skills-check (and script/markdown) afterwards"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "The coordinator skill should state that entities must never call the API client directly. Add that rule to it.",
+      "expected_output": "Recognises this as a declarative rule that belongs in .agents/instructions/, not in a skill, and checks whether it is already documented there before adding anything.",
+      "assertions": [
+        "Identifies the statement as a rule rather than a procedure",
+        "Proposes putting it in the relevant .agents/instructions file instead of the skill body",
+        "Checks whether the rule already exists there rather than duplicating it"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Rename the ha-testing skill to ha-tests, it reads better.",
+      "expected_output": "Points out that renaming changes the invocation name, requires updating every catalogue entry, and silently breaks downstream .templatesyncignore entries pinning the old path.",
+      "assertions": [
+        "Warns that a rename breaks downstream .templatesyncignore entries that pin the old path",
+        "Notes that every catalogue entry and cross-link must be updated",
+        "Does not perform the rename without the developer confirming it is worth the cost"
+      ]
+    }
+  ]
+}

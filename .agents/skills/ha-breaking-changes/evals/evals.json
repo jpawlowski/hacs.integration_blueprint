@@ -1,0 +1,33 @@
+{
+  "skill_name": "ha-breaking-changes",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "The EntityDescription keys are ugly. Rename them to something cleaner.",
+      "expected_output": "Warns that unique IDs and entity IDs would change, offers a registry migration, and waits for a decision.",
+      "assertions": [
+        "Warns that this breaks existing installations before making the change",
+        "Offers a unique ID migration as the alternative to a hard break",
+        "Asks for an explicit decision instead of proceeding"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Delete the legacy_mode config option, nothing uses it.",
+      "expected_output": "Flags removing a config option as breaking and asks for explicit approval.",
+      "assertions": [
+        "Identifies removing a config option as a breaking change",
+        "Requests explicit approval rather than removing it"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Bump the minimum Home Assistant version in hacs.json to the latest release.",
+      "expected_output": "Points out that this drops support for users on older versions and belongs in the release notes.",
+      "assertions": [
+        "Points out that users on older Home Assistant versions lose support",
+        "Says the change must be documented as a breaking change"
+      ]
+    }
+  ]
+}

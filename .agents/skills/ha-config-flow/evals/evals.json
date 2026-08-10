@@ -1,0 +1,35 @@
+{
+  "skill_name": "ha-config-flow",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Let users change how often the integration polls, after setup.",
+      "expected_output": "Adds the option to the options flow schema with a NumberSelector and a default, plus data and data_description translation keys.",
+      "assertions": [
+        "Puts the setting in the options flow rather than entry.data",
+        "Uses a selector (e.g. NumberSelector) rather than a bare vol.Coerce",
+        "Adds both data and data_description translation keys for the field",
+        "Handles existing entries that do not have the key yet, via a default or a migration"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Add zeroconf discovery for this device.",
+      "expected_output": "Adds the matcher to manifest.json, implements async_step_zeroconf, sets a unique ID from the payload and aborts if already configured while updating the host.",
+      "assertions": [
+        "Adds a zeroconf matcher to manifest.json",
+        "Implements async_step_zeroconf and ends on a user confirmation step",
+        "Calls _abort_if_unique_id_configured with updates= so an existing entry follows a changed IP"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Just use the device's IP address as the unique_id, it never changes on my network.",
+      "expected_output": "Pushes back: an IP is not an acceptable unique ID, proposes serial number or MAC, and explains the consequence.",
+      "assertions": [
+        "Explains that an IP address is not an acceptable unique ID",
+        "Proposes a stable alternative such as serial number or MAC address"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "skill_name": "ha-coordinator-debug",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "All my entities went unavailable after I restarted Home Assistant. Fix it.",
+      "expected_output": "Reads config/home-assistant.log and the coordinator before proposing a fix, rather than guessing at code changes.",
+      "assertions": [
+        "Inspects config/home-assistant.log (or the live output) before proposing a fix",
+        "Uses ./script/develop rather than a hand-written hass command",
+        "Considers the coordinator's first refresh and which exception type it raises"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "In _async_update_data, just return None when the API call fails so nothing crashes.",
+      "expected_output": "Refuses and explains that failure is signalled by raising UpdateFailed or ConfigEntryAuthFailed.",
+      "assertions": [
+        "Explains that returning None is wrong and the coordinator signals failure by raising",
+        "Names UpdateFailed for transient failures and ConfigEntryAuthFailed for rejected credentials"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run pytest and tell me what breaks.",
+      "expected_output": "Uses script/test instead of invoking pytest directly.",
+      "assertions": [
+        "Runs script/test rather than a bare pytest invocation"
+      ]
+    }
+  ]
+}

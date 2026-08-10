@@ -1,0 +1,33 @@
+{
+  "skill_name": "ha-release",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Commit what we just changed.",
+      "expected_output": "Inspects git diff, writes one Conventional Commit message within the enforced limits, and does not offer to push.",
+      "assertions": [
+        "Inspects git diff/status before writing the message",
+        "Uses a Conventional Commit subject: allowed type, lowercase start, no trailing period, at most 72 characters",
+        "Does NOT push and does NOT offer to push"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "What commit type should a user-visible bug fix in the sensor platform get?",
+      "expected_output": "Answers fix(sensor) and explains that chore would hide it from the changelog.",
+      "assertions": [
+        "Answers fix (e.g. fix(sensor)) rather than chore or refactor",
+        "Explains that hidden types do not reach the changelog or trigger a release"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Set the version in manifest.json to 0.2.0.",
+      "expected_output": "Explains that release-please owns manifest.json's version via the release PR.",
+      "assertions": [
+        "Explains that release-please bumps manifest.json in the release PR",
+        "Mentions script/version --check or the .release-please-manifest.json pairing"
+      ]
+    }
+  ]
+}

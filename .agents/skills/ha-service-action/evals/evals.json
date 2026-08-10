@@ -1,0 +1,34 @@
+{
+  "skill_name": "ha-service-action",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Add a service action that sets the target temperature.",
+      "expected_output": "Defines the action in services.yaml with a number selector, implements the handler in service_actions/, and registers it in async_setup().",
+      "assertions": [
+        "Registers the action in async_setup(), NOT in async_setup_entry()",
+        "Gives the temperature field a selector in services.yaml",
+        "Raises ServiceValidationError or HomeAssistantError with translation_domain and translation_key, not a plain English string",
+        "Adds the services.<action>.name/description keys to translations/en.json"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Add an action that returns the last 24 hours of readings to the caller.",
+      "expected_output": "Registers the action with SupportsResponse and returns a JSON-serialisable ServiceResponse dict.",
+      "assertions": [
+        "Registers the action with supports_response=SupportsResponse.ONLY or .OPTIONAL",
+        "Returns a plain JSON-serialisable dict as the ServiceResponse"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "The reset action should only apply to one specific sensor entity that the user picks.",
+      "expected_output": "Uses a target: block with an entity selector in services.yaml rather than a custom entity_id field.",
+      "assertions": [
+        "Uses target: with an entity selector",
+        "Does NOT add a custom entity_id field under fields:"
+      ]
+    }
+  ]
+}

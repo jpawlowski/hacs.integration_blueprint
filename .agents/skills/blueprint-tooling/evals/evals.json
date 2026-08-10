@@ -1,0 +1,33 @@
+{
+  "skill_name": "blueprint-tooling",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run ruff and fix the lint errors in my code.",
+      "expected_output": "Uses script/python or script/lint instead of invoking ruff directly.",
+      "assertions": [
+        "Runs script/python or script/lint rather than calling ruff directly",
+        "Does NOT run a -check script afterwards to re-verify what the fix script already reported"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "The integration now needs the mydevice-api package. Add it.",
+      "expected_output": "Adds the pinned package to both manifest.json requirements and requirements.txt, then reinstalls.",
+      "assertions": [
+        "Adds the requirement to manifest.json",
+        "Adds the same pinned package to requirements.txt",
+        "Runs script/setup/bootstrap or an equivalent reinstall step"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I want a custom step to run automatically after every test run.",
+      "expected_output": "Points to script/hooks/test.post.sh rather than editing the template-managed script.",
+      "assertions": [
+        "Proposes script/hooks/test.post.sh",
+        "Does NOT propose editing script/test itself"
+      ]
+    }
+  ]
+}

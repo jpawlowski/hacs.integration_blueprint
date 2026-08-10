@@ -1,0 +1,32 @@
+{
+  "skill_name": "ha-translations",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Add a German translation for the new power sensor.",
+      "expected_output": "Adds the English key and asks before creating or editing de.json, per the project's en.json-only rule.",
+      "assertions": [
+        "Adds or confirms the key in translations/en.json",
+        "Asks for confirmation before writing a non-English language file instead of machine-translating it"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Make the integration show 'Cannot reach device' when the connection fails.",
+      "expected_output": "Adds an exceptions.<key>.message entry and raises with translation_domain/translation_key rather than embedding the English string in Python.",
+      "assertions": [
+        "Raises with translation_domain and translation_key instead of a literal English message",
+        "Adds the string under exceptions.<key>.message in en.json"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Give the power sensor a lightning bolt icon.",
+      "expected_output": "Uses icons.json, and points out that a device_class often makes an explicit icon unnecessary.",
+      "assertions": [
+        "Puts the icon in icons.json rather than EntityDescription(icon=...)",
+        "Mentions that a matching device_class provides the icon automatically"
+      ]
+    }
+  ]
+}

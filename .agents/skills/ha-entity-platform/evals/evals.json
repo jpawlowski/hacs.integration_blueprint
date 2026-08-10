@@ -1,0 +1,36 @@
+{
+  "skill_name": "ha-entity-platform",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Add a sensor that exposes the device's current power draw in watts.",
+      "expected_output": "Creates a SensorEntityDescription with translation_key, SensorDeviceClass.POWER and SensorStateClass.MEASUREMENT, reads the value from coordinator.data, and adds the translation key to en.json.",
+      "assertions": [
+        "Uses translation_key in the EntityDescription rather than a hardcoded name=",
+        "Sets device_class=SensorDeviceClass.POWER and state_class=SensorStateClass.MEASUREMENT",
+        "Reads the value from coordinator.data instead of calling the API client from the entity",
+        "Does NOT set _attr_unique_id or _attr_device_info in the platform entity — the base entity owns those"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Add a sensor showing how long the last API request took. It is only interesting when something is broken.",
+      "expected_output": "Creates the sensor with entity_category=EntityCategory.DIAGNOSTIC and entity_registry_enabled_default=False.",
+      "assertions": [
+        "Sets entity_category=EntityCategory.DIAGNOSTIC",
+        "Suggests entity_registry_enabled_default=False because the entity is rarely useful",
+        "Uses a duration device class or an explicit unit rather than a bare number"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Add a switch that turns the device's eco mode on and off.",
+      "expected_output": "Creates a switch whose class inherits (SwitchEntity, {ClassPrefix}Entity), calls the API client through runtime_data and requests a coordinator refresh after writing.",
+      "assertions": [
+        "Declares the class as (SwitchEntity, <base entity>) with the Home Assistant platform base first",
+        "Calls async_request_refresh (or equivalent) after the write instead of only mutating local state",
+        "Wraps API failures in HomeAssistantError with a translation_key rather than letting a raw client error escape"
+      ]
+    }
+  ]
+}

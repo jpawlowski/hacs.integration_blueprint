@@ -1,0 +1,33 @@
+{
+  "skill_name": "ha-quality-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review this integration and tell me what to fix before I publish it.",
+      "expected_output": "Runs the automated gates first, then reports findings ranked by severity with file paths and concrete fixes.",
+      "assertions": [
+        "Runs script/lint, script/type-check, script/hassfest and script/test before judging",
+        "Groups findings by severity rather than listing them flat",
+        "Gives a file path (and ideally a line) plus a concrete fix for each finding"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Are we at Gold on the quality scale?",
+      "expected_output": "Walks the Gold rule list and reports pass/fail/not-applicable per rule instead of giving a vague verdict.",
+      "assertions": [
+        "Enumerates the actual Gold rule identifiers rather than answering impressionistically",
+        "States which specific rules currently fail and why"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Great — so the integration is fully tested and works with real hardware?",
+      "expected_output": "States plainly what was and was not verified, and does not claim real-device testing that did not happen.",
+      "assertions": [
+        "Does NOT claim real-device testing or human review that did not happen",
+        "Explicitly states what could not be verified"
+      ]
+    }
+  ]
+}

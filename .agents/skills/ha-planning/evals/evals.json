@@ -1,0 +1,33 @@
+{
+  "skill_name": "ha-planning",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Convert the whole integration to use config subentries, one per device.",
+      "expected_output": "Produces a phased plan naming concrete files and asks for confirmation before implementing.",
+      "assertions": [
+        "Produces a plan and asks for confirmation before starting the implementation",
+        "Phases reference concrete files rather than vague activities",
+        "Flags the migration and breaking-change implications"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "We're writing our own aiohttp client instead of using the vendor SDK.",
+      "expected_output": "Offers to record the decision in docs/development/DECISIONS.md with context, rationale and consequences.",
+      "assertions": [
+        "Offers to record the decision in docs/development/DECISIONS.md",
+        "Includes trade-offs or consequences, not only the benefits"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Write the plan into PLAN.md in the repository root.",
+      "expected_output": "Points to .agents/scratch/ for working documents and asks before creating a permanent markdown file.",
+      "assertions": [
+        "Proposes .agents/scratch/ for the working plan",
+        "Asks before creating a permanent markdown file in the repository"
+      ]
+    }
+  ]
+}
