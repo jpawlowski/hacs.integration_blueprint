@@ -60,6 +60,11 @@ fi
 
 run_hook "develop" "pre"
 
+# Mint the token script/ha authenticates with. Deliberately after the hook, so a
+# downstream repository can opt out with `export HA_DEV_TOKEN=0` in
+# script/hooks/develop.pre.sh. Never fatal — Home Assistant must still start.
+"$SCRIPT_DIR/setup/seed-auth" || log_warning "Continuing without a development token"
+
 # Set the path to custom_components
 ## This let's us have the structure we want <root>/custom_components/<domain>
 ## while at the same time have Home Assistant configuration inside <root>/config
