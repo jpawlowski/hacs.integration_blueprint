@@ -24,6 +24,13 @@ pre-commit==4.6.1
 # Better logging for development scripts
 colorlog==6.12.0
 
+# Agent Skills reference validator (https://agentskills.io)
+# Optional cross-check used by script/skills-check on top of its own validation.
+# Upstream labels this a demonstration library, so the built-in checks in
+# script/.lib/skills_check.py stay authoritative and the script degrades
+# gracefully when it is absent.
+skills-ref==0.1.1
+
 # Performance optimizations (optional but recommended for faster development)
 # These speed up Home Assistant's startup and runtime
 zlib_ng==1.0.0

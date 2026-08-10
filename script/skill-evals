@@ -1,0 +1,77 @@
+#!/bin/bash
+
+# script/skill-evals: Run behavioural evals for the agent skills
+#
+# Sends each prompt in .agents/skills/*/evals/evals.json to an agent CLI running in
+# this repository, then grades the answer against that eval's assertions with a
+# second model call. This measures whether a skill actually changes agent
+# behaviour — something script/skills-check cannot tell you.
+#
+# Costs real model calls (two per eval), so it is deliberately NOT part of
+# script/check. Run it after editing a skill, and after a Home Assistant version
+# bump that may have invalidated a skill's advice.
+#
+# Requires GitHub Copilot CLI and an authenticated gh session (gh auth login).
+#
+# Usage:
+#   ./script/skill-evals [skill-name]
+#
+# Environment:
+#   COPILOT_MODEL        Model to use (default: claude-sonnet-4.6)
+#   SKILL_EVAL_TIMEOUT   Per-call timeout in seconds (default: 300)
+#
+# Examples:
+#   ./script/skill-evals                     # all skills
+#   ./script/skill-evals ha-entity-platform  # one skill
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/.."
+
+# shellcheck source=script/.lib/output.sh
+source "$SCRIPT_DIR/.lib/output.sh"
+
+activate_venv
+
+SKILL_FILTER="${1:-}"
+COPILOT_MODEL="${COPILOT_MODEL:-claude-sonnet-4.6}"
+EVAL_TIMEOUT="${SKILL_EVAL_TIMEOUT:-300}"
+
+if [[ -n $SKILL_FILTER && ! -d ".agents/skills/$SKILL_FILTER" ]]; then
+    die "Unknown skill: $SKILL_FILTER (see .agents/skills/)"
+fi
+
+# Resolve the agent CLI — prefer the workspace copy, then PATH
+if [[ -x "$PWD/node_modules/.bin/copilot" ]]; then
+    AGENT_BIN="$PWD/node_modules/.bin/copilot"
+elif command -v copilot >/dev/null 2>&1; then
+    AGENT_BIN="copilot"
+else
+    die "GitHub Copilot CLI not found. Install with: npm install @github/copilot"
+fi
+
+run_hook "skill-evals" "pre"
+
+log_header "Running agent skill evals"
+log_info "Model: $COPILOT_MODEL"
+if [[ -n $SKILL_FILTER ]]; then
+    log_info "Skill: $SKILL_FILTER"
+fi
+log_warning "This makes real model calls and can take several minutes"
+
+status=0
+python3 "$SCRIPT_DIR/.lib/skill_evals.py" \
+    --agent-bin "$AGENT_BIN" \
+    --model "$COPILOT_MODEL" \
+    --timeout "$EVAL_TIMEOUT" \
+    ${SKILL_FILTER:+--skill "$SKILL_FILTER"} || status=$?
+
+run_hook "skill-evals" "post"
+
+if [[ $status -ne 0 ]]; then
+    log_error "Some evals failed — read the report before changing a skill"
+    exit "$status"
+fi
+
+log_success "All skill evals passed"
