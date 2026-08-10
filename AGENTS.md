@@ -56,7 +56,7 @@ pkill -f "hass --config" || true && pkill -f "debugpy.*5678" || true && ./script
 
 **Context-specific instructions:**
 
-Path-specific style rules live in `.agents/instructions/*.instructions.md`, one file per file type (Python, YAML, entities, config flow, …). They load automatically for the file you are touching in **GitHub Copilot and VS Code** (via `applyTo`) and in **Claude Code** (via `globs`, through the `.claude/rules/instructions` symlink) — one copy of each file serves both.
+Path-specific style rules live in `.agents/instructions/*.instructions.md`, one file per file type (Python, YAML, entities, config flow, …). They load automatically for the file you are touching in **GitHub Copilot and VS Code** (via `applyTo`) and in **Claude Code** (via `paths`, through the `.claude/rules/instructions` symlink) — one copy of each file serves both.
 
 **Codex and other agents have no such mechanism: open the matching instructions file yourself before editing a file of that type.** Each agent skill names the one it depends on.
 

@@ -20,7 +20,7 @@ symlinks fill the rest:
 | Codex CLI      | `AGENTS.md` (native)                    | — none; open the file yourself        | `.agents/skills/` |
 | GitHub Copilot | `AGENTS.md` (native)                    | `.github/instructions/` via `applyTo` | `.agents/skills/` |
 | VS Code        | `AGENTS.md` (native)                    | `.github/instructions/` via `applyTo` | `.agents/skills/` |
-| Claude Code    | `CLAUDE.md`, which imports `@AGENTS.md` | `.claude/rules/` via `globs`          | `.claude/skills/` |
+| Claude Code    | `CLAUDE.md`, which imports `@AGENTS.md` | `.claude/rules/` via `paths`          | `.claude/skills/` |
 
 ```text
 .agents/instructions/         real directory — edit here
@@ -33,8 +33,8 @@ symlinks fill the rest:
 Editing through a symlink edits the same file. Do it in `.agents/` anyway, so your diff shows the path other
 maintainers see. Never turn a symlink back into a real directory — that is how vendor copies drift apart.
 
-Each instructions file carries the same glob list twice: `applyTo` for Copilot and VS Code, `globs` for Claude Code.
-`script/skills-check` fails the build if the two disagree, or if `globs` is missing — a rule without it loads into
+Each instructions file carries the same glob list twice: `applyTo` for Copilot and VS Code, `paths` for Claude Code.
+`script/skills-check` fails the build if the two disagree, or if `paths` is missing — a rule without it loads into
 every Claude Code session instead of the files it was scoped to.
 
 ## The four layers

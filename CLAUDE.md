@@ -16,6 +16,6 @@ there and is not repeated here.
 Both are symlinks. **Edit the real `.agents/` paths**, so your diff shows the same file another maintainer would
 touch.
 
-Path-scoped rules load automatically for the file you are working on, matched by the `globs` key in each file's
-frontmatter. If they appear not to apply, that key is the first thing to check — a rule with no `globs` loads into
+Path-scoped rules load automatically for the file you are working on, matched by the `paths` key in each file's
+frontmatter. If they appear not to apply, that key is the first thing to check — a rule with no `paths` loads into
 every session instead, and a malformed one silently loads into none.

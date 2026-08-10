@@ -197,10 +197,10 @@ Agent-facing content is layered so each piece is loaded only when it is relevant
 Style rules belong in `.agents/instructions/`, procedures belong in a skill, explanations belong in `docs/`.
 
 One copy of each instruction file serves two agents: GitHub Copilot and VS Code match its `applyTo` glob string,
-Claude Code matches the identical `globs` string and reaches the same files through the
-`.claude/rules/instructions` symlink. Codex has no comparable file-triggered mechanism — its nested `AGENTS.md` support keys off the working
-directory rather than the file being edited — so it relies on the root `AGENTS.md` plus the pointers each skill
-carries.
+Claude Code matches the same patterns via `paths` (a YAML list, one pattern per item) and reaches the same files
+through the `.claude/rules/instructions` symlink. Codex has no comparable file-triggered mechanism — its nested
+`AGENTS.md` support keys off the working directory rather than the file being edited — so it relies on the root
+`AGENTS.md` plus the pointers each skill carries.
 
 The skill catalogue, the symlink layout that makes one directory work for every agent vendor, and the rules for writing
 a new skill are documented in [`.agents/skills/README.md`](../../.agents/skills/README.md).
