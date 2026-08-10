@@ -183,108 +183,29 @@ Platform entities inherit from both:
 └─────────┘         └─────────┘
 ```
 
-## AI Agent Instructions
+## AI Agent Context
 
-This project includes comprehensive instruction files for AI coding assistants (GitHub Copilot, Claude, etc.) to ensure consistent code generation that follows Home Assistant patterns and project conventions.
+Agent-facing content is layered so each piece is loaded only when it is relevant:
 
-### Instruction File Architecture
+| Layer                             | Loaded                      | Contains                                          |
+| --------------------------------- | --------------------------- | ------------------------------------------------- |
+| `AGENTS.md`                       | always                      | project identity, workflow rules, validation loop |
+| `.agents/instructions/*.md`       | per touched file            | passive style rules for one file type             |
+| `.agents/skills/*/SKILL.md`       | when a task matches         | active procedures for a specific kind of work     |
+| `docs/development/`, `docs/user/` | when a human or agent reads | explanations, decisions, guides — this document   |
 
-**Layered approach:**
+Style rules belong in `.agents/instructions/`, procedures belong in a skill, explanations belong in `docs/`.
 
-1. **`AGENTS.md`** - High-level "survival guide" for all AI agents (project overview, workflow, validation)
-2. **`.github/instructions/*.instructions.md`** - Detailed path-specific patterns (applied based on file being edited)
-3. **`.github/copilot-instructions.md`** - GitHub Copilot-specific workflow guidance
+One copy of each instruction file serves two agents: GitHub Copilot and VS Code match its `applyTo` glob string,
+Claude Code matches the identical `globs` string and reaches the same files through the
+`.claude/rules/instructions` symlink. Codex has no comparable file-triggered mechanism — its nested `AGENTS.md` support keys off the working
+directory rather than the file being edited — so it relies on the root `AGENTS.md` plus the pointers each skill
+carries.
 
-### Available Instruction Files
+The skill catalogue, the symlink layout that makes one directory work for every agent vendor, and the rules for writing
+a new skill are documented in [`.agents/skills/README.md`](../../.agents/skills/README.md).
 
-| File                                           | Applies To                                            | Purpose                                                                        |
-| ---------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `blueprint.python.instructions.md`             | `**/*.py`                                             | Python code style, imports, type hints, async patterns, linting                |
-| `blueprint.yaml.instructions.md`               | `**/*.yaml`, `**/*.yml`                               | YAML formatting, Home Assistant YAML conventions                               |
-| `blueprint.json.instructions.md`               | `**/*.json`                                           | JSON formatting, schema validation, no trailing commas                         |
-| `blueprint.markdown.instructions.md`           | `**/*.md`                                             | Markdown formatting, documentation structure, linting                          |
-| `blueprint.manifest.instructions.md`           | `**/manifest.json`                                    | Integration manifest requirements, quality scale, IoT class                    |
-| `blueprint.configuration_yaml.instructions.md` | `**/configuration.yaml`                               | Home Assistant configuration patterns (deprecated for device integrations)     |
-| `blueprint.config_flow.instructions.md`        | `**/config_flow_handler/**/*.py`, `**/config_flow.py` | Config flow patterns, discovery, reauth, reconfigure, unique IDs               |
-| `blueprint.service_actions.instructions.md`    | `**/service_actions/**/*.py`                          | Service action implementation, registration in `async_setup()`, error handling |
-| `blueprint.services_yaml.instructions.md`      | `**/services.yaml`                                    | Service action definitions, schema, descriptions, examples (legacy filename)   |
-| `blueprint.entities.instructions.md`           | Entity platform files                                 | Entity implementation, EntityDescription, device info, state management        |
-| `blueprint.coordinator.instructions.md`        | `**/coordinator/**/*.py`, `**/api/**/*.py`            | DataUpdateCoordinator patterns, error handling, caching, pull vs push          |
-| `blueprint.api.instructions.md`                | `**/api/**/*.py`, `**/coordinator/**/*.py`            | API client implementation, exceptions, rate limiting, pagination               |
-| `blueprint.diagnostics.instructions.md`        | `**/diagnostics.py`                                   | Diagnostics data collection, `async_redact_data()` for sensitive data          |
-| `blueprint.repairs.instructions.md`            | `**/repairs.py`                                       | Repair flows, issue creation, severity levels, fix flows                       |
-| `blueprint.translations.instructions.md`       | `**/translations/*.json`                              | Translation file structure, placeholders, nested keys                          |
-| `blueprint.tests.instructions.md`              | `tests/**/*.py`                                       | Test patterns, fixtures, mocking, pytest conventions                           |
-
-> [!NOTE]
-> Entity platform files include: `alarm_control_panel/**/*.py`, `binary_sensor/**/*.py`, `button/**/*.py`, `camera/**/*.py`, `climate/**/*.py`, `cover/**/*.py`, `fan/**/*.py`, `humidifier/**/*.py`, `light/**/*.py`, `lock/**/*.py`, `number/**/*.py`, `select/**/*.py`, `sensor/**/*.py`, `siren/**/*.py`, `switch/**/*.py`, `vacuum/**/*.py`, `water_heater/**/*.py`, `entity/**/*.py`, `entity_utils/**/*.py`
-
-### Instruction File Application
-
-**GitHub Copilot:**
-
-Uses frontmatter `applyTo` patterns to automatically apply instructions based on file being edited:
-
-```yaml
----
-applyTo:
-  - "**/*.py"
----
-```
-
-**Other AI Agents:**
-
-Typically read `AGENTS.md` for project overview and may use path-specific instructions when available.
-
-### Benefits
-
-- ✅ **Consistent code quality** - AI generates code that passes validation on first run
-- ✅ **Home Assistant patterns** - Follows Core development standards and best practices
-- ✅ **Context-aware** - File-specific instructions ensure appropriate patterns
-- ✅ **Reduced iteration** - Fewer validation errors and corrections needed
-- ✅ **Knowledge transfer** - Instructions document project conventions and decisions
-
-### Maintaining Instructions
-
-- Keep `AGENTS.md` concise (high-level guidance only, ~30,000 ft view)
-- Put detailed patterns in path-specific `.instructions.md` files
-- Update instructions when patterns change or new conventions emerge
-- Remove outdated rules to prevent bloat
-- Document major architectural decisions in `DECISIONS.md`
-
-### Using GitHub Copilot Coding Agent
-
-**GitHub Copilot Coding Agent** ([github.com/copilot/agents](https://github.com/copilot/agents)) can autonomously initialize new projects from this template and implement features.
-
-**Template Initialization:**
-
-When creating a repository from this template, you can provide a prompt to Copilot Coding Agent that includes:
-
-- Integration domain, title, and repository details
-- Instructions to run `initialize.sh` in unattended mode with `--force` flag
-- The agent will set up the project and create an initialization pull request
-
-**Working with initialized projects:**
-
-Once a project is initialized, Copilot Coding Agent:
-
-- Automatically reads all instruction files (`AGENTS.md`, `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md`)
-- Runs validation scripts (`script/check`) to verify changes
-- Creates pull requests with comprehensive implementations
-- Can iterate based on test failures and linter errors
-
-**Agent-specific instructions (since November 2025):**
-
-Use `excludeAgent` frontmatter to control which agents use specific instructions:
-
-```yaml
----
-applyTo: "**/*.py"
-excludeAgent: "code-review" # Only coding-agent uses this
----
-```
-
-See [`COPILOT_AGENT.md`](./COPILOT_AGENT.md) for detailed usage instructions, example prompts, and troubleshooting.
+For using the GitHub Copilot coding agent with this repository, see [`COPILOT_AGENT.md`](./COPILOT_AGENT.md).
 
 ## Key Design Decisions
 

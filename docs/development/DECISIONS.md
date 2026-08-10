@@ -12,6 +12,10 @@ Each decision is documented with:
 - **Rationale:** Why this approach was chosen
 - **Consequences:** Expected impacts and trade-offs
 
+> [!NOTE]
+> Guidance on _when_ a decision is worth recording here, and a copy-ready entry template, lives in the
+> [`ha-planning`](../../.agents/skills/ha-planning/SKILL.md) agent skill.
+
 ---
 
 ## Decision Log

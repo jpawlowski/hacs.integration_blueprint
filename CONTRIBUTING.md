@@ -59,24 +59,34 @@ Run `script/check` to lint and type-check your code before submitting, or `scrip
 
 **Local validation:** Run `script/hassfest` to validate your integration against Home Assistant's quality standards using the official validation tools. This checks manifest.json, translations, services.yaml (service action definitions), and integration structure locally before pushing to GitHub.
 
-## GitHub Copilot Support
+## AI Agent Support
 
-This project includes [prompt files](./.github/prompts/) to help you work more efficiently with GitHub Copilot. These reusable templates provide context and requirements for common tasks:
+This project ships [agent skills](./.agents/skills/README.md) — task-triggered playbooks written against the open
+[`SKILL.md`](https://agentskills.io/specification) standard. They work with GitHub Copilot, Claude Code, OpenAI Codex
+CLI, Cursor, Gemini CLI, and any other tool that implements the standard. Codex, Copilot and VS Code read
+`.agents/skills/` directly; Claude Code reaches the same files through the `.claude/skills/` symlink.
 
-- **Add New Sensor** - Create sensors with proper structure
-- **Add New Service** - Implement services with validation
-- **Add Config Option** - Add configuration options to flows
-- **Add Entity to Device** - Expand device capabilities
-- **Debug Coordinator Issue** - Diagnose data update problems
-- **Update Translations** - Manage multilingual strings
+Skills cover adding entity platforms and service actions, config flow work, debugging the coordinator, translations,
+testing, quality-scale review, deprecated APIs, breaking changes, planning, releases, and repository tooling. A
+compatible agent loads the right one on its own; ask for it by name if it does not.
 
-**Example usage in Copilot Chat:**
+Alongside those, `AGENTS.md` provides always-on project context and `.agents/instructions/*.instructions.md` provide
+per-file-type style rules for GitHub Copilot.
 
-```text
-#file:Add New Sensor.prompt.md Add a temperature sensor
+Two commands keep the skills honest:
+
+```bash
+script/skills-check                     # structure — runs in CI and as a pre-commit hook
+script/skill-evals [skill-name]         # behaviour — costs model calls, run it manually
 ```
 
-See the prompt files in `.github/prompts/` for details on using these templates.
+**Companion skill for operating Home Assistant.** These skills cover _developing_ the integration. When you drive the
+devcontainer's Home Assistant instance with an agent — creating test automations, dashboards, or helpers while trying
+your integration out — the community
+[`home-assistant-best-practices`](https://github.com/homeassistant-ai/skills) skill covers that side. It is not bundled
+here and not required; install it into your own agent if you find it useful.
+
+Please read [`AI_POLICY.md`](./AI_POLICY.md) before submitting AI-assisted contributions.
 
 ## Code Quality
 

@@ -71,7 +71,7 @@ Verify: custom_components/<domain>/ exists, manifest.json correct, README.md upd
 
 **Example:** `--domain my_device --title "My Device" --repo user/hacs-my-device --author "John Doe" --force`
 
-The agent uses `AGENTS.md` and `.github/copilot-instructions.md` for guidance and runs `./script/check` for validation.
+The agent reads `AGENTS.md` for guidance and runs `./script/check` for validation.
 Its pull request is a draft: review the diff and accurately document automated and real-device testing before merging.
 
 **Manual initialization?** Continue with Option 1 or Option 2 below.
@@ -748,9 +748,15 @@ This blueprint is optimized for development with AI coding assistants like **Git
 **Quick start for AI assistants:**
 
 - **`AGENTS.md`** - Primary instruction file with project overview, workflow, and validation guidelines
-- **`.github/instructions/*.instructions.md`** - 16 path-specific instruction files for different file types (Python, YAML, JSON, config flows, entities, repairs, etc.)
-- **`.github/copilot-instructions.md`** - GitHub Copilot-specific workflow guidance
+- **`.agents/skills/*/SKILL.md`** - Task-triggered [agent skills](.agents/skills/README.md) written against the open
+  `SKILL.md` standard, covering entity platforms, service actions, config flow, debugging, translations, testing,
+  quality review, deprecated APIs, breaking changes, planning, releases, and tooling
+- **`.agents/instructions/*.instructions.md`** - 18 path-specific instruction files for different file types (Python, YAML, JSON, config flows, entities, repairs, etc.)
 - **`docs/development/COPILOT_AGENT.md`** - Guide for using GitHub Copilot Coding Agent with this template
+
+**One skill directory, every agent:** `.agents/skills/` is the vendor-neutral location Codex CLI, GitHub Copilot and
+VS Code read directly. Claude Code only looks in `.claude/skills/`, which is a symlink to it — so a skill is written
+once and works everywhere.
 
 **Benefits:**
 
@@ -773,11 +779,13 @@ See [`docs/development/COPILOT_AGENT.md`](docs/development/COPILOT_AGENT.md) for
 
 **For complete details:**
 
-See [`docs/development/ARCHITECTURE.md`](docs/development/ARCHITECTURE.md#ai-agent-instructions) for the full list of instruction files, their purpose, and application patterns.
+See [`.agents/skills/README.md`](.agents/skills/README.md) for the skill catalogue, the symlink layout, and how to write
+a new skill; see [`docs/development/ARCHITECTURE.md`](docs/development/ARCHITECTURE.md#ai-agent-context) for how the
+layers fit together.
 
 **Maintaining instructions:**
 
-As your integration evolves, keep these instruction files updated. They should reflect your actual patterns and decisions, not just theoretical guidelines. When you establish new conventions or change approaches, update the relevant instruction files so AI agents stay aligned with your project's direction.
+As your integration evolves, keep these files updated. They should reflect your actual patterns and decisions, not just theoretical guidelines. Style rules belong in `.agents/instructions/`, procedures in a skill, explanations in `docs/`. When you establish new conventions or change approaches, update the relevant file so AI agents stay aligned with your project's direction.
 
 </details>
 
@@ -964,7 +972,7 @@ and maturity are communicated honestly. See our [`AI_POLICY.md`](AI_POLICY.md) f
 custom integrations and contributions to Home Assistant Core.
 
 The comprehensive AI agent instructions included in this repository ([`AGENTS.md`](AGENTS.md),
-`.github/instructions/`) help humans and agents produce inspectable code using Home Assistant Core patterns and
+`.agents/instructions/`) help humans and agents produce inspectable code using Home Assistant Core patterns and
 automated quality checks. These safeguards improve verifiability but do not guarantee correctness.
 
 ---

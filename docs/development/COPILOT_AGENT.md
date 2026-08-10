@@ -4,7 +4,7 @@
 
 **Context:** This project is a fresh, unmodified blueprint template. Your task is to transform it into a working integration for the target device/service.
 
-The blueprint is well-documented (see `AGENTS.md` and `.github/copilot-instructions.md`). You should analyze the existing structure and remove/modify files as needed.
+The blueprint is well-documented (see `AGENTS.md`, which Copilot reads natively). You should analyze the existing structure and remove/modify files as needed.
 
 ### What to Include in Your Prompt
 
@@ -158,4 +158,6 @@ configuration files rather than in instruction prose.
 ## Resources
 
 - [GitHub Copilot Best Practices](https://docs.github.com/en/copilot/tutorials/coding-agent/get-the-best-results)
-- `AGENTS.md` and `.github/copilot-instructions.md` - Instructions Copilot reads automatically
+- `AGENTS.md` - Read automatically by Copilot; the single always-loaded instruction file for every agent
+- [`.agents/skills/`](../../.agents/skills/README.md) - Task-triggered agent skills. Copilot reads this location
+  directly; Claude Code reaches the same files through the `.claude/skills/` symlink

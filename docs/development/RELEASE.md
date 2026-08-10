@@ -8,6 +8,12 @@ Releases are managed with [release-please](https://github.com/googleapis/release
 
 **Version source of truth:** `custom_components/ha_integration_domain/manifest.json`
 
+> [!NOTE]
+> This document explains _how the release machinery works_ and covers the one-time GitHub repository setup. The
+> step-by-step procedure for cutting a release, the commit-message rules that drive it, and the pre-release checklist
+> are maintained as the [`ha-release`](../../.agents/skills/ha-release/SKILL.md) agent skill, so humans and AI agents
+> follow the same process.
+
 ## How It Works
 
 ### The Release Cycle
@@ -104,7 +110,7 @@ Generates AI-enhanced release notes using [GitHub Copilot CLI](https://docs.gith
 4. Sends everything to Copilot CLI via stdin (avoids shell-escaping issues with large prompts)
 5. Outputs the result to stdout, or updates the PR body with `--apply`
 
-**`--interactive` mode** writes the full prompt and context to `.ai-scratch/release-notes-context.md` and launches a Copilot CLI session so you can iterate manually.
+**`--interactive` mode** writes the full prompt and context to `.agents/scratch/release-notes-context.md` and launches a Copilot CLI session so you can iterate manually.
 
 **Skip a commit from release notes** by adding a trailer to the commit body:
 
@@ -127,30 +133,17 @@ User-Impact: none
 
 ## Typical Release Workflow
 
-### Minimal (automated only)
+The end-to-end procedure — commit conventions, the pre-release checklist, and troubleshooting a release that did not
+happen — is documented in the [`ha-release`](../../.agents/skills/ha-release/SKILL.md) skill.
+
+The short version:
 
 ```bash
-# 1. Work on features, commit using Conventional Commits
-git commit -m "feat(sensor): add air quality index sensor"
-
-# 2. Push to main — release-please opens/updates PR automatically
-
-# 3. When ready to release: review the PR on GitHub, then merge it
-```
-
-### With enhanced release notes
-
-```bash
-# 1. Check the current version and open PR
-./script/version
-
-# 2. Generate Copilot-enhanced release notes and review
-./script/release-notes
-
-# 3. If satisfied, update the PR body
-./script/release-notes --apply
-
-# 4. Merge the PR on GitHub
+git commit -m "feat(sensor): add air quality index sensor"  # Conventional Commits
+# push to main — release-please opens or updates the release PR automatically
+./script/release-notes           # preview enhanced notes
+./script/release-notes --apply   # write them into the PR body
+# review the PR on GitHub, then merge it when you are ready to release
 ```
 
 ## GitHub Repository Setup (One-Time)

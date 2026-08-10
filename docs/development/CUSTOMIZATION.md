@@ -110,7 +110,7 @@ Files already excluded by default:
 | `requirements.txt`                                                             | Your integration's PyPI dependencies (managed alongside `manifest.json`) |
 | `.vscode/launch.json`, `.vscode/tasks.json`                                    | Contain your domain in debugger/task arguments                           |
 | `README.md`, `LICENSE`, etc.                                                   | Replaced by `initialize.sh`                                              |
-| `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`                    | Contain domain-specific references                                       |
+| `AGENTS.md`, `CLAUDE.md`                                                       | Contain domain-specific references                                       |
 | `AI_POLICY.md`, `.github/pull_request_template.md`                             | Project-specific governance and contribution process                     |
 | `.github/CODEOWNERS`, `.github/FUNDING.yml`, `.github/COPILOT_CODING_AGENT.md` | Per-project GitHub settings                                              |
 | `config/`                                                                      | Local HA instance (credentials, test data)                               |
@@ -165,86 +165,15 @@ script/hooks/          # Hooks for scripts in script/
 
 Both directories are listed in `.templatesyncignore` and are never touched by template sync.
 
-### Naming convention
+### Writing a hook
 
-```text
-script/hooks/<script-name>.<phase>.sh
-```
+The naming convention, the complete table of every available pre/post hook, worked examples, and the rules that apply
+to sourced scripts are maintained as an agent skill reference so that humans and AI agents work from the same source:
 
-- `<script-name>` mirrors the script path relative to `script/` (e.g. `setup/bootstrap` for `script/setup/bootstrap`)
-- `<phase>` is either `pre` or `post`
+📖 [`.agents/skills/blueprint-tooling/references/hooks.md`](../../.agents/skills/blueprint-tooling/references/hooks.md)
 
-For `.devcontainer/` scripts the same pattern applies under `.devcontainer/hooks/`.
-
-### Available hooks
-
-| Script                            | pre hook                                    | post hook                                    |
-| --------------------------------- | ------------------------------------------- | -------------------------------------------- |
-| `script/check`                    | `script/hooks/check.pre.sh`                 | `script/hooks/check.post.sh`                 |
-| `script/clean`                    | `script/hooks/clean.pre.sh`                 | `script/hooks/clean.post.sh`                 |
-| `script/develop`                  | `script/hooks/develop.pre.sh`               | — (long-running process)                     |
-| `script/hassfest`                 | `script/hooks/hassfest.pre.sh`              | `script/hooks/hassfest.post.sh`              |
-| `script/help`                     | `script/hooks/help.pre.sh`                  | `script/hooks/help.post.sh`                  |
-| `script/lint`                     | `script/hooks/lint.pre.sh`                  | `script/hooks/lint.post.sh`                  |
-| `script/lint-check`               | `script/hooks/lint-check.pre.sh`            | `script/hooks/lint-check.post.sh`            |
-| `script/markdown`                 | `script/hooks/markdown.pre.sh`              | `script/hooks/markdown.post.sh`              |
-| `script/markdown-check`           | `script/hooks/markdown-check.pre.sh`        | `script/hooks/markdown-check.post.sh`        |
-| `script/python`                   | `script/hooks/python.pre.sh`                | `script/hooks/python.post.sh`                |
-| `script/python-check`             | `script/hooks/python-check.pre.sh`          | `script/hooks/python-check.post.sh`          |
-| `script/release-notes`            | `script/hooks/release-notes.pre.sh`         | `script/hooks/release-notes.post.sh`         |
-| `script/shell`                    | `script/hooks/shell.pre.sh`                 | `script/hooks/shell.post.sh`                 |
-| `script/shell-check`              | `script/hooks/shell-check.pre.sh`           | `script/hooks/shell-check.post.sh`           |
-| `script/spell`                    | `script/hooks/spell.pre.sh`                 | `script/hooks/spell.post.sh`                 |
-| `script/spell-check`              | `script/hooks/spell-check.pre.sh`           | `script/hooks/spell-check.post.sh`           |
-| `script/test`                     | `script/hooks/test.pre.sh`                  | `script/hooks/test.post.sh`                  |
-| `script/type-check`               | `script/hooks/type-check.pre.sh`            | `script/hooks/type-check.post.sh`            |
-| `script/version`                  | `script/hooks/version.pre.sh`               | `script/hooks/version.post.sh`               |
-| `script/yaml-check`               | `script/hooks/yaml-check.pre.sh`            | `script/hooks/yaml-check.post.sh`            |
-| `script/setup/bootstrap`          | `script/hooks/setup/bootstrap.pre.sh`       | `script/hooks/setup/bootstrap.post.sh`       |
-| `script/setup/reset`              | `script/hooks/setup/reset.pre.sh`           | `script/hooks/setup/reset.post.sh`           |
-| `script/setup/setup`              | — (calls bootstrap)                         | `script/hooks/setup/setup.post.sh`           |
-| `script/setup/sync-hacs`          | `script/hooks/setup/sync-hacs.pre.sh`       | `script/hooks/setup/sync-hacs.post.sh`       |
-| `.devcontainer/on-create.sh`      | `.devcontainer/hooks/on-create.pre.sh`      | `.devcontainer/hooks/on-create.post.sh`      |
-| `.devcontainer/update-content.sh` | `.devcontainer/hooks/update-content.pre.sh` | `.devcontainer/hooks/update-content.post.sh` |
-| `.devcontainer/post-create.sh`    | `.devcontainer/hooks/post-create.pre.sh`    | `.devcontainer/hooks/post-create.post.sh`    |
-| `.devcontainer/post-start.sh`     | `.devcontainer/hooks/post-start.pre.sh`     | `.devcontainer/hooks/post-start.post.sh`     |
-| `.devcontainer/setup-shell.sh`    | `.devcontainer/hooks/setup-shell.pre.sh`    | `.devcontainer/hooks/setup-shell.post.sh`    |
-| `.devcontainer/setup-git.sh`      | `.devcontainer/hooks/setup-git.pre.sh`      | `.devcontainer/hooks/setup-git.post.sh`      |
-| `.devcontainer/post-attach.sh`    | `.devcontainer/hooks/post-attach.pre.sh`    | `.devcontainer/hooks/post-attach.post.sh`    |
-
-### Example: install extra tools after bootstrap
-
-```bash
-# script/hooks/setup/bootstrap.post.sh
-log_header "Installing project-specific tools"
-uv pip install -q some-extra-tool
-log_success "Extra tools installed"
-```
-
-### Example: run a custom linter after lint
-
-```bash
-# script/hooks/lint.post.sh
-if command -v my-custom-linter >/dev/null 2>&1; then
-    log_header "Running custom linter"
-    my-custom-linter custom_components/
-fi
-```
-
-### Example: set environment variables before tests
-
-```bash
-# script/hooks/test.pre.sh
-export MY_DEVICE_API_KEY="test-key-123"
-export MY_DEVICE_HOST="localhost"
-```
-
-### Notes
-
-- Hooks are sourced (not executed), so `exit` would terminate the calling script — use `return` instead
-- Hooks have access to all variables and functions defined in the calling script at that point
-- A missing hook file is silently ignored — no error
-- Hook scripts in `.devcontainer/hooks/` are not validated by `script/shell-check`; write them with care
+Use hooks instead of editing the scripts themselves — the scripts are template-managed and will be overwritten by
+template sync, the hook directories never are.
 
 ---
 
@@ -334,13 +263,9 @@ If you intentionally want to share a tracked workspace settings file with collab
 
 `manifest.json → requirements` is the authoritative list — Home Assistant reads it at runtime and installs those packages automatically. `requirements.txt` exists solely as a development mirror of the same packages, so tools like type-checkers, pytest, and your IDE can resolve imports without running Home Assistant.
 
-Both files must be kept in sync by hand. This is by HA design and is unavoidable.
-
-When you add a new dependency to your integration:
-
-1. Add the package to `manifest.json` → `requirements`
-2. Add the same package (with version pin) to `requirements.txt`
-3. Run `script/setup/bootstrap` (or rebuild the container) to install it
+Both files must be kept in sync by hand. This is by HA design and is unavoidable. The step-by-step procedure for adding
+a dependency — including how to decide whether a third-party library is worth taking on — lives in the
+[`blueprint-tooling`](../../.agents/skills/blueprint-tooling/SKILL.md) skill.
 
 `requirements.txt` is **excluded from template sync** because it is integration-specific content.
 
