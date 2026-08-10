@@ -113,49 +113,13 @@ them on unload, which `hass.async_create_task` does not.
 - Cannot do I/O, cannot call coroutines (only schedule them)
 - Missing decorator causes execution in executor thread (wrong context)
 
-**Calling Home Assistant from a non-event-loop thread:** the `async_*` APIs are **not** thread-safe and Home Assistant
-raises when they are called from the wrong thread. Most have a sync twin that does the hand-off for you — a library
-callback running on its own thread is the usual reason to need one:
+**Never block the event loop.** File and directory operations, `urllib`, `time.sleep` and SSL context loading all
+block; so does calling an `async_*` API from a worker thread, which raises outright. The lookup tables — which sync
+twin to call from a thread, the full blocking-call list with the `open()` trap, and the four late-import cases — are
+in [`ha-coordinator-debug/references/async-rules.md`](../skills/ha-coordinator-debug/references/async-rules.md).
 
-| From a worker thread, instead of                                                               | call                                                |
-| ---------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| `hass.async_create_task`                                                                       | `hass.create_task`                                  |
-| `hass.bus.async_fire`                                                                          | `hass.bus.fire`                                     |
-| `hass.services.async_register` / `async_remove`                                                | `hass.services.register` / `remove`                 |
-| `entity.async_write_ha_state`                                                                  | `entity.schedule_update_ha_state`                   |
-| `async_dispatcher_send`                                                                        | `dispatcher_send`                                   |
-| `issue_registry.async_get_or_create` / `async_delete`                                          | `issue_registry.create_issue` / `delete_issue`      |
-| `event.async_track_state_change_event`                                                         | `event.track_state_change_event`                    |
-| The registries (`device_`, `entity_`, `area_`, …) and `hass.config_entries.async_update_entry` | no sync twin — wrap the call in `hass.add_job(...)` |
-
-`hass.add_job` is the sync entry point and is not deprecated; `hass.async_add_job` is.
-
-**Blocking operations (NEVER in event loop):**
-
-- File: `open()`, `pathlib.Path.read_text()` / `.read_bytes()` / `.write_text()`
-- Directory: `os.listdir()`, `os.walk()`, `os.scandir()`, `os.stat()`, `glob.glob()`, `glob.iglob()`
-- Network: `urllib` (use `aiohttp`)
-- Other: `time.sleep()`
-- **All must run in executor:** `await hass.async_add_executor_job(blocking_func)`, and
-  `await hass.async_add_executor_job(partial(f, kwarg=True))` when there are keyword arguments
-
-**The `open()` trap:** Home Assistant only detects the `open` call, never the reads and writes that follow. Moving
-`open` into the executor and leaving `.read()` in the event loop silences the warning without fixing anything — move
-the whole file operation.
-
-**SSL is not an executor problem.** `SSLContext.load_default_certs()`, `load_verify_locations()`,
-`load_cert_chain()` and `set_default_verify_paths()` block, and the fix is to stop building your own context:
-`async_get_clientsession(hass)`, `homeassistant.helpers.httpx_client.get_async_client()`, or
-`homeassistant.util.ssl`.
-
-**Late imports** — CPython's import machinery is not thread-safe, so which helper you need depends on how the module
-can be reached:
-
-- Module-level imports are safe (loaded before the loop starts, or on the import executor)
-- Imported in exactly one place, conditionally: `await hass.async_add_executor_job(_do_the_late_import)`
-- Possibly imported concurrently: `homeassistant.helpers.importlib.import_module`
-- Reachable from several code paths: `await async_import_module(hass, "module.path")`
-- `if TYPE_CHECKING:` for type-only imports
+**Late imports:** module-level imports are safe. Anything conditional needs one of the import helpers in that
+reference, because CPython's import machinery is not thread-safe. Type-only imports go in `if TYPE_CHECKING:`.
 
 ## Code Style
 
@@ -178,6 +142,8 @@ See [Integration Setup Failures](https://developers.home-assistant.io/docs/integ
 - `ConfigEntryError` - Will not resolve on its own (closed account, unsupported device); stops the retry loop
 - Pass error message to exception (HA logs at debug level automatically)
 - **Do NOT log setup failures manually** - Avoid log spam
+- **Do NOT write your own retry loop** - Home Assistant already retries `ConfigEntryNotReady` with exponential backoff
+- Outside setup and the coordinator, `ConfigEntryAuthFailed` does nothing — call `entry.async_start_reauth(hass)`
 - Raising any of the three still runs the `entry.async_on_unload` callbacks, but does **not** replace
   `async_unload_entry` — that always has to exist
 - Raising `ConfigEntryNotReady` in a **platform's** `async_setup_entry` does nothing; by then the config entry setup

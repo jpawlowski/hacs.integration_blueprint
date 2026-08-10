@@ -17,6 +17,10 @@ description: >-
 Work from evidence, not from guesses. The order below is deliberate: reproduce, read the log, localise to a layer, then
 fix.
 
+| File                                                     | When to read                                                                          |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| [`references/async-rules.md`](references/async-rules.md) | A blocking-call warning, a thread-safety error, or a hang with no traceback behind it |
+
 ## 1. Reproduce with a clean instance
 
 Always use the project scripts — hand-rolled `hass` or `pip` invocations miss the venv, `PYTHONPATH`, port cleanup, and

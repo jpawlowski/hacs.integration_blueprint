@@ -22,69 +22,17 @@ what has to happen alongside it, including the entry migration a shape change fo
 
 ## Architecture Overview
 
-Understanding the relationship between these components is essential:
+**Data Entry Flow** is the framework — `FlowHandler`, the result types, form schemas — and config flows, options
+flows, subentry flows and repair flows are all built on it. The same `async_show_form()` / `async_create_entry()`
+mechanics therefore work identically in all of them.
 
-**Data Entry Flow** (Framework Layer):
+- **Config flow** creates the entry: immutable `data` (credentials, host) plus mutable `options`.
+- **Options flow** only ever changes `options`. Changing `data` is a reconfigure, not an option.
+- **Repair flows** live in `repairs.py` and follow a different architecture — see
+  [`blueprint.repairs`](blueprint.repairs.instructions.md).
 
-- Generic **UI flow system** in Home Assistant Core for collecting user input
-- Provides building blocks: `FlowHandler`, result types (`FORM`, `CREATE_ENTRY`, etc.), form schemas
-- Used for multiple purposes: config flows, options flows, repairs flows, subentry flows, even user login
-- Think of it as the **library/framework** that provides the UI interaction mechanics
-- Has **nothing to do** with `data.py` (runtime data) - confusing naming!
-
-**Config Flow** (Application Layer):
-
-- **Uses Data Entry Flow framework** to implement integration setup
-- Special purpose: Initial setup of integrations (create `ConfigEntry`)
-- Adds integration-specific features: discovery, reauth, reconfigure, YAML import
-- Inherits from `config_entries.ConfigFlow` which inherits from `data_entry_flow.FlowHandler`
-- Creates **immutable data** (credentials, host) and **mutable options** (scan interval, features)
-
-**Options Flow** (Application Layer):
-
-- **Also uses Data Entry Flow framework** to implement settings changes
-- Special purpose: Modify existing integration settings (update `ConfigEntry.options`)
-- Simpler than Config Flow: no discovery, reauth, or import
-- Inherits from `config_entries.OptionsFlow` which inherits from `data_entry_flow.FlowHandler`
-- Only modifies **mutable options**, never immutable data (use reconfigure for that)
-
-**Where Data Entry Flow is actually used:**
-
-1. **Config Flow** (`config_flow_handler/config_flow.py`):
-   - User adds integration → shows forms → collects input → creates `ConfigEntry`
-   - Methods like `async_show_form()`, `async_create_entry()` are Data Entry Flow
-
-2. **Options Flow** (`config_flow_handler/options_flow.py`):
-   - User changes settings → shows forms → collects input → updates `ConfigEntry.options`
-
-3. **Subentry Flow** (`config_flow_handler/subentry_flow.py`):
-   - User adds sub-devices → shows forms → collects input → creates sub-entries
-
-4. **Repair Flow** (`repairs.py` - separate from config_flow_handler):
-   - User fixes issues → shows forms → collects input → resolves problem
-   - See `blueprint.repairs.instructions.md` for Repair Flow patterns (different architecture)
-
-**Common confusion - Data Entry Flow vs. data.py:**
-
-- **Data Entry Flow** = UI system for **collecting data from users** (forms, wizards)
-- **`data.py`** = Type definitions for **runtime data** (`entry.runtime_data`)
-- These are completely unrelated despite the similar names!
-
-**Why this matters:**
-
-- Both Config Flow and Options Flow use the **same result types** and patterns from Data Entry Flow
-- You'll use `async_show_form()`, `async_create_entry()`, etc. in both
-- The form schemas, validation patterns, and UI controls work identically
-- Home Assistant's documentation separates these by abstraction level, not by usage together
-
-**Timeline - How it all fits together:**
-
-1. User clicks "Add Integration" → **Data Entry Flow** (via Config Flow) shows UI forms
-2. User enters host/credentials → **Data Entry Flow** validates and collects input
-3. `ConfigEntry` created with data/options → stored in `.storage/core.config_entries`
-4. `async_setup_entry()` runs → creates runtime objects (client, coordinator)
-5. `entry.runtime_data = {ClassPrefix}Data(...)` → stores runtime objects (from `data.py`)
-6. Integration operates using `entry.runtime_data.coordinator`, `entry.runtime_data.client`
+**Data Entry Flow has nothing to do with `data.py`.** The names collide and mean opposite things: one collects input
+from users, the other types `entry.runtime_data`.
 
 ## Data Entry Flow Fundamentals
 
@@ -250,102 +198,14 @@ vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): selector.Number
 - Use `await self._async_handle_discovery_without_unique_id()` if ID unavailable
 - Implement `is_matching(other_flow)` if unique ID is ambiguous
 
-## Discovery Flows
+## The individual flows
 
-**MUST:**
+Each flow type has its own MUST/NEVER list — user, discovery, reauth, reconfigure, options, subentry — in
+[`ha-config-flow/references/flow-types.md`](../skills/ha-config-flow/references/flow-types.md). Read the section for
+the flow you are implementing.
 
-- Set unique ID in discovery step
-- Abort if already configured: `self._abort_if_unique_id_configured()`
-- Store placeholders for title: `self.context["title_placeholders"] = {"name": device_name}`
-- Forward to user step for confirmation
-- Update existing entries via `updates` parameter when device details change
-
-**NEVER:**
-
-- Auto-create entries without user confirmation
-- Skip unique ID check
-
-## Setup Entry Error Handling
-
-**In `async_setup_entry()` in `__init__.py`:**
-
-**MUST:**
-
-- Raise `ConfigEntryNotReady` for temporary failures (timeout, device offline, network issues)
-- Raise `ConfigEntryAuthFailed` for authentication failures (expired credentials, invalid tokens)
-- Include descriptive error message
-
-**NEVER:**
-
-- Log `ConfigEntryNotReady` manually (HA logs at debug automatically)
-- Implement custom retry logic (HA handles exponential backoff)
-- Ignore exceptions
-
-**Alternative to `ConfigEntryAuthFailed`:**
-
-- Call `entry.async_start_reauth()` directly in exception handler
-
-## User Flow
-
-**MUST:**
-
-- Validate input before creating entry
-- Set unique ID if available: `await self.async_set_unique_id(unique_id)`
-- Abort if duplicate: `self._abort_if_unique_id_configured()`
-- Return errors dict with translation keys: `{"base": "cannot_connect"}`
-- Log unexpected exceptions: `_LOGGER.exception("Unexpected exception")`
-
-**Common error keys:**
-
-- `cannot_connect` - Connection failed
-- `invalid_auth` - Invalid credentials
-- `already_configured` - Already set up
-- `unknown` - Unexpected error
-
-## Reauth Flow
-
-**MUST:**
-
-- Implement `async_step_reauth()` that forwards to `async_step_reauth_confirm()`
-- Use `self._get_reauth_entry()` to access current entry
-- Verify unique ID unchanged: `await self.async_set_unique_id(id)` then `self._abort_if_unique_id_mismatch()`
-- Check source: `if self.source == SOURCE_REAUTH`
-- Update entry: `return self.async_update_reload_and_abort(self._get_reauth_entry(), data_updates=user_input)`
-- Set description placeholders: `description_placeholders={"name": self._get_reauth_entry().title}`
-
-**NEVER:**
-
-- Create new entry (always update existing)
-- Skip unique ID verification
-- Skip confirmation step
-
-**Translation keys:**
-
-- `config.step.reauth_confirm.title` - Write the text out, e.g. `"Re-authenticate {name}"`
-- `config.step.reauth_confirm.description` - Explain what expired
-- `config.abort.reauth_successful` - Write the text out, e.g. `"Re-authentication was successful"`
-
-Core's `[%key:common::…%]` references do not resolve in a custom integration — see
-[`blueprint.translations`](blueprint.translations.instructions.md).
-
-## Reconfigure Flow
-
-**MUST:**
-
-- Use `self._get_reconfigure_entry()` to access current entry
-- Verify unique ID unchanged if applicable: `await self.async_set_unique_id(id)` then `self._abort_if_unique_id_mismatch()`
-- Check source: `if self.source == SOURCE_RECONFIGURE`
-- Update entry: `return self.async_update_reload_and_abort(entry, data_updates=user_input)`
-- Pre-fill form: `self.add_suggested_values_to_schema(schema, entry.data)`
-
-**NEVER:**
-
-- Create new entry (always update existing)
-- Use for authentication changes (use reauth)
-
-**Optional:**
-
-- Set `reload_even_if_entry_is_unchanged=False` to skip reload if unchanged
+Setup failures in `async_setup_entry()` are not this file's scope: see
+[`blueprint.python`](blueprint.python.instructions.md).
 
 ## Version and Migration
 
@@ -375,38 +235,6 @@ Two ways a `flow_title` is silently ignored: `title_placeholders` is missing or 
 placeholders at all), or it is non-empty but has no `name` key and there is no localized `flow_title`.
 
 **Translation keys:** `config.step.<step>.title`, `config.error.<key>`, `config.abort.<key>`
-
-## Subentry Flows
-
-**MUST:** Return types via `async_get_supported_subentry_types()`, implement `async_step_user()`, finish with
-`async_create_entry()` — on `ConfigSubentryFlow` it returns a `SubentryFlowResult`. There is no
-`async_create_subentry()`.
-
-**Access and reconfigure:** `self._get_entry()` for the parent entry, `self._get_reconfigure_subentry()` for the
-subentry being edited, and `async_update_and_abort()` to finish a reconfigure step.
-
-**NEVER:** Support discovery or reauth in subentries — a subentry flow can only start from `user` or `reconfigure`.
-
-**Unique IDs:** a subentry's unique ID only has to be unique within its config entry, not globally.
-
-**Translations:** subentry strings live under `config_subentries.<type>.…`, not under `config`.
-
-**Device ownership (Home Assistant 2026.8+):**
-
-- A device belongs to exactly one config entry and to at most one config subentry.
-- Create one device per subentry. Multiple subentries must never attach entities to a shared device.
-- Keep a hub/account device on the parent config entry without a subentry. Create separate devices for subentries and,
-  when a parent relationship is needed, link them with `via_device_id`.
-- Migrations that previously shared a device across subentries must create the per-subentry devices and relink their
-  entities. Do not rely on Home Assistant's temporary composite-device compatibility behavior.
-
-## Options Flow
-
-**MUST:** Return via `async_get_options_flow()`, implement `async_step_init()`, pre-fill with existing options
-
-**Auto-reload:** Subclass `OptionsFlowWithReload` (no manual listener needed)
-
-**Manual listener:** Register update listener in `async_setup_entry()` that calls `async_reload()`
 
 ## Code Organization
 
