@@ -148,18 +148,5 @@
         }
       }
     }
-  },
-  "issues": {
-    "deprecated_api_endpoint": {
-      "title": "Deprecated API version in use",
-      "fix_flow": {
-        "step": {
-          "init": {
-            "title": "Switch to the current API version",
-            "description": "This configuration entry still talks to the device over the old API version, which will stop working. Submit to switch it to the current version and reload the integration."
-          }
-        }
-      }
-    }
   }
 }

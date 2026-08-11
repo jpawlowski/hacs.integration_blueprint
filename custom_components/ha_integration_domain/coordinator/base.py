@@ -6,9 +6,8 @@ from custom_components.ha_integration_domain.api import (
     IntegrationBlueprintApiClientAuthenticationError,
     IntegrationBlueprintApiClientError,
 )
-from custom_components.ha_integration_domain.const import DOMAIN, ISSUE_DEPRECATED_API
+from custom_components.ha_integration_domain.const import DOMAIN
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 if TYPE_CHECKING:
@@ -33,7 +32,7 @@ class IntegrationBlueprintDataUpdateCoordinator(DataUpdateCoordinator[dict[str, 
 
         """
         try:
-            data = await self.config_entry.runtime_data.client.async_get_data()
+            return await self.config_entry.runtime_data.client.async_get_data()
         except IntegrationBlueprintApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(
                 translation_domain=DOMAIN,
@@ -44,22 +43,3 @@ class IntegrationBlueprintDataUpdateCoordinator(DataUpdateCoordinator[dict[str, 
                 translation_domain=DOMAIN,
                 translation_key="update_failed",
             ) from exception
-
-        self._async_check_api_version(deprecated=bool(data["api_deprecated"]))
-        return data
-
-    def _async_check_api_version(self, *, deprecated: bool) -> None:
-        """Raise or clear the repair issue for the deprecated API version."""
-        if deprecated:
-            ir.async_create_issue(
-                self.hass,
-                DOMAIN,
-                ISSUE_DEPRECATED_API,
-                is_fixable=True,
-                severity=ir.IssueSeverity.WARNING,
-                translation_key=ISSUE_DEPRECATED_API,
-                breaks_in_ha_version="2027.1",
-                data={"entry_id": self.config_entry.entry_id},
-            )
-        else:
-            ir.async_delete_issue(self.hass, DOMAIN, ISSUE_DEPRECATED_API)

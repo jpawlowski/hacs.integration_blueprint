@@ -9,8 +9,6 @@ import aiohttp
 API_URL = "https://jsonplaceholder.typicode.com/posts/1"
 REQUEST_TIMEOUT = 10
 
-CURRENT_API_VERSION = "v2"
-
 FAN_SPEEDS = ("low", "medium", "high", "auto")
 SPEED_PERCENTAGES = {"low": 33, "medium": 66, "high": 100, "auto": 66}
 
@@ -61,13 +59,11 @@ class IntegrationBlueprintApiClient:
         username: str,
         password: str,
         session: aiohttp.ClientSession,
-        api_version: str = "v1",
     ) -> None:
         """Initialize the API client."""
         self._username = username
         self._password = password
         self._session = session
-        self._api_version = api_version
         self._settings: dict[str, Any] = {
             "fan_on": True,
             "fan_speed": "auto",
@@ -160,7 +156,6 @@ class IntegrationBlueprintApiClient:
             "child_lock": self._settings["child_lock"],
             "led_display": self._settings["led_display"],
             "target_humidity": self._settings["target_humidity"],
-            "api_deprecated": self._api_version != CURRENT_API_VERSION,
         }
 
     async def _api_wrapper(

@@ -32,7 +32,7 @@ async def test_two_entries_get_separate_devices(
         domain=DOMAIN,
         title="second",
         unique_id="second",
-        data={CONF_USERNAME: "second", CONF_PASSWORD: "secret", "api_version": "v2"},
+        data={CONF_USERNAME: "second", CONF_PASSWORD: "secret"},
     )
     second_entry.add_to_hass(hass)
     await hass.config_entries.async_setup(second_entry.entry_id)

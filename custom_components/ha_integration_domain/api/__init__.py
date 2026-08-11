@@ -11,7 +11,6 @@ in the integration imports this package.
 """
 
 from .client import (
-    CURRENT_API_VERSION,
     FAN_SPEEDS,
     IntegrationBlueprintApiClient,
     IntegrationBlueprintApiClientAuthenticationError,
@@ -20,7 +19,6 @@ from .client import (
 )
 
 __all__ = [
-    "CURRENT_API_VERSION",
     "FAN_SPEEDS",
     "IntegrationBlueprintApiClient",
     "IntegrationBlueprintApiClientAuthenticationError",

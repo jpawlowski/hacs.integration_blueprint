@@ -14,7 +14,7 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.loader import async_get_loaded_integration
 
 from .api import IntegrationBlueprintApiClient
-from .const import CONF_API_VERSION, CONF_UPDATE_INTERVAL_HOURS, DEFAULT_UPDATE_INTERVAL_HOURS, DOMAIN, LOGGER
+from .const import CONF_UPDATE_INTERVAL_HOURS, DEFAULT_UPDATE_INTERVAL_HOURS, DOMAIN, LOGGER
 from .coordinator import IntegrationBlueprintDataUpdateCoordinator
 from .data import IntegrationBlueprintData
 from .service_actions import async_setup_services
@@ -64,7 +64,6 @@ async def async_setup_entry(
         username=entry.data[CONF_USERNAME],
         password=entry.data[CONF_PASSWORD],
         session=async_get_clientsession(hass),
-        api_version=entry.data.get(CONF_API_VERSION, "v1"),
     )
 
     interval_hours = float(entry.options.get(CONF_UPDATE_INTERVAL_HOURS, DEFAULT_UPDATE_INTERVAL_HOURS))

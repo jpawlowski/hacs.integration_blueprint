@@ -38,7 +38,7 @@ def config_entry() -> MockConfigEntry:
         domain=DOMAIN,
         title="demo",
         unique_id="demo",
-        data={CONF_USERNAME: "demo", CONF_PASSWORD: "secret", "api_version": "v2"},
+        data={CONF_USERNAME: "demo", CONF_PASSWORD: "secret"},
     )
 
 
