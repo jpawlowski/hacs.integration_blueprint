@@ -11,15 +11,13 @@ custom_components/ha_integration_domain/
 ├── const.py                 # Constants and configuration keys
 ├── coordinator/             # Data update coordinator package
 │   ├── __init__.py          # Exports IntegrationBlueprintDataUpdateCoordinator
-│   ├── base.py              # Main coordinator class
-│   ├── data_processing.py   # Data validation and transformation
-│   ├── error_handling.py    # Error recovery and retry logic
-│   └── listeners.py         # Entity callbacks and event listeners
+│   └── base.py              # Main coordinator class
 ├── data.py                  # Data classes and type definitions
 ├── diagnostics.py           # Diagnostic data for troubleshooting
 ├── entity/                  # Base entity package
 │   ├── __init__.py          # Exports IntegrationBlueprintEntity
 │   └── base.py              # Base entity class implementation
+├── icons.json               # Entity and service action icons
 ├── manifest.json            # Integration metadata
 ├── repairs.py               # Repair flows for fixing issues
 ├── services.yaml            # Service action definitions (legacy filename)
@@ -28,31 +26,28 @@ custom_components/ha_integration_domain/
 │   └── client.py            # API client implementation
 ├── config_flow_handler/     # Config flow implementation
 │   ├── __init__.py          # Package exports
-│   ├── handler.py           # Backward compatibility wrapper
 │   ├── config_flow.py       # Main config flow (user, reauth, reconfigure)
 │   ├── options_flow.py      # Options flow
-│   ├── subentry_flow.py     # Subentry flow template
 │   ├── schemas/             # Voluptuous schemas
 │   │   ├── __init__.py      # Schema exports
 │   │   ├── config.py        # Config flow schemas
 │   │   └── options.py       # Options flow schemas
 │   └── validators/          # Input validation
 │       ├── __init__.py      # Validator exports
-│       ├── credentials.py   # Credential validation
-│       └── sanitizers.py    # Input sanitizers
-├── entity_utils/            # Entity helper utilities
-│   ├── __init__.py
-│   ├── device_info.py       # Device information helpers
-│   └── state_helpers.py     # State management utilities
+│       └── credentials.py   # Credential validation
 ├── service_actions/         # Service action implementations
-│   ├── __init__.py
-│   └── example_service.py   # Example service action handler
+│   ├── __init__.py          # Registration in async_setup()
+│   └── refresh_data.py      # The refresh_data handler
 ├── translations/            # Localization files
 │   └── en.json              # English translations
 └── <platform>/              # Platform-specific implementations
-    ├── __init__.py          # Platform setup
-    └── <entity>.py          # Individual entity implementations
+    ├── __init__.py          # Platform setup and PARALLEL_UPDATES
+    └── <entity>.py          # Entity descriptions and entity class
 ```
+
+`entity_utils/` and `utils/` are part of the permitted package set in
+[`AGENTS.md`](../../AGENTS.md) but do not exist until something needs them — an entity helper
+used by three or more entity classes, or an integration-wide utility.
 
 ## Core Components
 
@@ -60,35 +55,25 @@ custom_components/ha_integration_domain/
 
 **Directory:** `coordinator/`
 
-The coordinator package manages periodic data fetching from the external API and distributes
-updates to all entities. It is organized as a package with separate modules for different concerns:
-
-**Package structure:**
-
-- `base.py` - Main coordinator class (`IntegrationBlueprintDataUpdateCoordinator`)
-- `data_processing.py` - Data validation, transformation, and caching utilities
-- `error_handling.py` - Error recovery strategies, retry logic, and circuit breaker patterns
-- `listeners.py` - Entity callbacks, event listeners, and performance monitoring
+The coordinator fetches the device state once per interval and hands the same payload to every
+entity, so no entity ever calls the API itself.
 
 **Core functionality:**
 
-- Configurable update interval (default: 5 minutes)
-- Error handling with exponential backoff
-- Shared data access for all entities
-- Automatic retry on transient failures
-- Data validation and transformation before distribution
-- Performance monitoring and metrics
+- Update interval from `entry.options`, defaulting to one hour
+- Translation of API client exceptions into `ConfigEntryAuthFailed` and `UpdateFailed`
+- Raising and clearing the repair issue for the deprecated API version
 
 **Key class:** `IntegrationBlueprintDataUpdateCoordinator` (exported from `coordinator/__init__.py`)
 
+Retries and backoff are **not** implemented here. Home Assistant already retries `UpdateFailed`
+with exponential backoff, and failures are logged by Home Assistant, not by the coordinator.
+
 **Design rationale:**
 
-The coordinator is structured as a package rather than a single file to support future extensibility:
-
-- **Separation of concerns**: Core logic, error handling, and data processing are isolated
-- **Easy extension**: New features (caching, metrics, webhooks) can be added as new modules
-- **Maintainability**: Individual modules stay focused and manageable (<400 lines)
-- **Testability**: Each module can be tested independently
+The coordinator is a package rather than a single file so that transform helpers, a cache or a
+push listener can be added as separate modules once they are needed — each staying under the
+200–400 line guideline and testable on its own.
 
 ### API Client
 
@@ -116,14 +101,16 @@ is organized modularly to support complex flows without becoming monolithic.
 - `options_flow.py`: Options flow for post-setup configuration
 - `schemas/`: Voluptuous schemas for all forms
 - `validators/`: Validation logic separated from flow logic
-- `subentry_flow.py`: Template for multi-device/location support
 
 **Supported flows:**
 
 - Initial user setup with validation
-- Options flow for reconfiguration
+- Options flow for the poll interval
 - Reauthentication flow for expired credentials
-- Ready for subentry flows (multi-device support)
+- Reconfiguration of the stored credentials
+
+A subentry flow goes in `config_flow_handler/subentry_flow.py` when the integration grows to
+need one; see [`ha-config-flow`](../../.agents/skills/ha-config-flow/SKILL.md).
 
 **Key classes:**
 

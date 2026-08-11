@@ -1,0 +1,39 @@
+{
+  "entity": {
+    "sensor": {
+      "filter_life": {
+        "default": "mdi:air-filter"
+      }
+    },
+    "switch": {
+      "child_lock": {
+        "default": "mdi:lock",
+        "state": {
+          "off": "mdi:lock-open-variant"
+        }
+      },
+      "led_display": {
+        "default": "mdi:led-on",
+        "state": {
+          "off": "mdi:led-off"
+        }
+      }
+    },
+    "select": {
+      "fan_speed": {
+        "default": "mdi:fan",
+        "state": {
+          "low": "mdi:fan-speed-1",
+          "medium": "mdi:fan-speed-2",
+          "high": "mdi:fan-speed-3",
+          "auto": "mdi:fan-auto"
+        }
+      }
+    }
+  },
+  "services": {
+    "refresh_data": {
+      "service": "mdi:refresh"
+    }
+  }
+}

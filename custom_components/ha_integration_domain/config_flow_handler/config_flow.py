@@ -1,55 +1,24 @@
-"""
-Config flow for ha_integration_domain.
+"""Config flow for ha_integration_domain — user setup, reconfigure and reauth."""
 
-This module implements the main configuration flow including:
-- Initial user setup
-- Reconfiguration of existing entries
-- Reauthentication flow
+from typing import Any
 
-For more information:
-https://developers.home-assistant.io/docs/config_entries_config_flow_handler
-"""
-
-from typing import TYPE_CHECKING, Any
-
-from slugify import slugify
-
-from custom_components.ha_integration_domain.config_flow_handler.schemas import (
-    get_reauth_schema,
-    get_reconfigure_schema,
-    get_user_schema,
+from custom_components.ha_integration_domain.api import (
+    IntegrationBlueprintApiClientAuthenticationError,
+    IntegrationBlueprintApiClientCommunicationError,
 )
-from custom_components.ha_integration_domain.config_flow_handler.validators import validate_credentials
 from custom_components.ha_integration_domain.const import DOMAIN, LOGGER
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.loader import async_get_loaded_integration
+from homeassistant.util import slugify
 
-if TYPE_CHECKING:
-    from custom_components.ha_integration_domain.config_flow_handler.options_flow import IntegrationBlueprintOptionsFlow
-
-# Map exception types to error keys for user-facing messages
-ERROR_MAP = {
-    "IntegrationBlueprintApiClientAuthenticationError": "auth",
-    "IntegrationBlueprintApiClientCommunicationError": "connection",
-}
+from .options_flow import IntegrationBlueprintOptionsFlow
+from .schemas import get_reauth_schema, get_reconfigure_schema, get_user_schema
+from .validators import validate_credentials
 
 
 class IntegrationBlueprintConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """
-    Handle a config flow for ha_integration_domain.
-
-    This class manages the configuration flow for the integration, including
-    initial setup, reconfiguration, and reauthentication.
-
-    Supported flows:
-    - user: Initial setup via UI
-    - reconfigure: Update existing configuration
-    - reauth: Handle expired credentials
-
-    For more details:
-    https://developers.home-assistant.io/docs/config_entries_config_flow_handler
-    """
+    """Handle the config flow for ha_integration_domain."""
 
     VERSION = 1
 
@@ -58,16 +27,12 @@ class IntegrationBlueprintConfigFlowHandler(config_entries.ConfigFlow, domain=DO
         config_entry: config_entries.ConfigEntry,
     ) -> IntegrationBlueprintOptionsFlow:
         """
-        Get the options flow for this handler.
+        Return the options flow for this handler.
 
         Returns:
-            The options flow instance for modifying integration options.
+            The options flow instance.
 
         """
-        from custom_components.ha_integration_domain.config_flow_handler.options_flow import (  # noqa: PLC0415
-            IntegrationBlueprintOptionsFlow,
-        )
-
         return IntegrationBlueprintOptionsFlow()
 
     async def async_step_user(
@@ -75,32 +40,19 @@ class IntegrationBlueprintConfigFlowHandler(config_entries.ConfigFlow, domain=DO
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
         """
-        Handle a flow initialized by the user.
-
-        This is the entry point when a user adds the integration from the UI.
-
-        Args:
-            user_input: The user input from the config flow form, or None for initial display.
+        Handle a flow started by the user.
 
         Returns:
-            The config flow result, either showing a form or creating an entry.
+            The form, or the created config entry.
 
         """
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            try:
-                await validate_credentials(
-                    self.hass,
-                    username=user_input[CONF_USERNAME],
-                    password=user_input[CONF_PASSWORD],
-                )
-            except Exception as exception:  # noqa: BLE001
-                errors["base"] = self._map_exception_to_error(exception)
-            else:
-                # Set unique ID based on username
-                # NOTE: This is just an example - use a proper unique ID in production
-                # See: https://developers.home-assistant.io/docs/config_entries_config_flow_handler#unique-ids
+            errors = await self._async_validate(user_input)
+            if not errors:
+                # The username is the unique ID of last resort. A real integration
+                # uses a serial number, MAC or account ID instead.
                 await self.async_set_unique_id(slugify(user_input[CONF_USERNAME]))
                 self._abort_if_unique_id_configured()
 
@@ -110,14 +62,13 @@ class IntegrationBlueprintConfigFlowHandler(config_entries.ConfigFlow, domain=DO
                 )
 
         integration = async_get_loaded_integration(self.hass, DOMAIN)
-        assert integration.documentation is not None, "Integration documentation URL is not set in manifest.json"
 
         return self.async_show_form(
             step_id="user",
             data_schema=get_user_schema(user_input),
             errors=errors,
             description_placeholders={
-                "documentation_url": integration.documentation,
+                "documentation_url": integration.documentation or "",
             },
         )
 
@@ -126,54 +77,35 @@ class IntegrationBlueprintConfigFlowHandler(config_entries.ConfigFlow, domain=DO
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
         """
-        Handle reconfiguration of the integration.
-
-        Allows users to update their credentials without removing and re-adding
-        the integration.
-
-        Args:
-            user_input: The user input from the reconfigure form, or None for initial display.
+        Handle reconfiguration of an existing entry.
 
         Returns:
-            The config flow result, either showing a form or updating the entry.
+            The form, or the abort that follows the entry update.
 
         """
         entry = self._get_reconfigure_entry()
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            try:
-                await validate_credentials(
-                    self.hass,
-                    username=user_input[CONF_USERNAME],
-                    password=user_input[CONF_PASSWORD],
-                )
-            except Exception as exception:  # noqa: BLE001
-                errors["base"] = self._map_exception_to_error(exception)
-            else:
-                return self.async_update_reload_and_abort(
-                    entry,
-                    data=user_input,
-                )
+            errors = await self._async_validate(user_input)
+            if not errors:
+                return self.async_update_reload_and_abort(entry, data_updates=user_input)
 
         return self.async_show_form(
             step_id="reconfigure",
-            data_schema=get_reconfigure_schema(entry.data.get(CONF_USERNAME, "")),
+            data_schema=self.add_suggested_values_to_schema(
+                get_reconfigure_schema(entry.data.get(CONF_USERNAME, "")),
+                entry.data,
+            ),
             errors=errors,
         )
 
     async def async_step_reauth(
         self,
-        entry_data: dict[str, Any] | None = None,
+        entry_data: dict[str, Any],
     ) -> config_entries.ConfigFlowResult:
         """
-        Handle reauthentication when credentials are invalid.
-
-        This flow is automatically triggered when the coordinator catches
-        an authentication error (ConfigEntryAuthFailed).
-
-        Args:
-            entry_data: The existing entry data (unused, per convention).
+        Start reauthentication after the coordinator reported invalid credentials.
 
         Returns:
             The result of the reauth_confirm step.
@@ -186,34 +118,19 @@ class IntegrationBlueprintConfigFlowHandler(config_entries.ConfigFlow, domain=DO
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
         """
-        Handle reauthentication confirmation.
-
-        Shows the reauthentication form and processes updated credentials.
-
-        Args:
-            user_input: The user input with updated credentials, or None for initial display.
+        Collect and verify replacement credentials.
 
         Returns:
-            The config flow result, either showing a form or updating the entry.
+            The form, or the abort that follows the entry update.
 
         """
         entry = self._get_reauth_entry()
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            try:
-                await validate_credentials(
-                    self.hass,
-                    username=user_input[CONF_USERNAME],
-                    password=user_input[CONF_PASSWORD],
-                )
-            except Exception as exception:  # noqa: BLE001
-                errors["base"] = self._map_exception_to_error(exception)
-            else:
-                return self.async_update_reload_and_abort(
-                    entry,
-                    data={**entry.data, **user_input},
-                )
+            errors = await self._async_validate(user_input)
+            if not errors:
+                return self.async_update_reload_and_abort(entry, data_updates=user_input)
 
         return self.async_show_form(
             step_id="reauth_confirm",
@@ -224,20 +141,29 @@ class IntegrationBlueprintConfigFlowHandler(config_entries.ConfigFlow, domain=DO
             },
         )
 
-    def _map_exception_to_error(self, exception: Exception) -> str:
+    async def _async_validate(self, user_input: dict[str, Any]) -> dict[str, str]:
         """
-        Map API exceptions to user-facing error keys.
-
-        Args:
-            exception: The exception that was raised.
+        Test the submitted credentials.
 
         Returns:
-            The error key for display in the config flow form.
+            An empty dict when they work, otherwise the errors for the form.
 
         """
-        LOGGER.warning("Error in config flow: %s", exception)
-        exception_name = type(exception).__name__
-        return ERROR_MAP.get(exception_name, "unknown")
+        try:
+            await validate_credentials(
+                self.hass,
+                username=user_input[CONF_USERNAME],
+                password=user_input[CONF_PASSWORD],
+            )
+        except IntegrationBlueprintApiClientAuthenticationError:
+            return {"base": "invalid_auth"}
+        except IntegrationBlueprintApiClientCommunicationError:
+            return {"base": "cannot_connect"}
+        except Exception:  # noqa: BLE001 - Anything unexpected still has to reach the form.
+            LOGGER.exception("Unexpected exception")
+            return {"base": "unknown"}
+
+        return {}
 
 
 __all__ = ["IntegrationBlueprintConfigFlowHandler"]

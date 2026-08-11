@@ -49,8 +49,11 @@ markers = [
 filterwarnings = [
     # Treat warnings as errors to catch issues early
     "error",
-    # Ignore specific warnings from third-party libraries as needed
-    # "ignore:.*custom_components.* is using deprecated.*:DeprecationWarning",
+    # Home Assistant Core's own use of aiohttp at the version it pins. Raised from
+    # homeassistant/helpers/aiohttp_client.py and homeassistant/components/http/,
+    # never from this integration, so they would only mask Core's upstream work.
+    "ignore:Setting custom ClientSession\\..* attribute is discouraged:DeprecationWarning",
+    "ignore:Inheritance class .* from web\\.Application is discouraged:DeprecationWarning",
 ]
 
 [tool.coverage.run]

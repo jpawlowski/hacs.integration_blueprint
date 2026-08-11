@@ -1,48 +1,24 @@
-"""
-Options flow for ha_integration_domain.
-
-This module implements the options flow that allows users to modify settings
-after the initial configuration, such as update intervals and debug settings.
-
-For more information:
-https://developers.home-assistant.io/docs/config_entries_options_flow_handler
-"""
+"""Options flow for ha_integration_domain."""
 
 from typing import Any
 
-from custom_components.ha_integration_domain.config_flow_handler.schemas import get_options_schema
 from homeassistant import config_entries
+
+from .schemas import get_options_schema
 
 
 class IntegrationBlueprintOptionsFlow(config_entries.OptionsFlow):
-    """
-    Handle options flow for the integration.
-
-    This class manages the options that users can modify after initial setup,
-    such as update intervals and debug settings.
-
-    The options flow always starts with async_step_init and provides a single
-    form for all configurable options.
-
-    For more information:
-    https://developers.home-assistant.io/docs/config_entries_options_flow_handler
-    """
+    """Let the user change the poll interval after setup."""
 
     async def async_step_init(
         self,
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
         """
-        Manage the options for the integration.
-
-        This is the entry point for the options flow, allowing users to
-        configure advanced settings like update interval and debugging.
-
-        Args:
-            user_input: The user input from the options form, or None for initial display.
+        Show and process the options form.
 
         Returns:
-            The config flow result, either showing a form or creating an options entry.
+            The form, or the stored options.
 
         """
         if user_input is not None:

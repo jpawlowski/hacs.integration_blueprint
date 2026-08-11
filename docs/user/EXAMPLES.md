@@ -45,18 +45,14 @@ automation:
 
 ```yaml
 automation:
-  - alias: "Reset filter counter weekly"
+  - alias: "Refresh the data every morning"
     trigger:
       - trigger: time
         at: "03:00:00"
-    condition:
-      - condition: time
-        weekday:
-          - mon
     action:
-      - action: ha_integration_domain.example_service
-        target:
-          entity_id: button.device_name_reset_filter
+      - action: ha_integration_domain.refresh_data
+        data:
+          config_entry_id: 01JG3T2Q6Z9K4V8P0N5R7X2M1A
 ```
 
 ### Use a blueprint for threshold alerts

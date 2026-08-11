@@ -420,6 +420,7 @@ custom_components/ha_integration_domain/  # Your integration code
 ├── const.py                   # Constants and configuration
 ├── data.py                    # Data models and type definitions
 ├── diagnostics.py             # Diagnostics data for troubleshooting
+├── icons.json                 # Entity and service action icons
 ├── manifest.json              # Integration metadata
 ├── repairs.py                 # Repair flows for fixing issues
 ├── services.yaml              # Service action definitions (legacy filename)
@@ -430,10 +431,7 @@ custom_components/ha_integration_domain/  # Your integration code
 │
 ├── coordinator/               # DataUpdateCoordinator package
 │   ├── __init__.py            # Main coordinator export
-│   ├── base.py                # Core coordinator implementation
-│   ├── data_processing.py     # Data transformation
-│   ├── error_handling.py      # Error recovery
-│   └── listeners.py           # Entity callbacks
+│   └── base.py                # Core coordinator implementation
 │
 ├── entity/                    # Base entity package
 │   ├── __init__.py            # Base entity export
@@ -441,42 +439,29 @@ custom_components/ha_integration_domain/  # Your integration code
 │
 ├── config_flow_handler/       # Config flow package
 │   ├── __init__.py
-│   ├── handler.py             # Base handler logic
-│   ├── config_flow.py         # User setup flow
-│   ├── options_flow.py        # Options flow (reconfigure)
-│   ├── subentry_flow.py       # Subentry flow (for multi-device setups)
+│   ├── config_flow.py         # User setup, reauth and reconfigure
+│   ├── options_flow.py        # Options flow (poll interval)
 │   ├── schemas/               # Voluptuous schemas
 │   │   ├── __init__.py
 │   │   ├── config.py          # Config flow schemas
 │   │   └── options.py         # Options flow schemas
 │   └── validators/            # Input validators
 │       ├── __init__.py
-│       ├── credentials.py     # Credential validation
-│       └── sanitizers.py      # Input sanitizers
-│
-├── entity_utils/              # Entity utilities package
-│   ├── __init__.py
-│   ├── device_info.py         # Device info helpers
-│   └── state_helpers.py       # State calculation helpers
+│       └── credentials.py     # Credential validation
 │
 ├── service_actions/           # Service action handlers package
-│   ├── __init__.py            # Service action registration and handlers
-│   └── example_service.py     # Example: Service action implementation
-│
-├── utils/                     # General utilities package
-│   ├── __init__.py            # Utility functions
-│   ├── string_helpers.py      # String formatting utilities
-│   └── validators.py          # General validation utilities
+│   ├── __init__.py            # Registration in async_setup()
+│   └── refresh_data.py        # Example: Service action implementation
 │
 ├── sensor/                    # Sensor platform package
 │   ├── __init__.py            # Platform setup
-│   ├── air_quality.py         # Example: Air quality sensor
-│   ├── diagnostic.py          # Example: Diagnostic sensor
+│   ├── entity.py              # Sensor class and its description type
+│   ├── air_quality.py         # Example: Air quality descriptions
+│   ├── diagnostic.py          # Example: Diagnostic descriptions
 │   └── ...                    # Additional sensor entities
 │
 ├── binary_sensor/             # Binary sensor platform package
 │   ├── __init__.py            # Platform setup
-│   ├── connectivity.py        # Example: Connectivity sensor
 │   ├── filter.py              # Example: Filter status sensor
 │   └── ...                    # Additional binary sensor entities
 │
@@ -561,16 +546,18 @@ This blueprint uses a **package-based structure** where each major component is 
 
 Each platform (sensor, binary_sensor, switch, etc.) is a package containing:
 
-- `__init__.py` - Platform setup with `async_setup_entry()` function
-- Individual entity files - One file per entity type (e.g., `air_quality.py`, `connectivity.py`)
+- `__init__.py` - Platform setup with `async_setup_entry()` and `PARALLEL_UPDATES`
+- Individual entity files - One file per entity type (e.g., `air_quality.py`, `filter.py`)
 
 **Other packages:**
 
 - **`api/`** - API client and exceptions
 - **`config_flow_handler/`** - All config flow logic, schemas, and validators
-- **`entity_utils/`** - Shared entity helpers (device info, state calculations)
-- **`service_actions/`** - Service action registration and handlers (e.g., `example_service.py`)
-- **`utils/`** - General utility functions (string helpers, validators, etc.)
+- **`service_actions/`** - Service action registration and handlers (e.g., `refresh_data.py`)
+
+Two further packages are permitted and created only once something needs them:
+**`entity_utils/`** for a helper shared by three or more entity classes, and **`utils/`** for
+integration-wide utilities.
 
 See [docs/development/ARCHITECTURE.md](docs/development/ARCHITECTURE.md) for a detailed architecture overview and architectural decision records.
 
@@ -591,12 +578,13 @@ The config flow is organized in the [`config_flow_handler/`](custom_components/h
 
 **Package structure:**
 
-- [`handler.py`](custom_components/ha_integration_domain/config_flow_handler/handler.py) - Base handler with shared logic
-- [`config_flow.py`](custom_components/ha_integration_domain/config_flow_handler/config_flow.py) - User setup flow
-- [`options_flow.py`](custom_components/ha_integration_domain/config_flow_handler/options_flow.py) - Options flow for reconfiguration
-- [`subentry_flow.py`](custom_components/ha_integration_domain/config_flow_handler/subentry_flow.py) - Subentry flow for multi-device setups
+- [`config_flow.py`](custom_components/ha_integration_domain/config_flow_handler/config_flow.py) - User setup, reauth and reconfigure
+- [`options_flow.py`](custom_components/ha_integration_domain/config_flow_handler/options_flow.py) - Options flow for the poll interval
 - [`schemas/`](custom_components/ha_integration_domain/config_flow_handler/schemas/) - Voluptuous schemas for input validation
 - [`validators/`](custom_components/ha_integration_domain/config_flow_handler/validators/) - Custom validators
+
+Shared flow logic goes in `handler.py`, and a subentry flow in `subentry_flow.py`, once the
+integration needs either.
 
 **Key features:**
 
@@ -656,9 +644,7 @@ The blueprint includes multiple entity types organized as packages to demonstrat
 
 - Shows binary (on/off) sensors
 - Uses device classes for proper icons
-- Examples:
-  - [`connectivity.py`](custom_components/ha_integration_domain/binary_sensor/connectivity.py) - Connectivity status
-  - [`filter.py`](custom_components/ha_integration_domain/binary_sensor/filter.py) - Filter replacement indicator
+- Example: [`filter.py`](custom_components/ha_integration_domain/binary_sensor/filter.py) - Filter replacement indicator
 
 **Switches** ([`switch/`](custom_components/ha_integration_domain/switch/))
 

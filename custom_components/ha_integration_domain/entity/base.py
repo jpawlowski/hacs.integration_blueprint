@@ -1,13 +1,4 @@
-"""
-Base entity class for ha_integration_domain.
-
-This module provides the base entity class that all integration entities inherit from.
-It handles common functionality like device info, unique IDs, and coordinator integration.
-
-For more information on entities:
-https://developers.home-assistant.io/docs/core/entity
-https://developers.home-assistant.io/docs/core/entity/index/#common-properties
-"""
+"""Base entity class for ha_integration_domain."""
 
 from typing import TYPE_CHECKING
 
@@ -22,17 +13,11 @@ if TYPE_CHECKING:
 
 class IntegrationBlueprintEntity(CoordinatorEntity[IntegrationBlueprintDataUpdateCoordinator]):
     """
-    Base entity class for ha_integration_domain.
+    Base entity providing device info, unique ID and attribution.
 
-    All entities in this integration inherit from this class, which provides:
-    - Automatic coordinator updates
-    - Device info management
-    - Unique ID generation
-    - Attribution and naming conventions
-
-    For more information:
-    https://developers.home-assistant.io/docs/core/entity
-    https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
+    The unique ID is `{entry_id}_{key}`, the documented identifier of last resort.
+    A real integration switches to the device's serial, MAC or account ID before its
+    first release, because changing it afterwards needs a registry migration.
     """
 
     _attr_attribution = ATTRIBUTION
@@ -43,17 +28,9 @@ class IntegrationBlueprintEntity(CoordinatorEntity[IntegrationBlueprintDataUpdat
         coordinator: IntegrationBlueprintDataUpdateCoordinator,
         entity_description: EntityDescription,
     ) -> None:
-        """
-        Initialize the base entity.
-
-        Args:
-            coordinator: The data update coordinator for this entity.
-            entity_description: The entity description defining characteristics.
-
-        """
+        """Initialize the entity."""
         super().__init__(coordinator)
         self.entity_description = entity_description
-        # Include entity description key in unique_id to support multiple entities
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{entity_description.key}"
         self._attr_device_info = DeviceInfo(
             identifiers={
@@ -63,6 +40,8 @@ class IntegrationBlueprintEntity(CoordinatorEntity[IntegrationBlueprintDataUpdat
                 ),
             },
             name=coordinator.config_entry.title,
-            manufacturer=coordinator.config_entry.domain,
-            model=coordinator.data.get("model", "Unknown"),
+            manufacturer="Integration Blueprint",
+            model=coordinator.data["model"],
+            serial_number=coordinator.data["serial_number"],
+            sw_version=coordinator.data["sw_version"],
         )

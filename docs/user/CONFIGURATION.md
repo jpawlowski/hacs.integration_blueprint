@@ -87,44 +87,39 @@ Disabled entities won't update or consume resources.
 
 The integration provides the following services:
 
-### `ha_integration_domain.example_service`
+### `ha_integration_domain.refresh_data`
 
-Execute an example service action on the device.
+Fetch the current device state immediately instead of waiting for the next poll.
 
 **Service data:**
 
-| Parameter   | Type           | Required | Description                                      |
-| ----------- | -------------- | -------- | ------------------------------------------------ |
-| `entity_id` | string or list | No       | Target entity/entities (if omitted, targets all) |
-| `parameter` | string         | Yes      | Service-specific parameter                       |
-| `value`     | integer        | No       | Numeric value for the action                     |
+| Parameter         | Type   | Required | Description                        |
+| ----------------- | ------ | -------- | ---------------------------------- |
+| `config_entry_id` | string | Yes      | The configuration entry to refresh |
+
+The action returns `refreshed_at`, `success` and `value_count`, so an automation can react to
+whether the refresh actually produced data.
 
 **Example:**
 
 ```yaml
-service: ha_integration_domain.example_service
-target:
-  entity_id: switch.device_name_switch
+action: ha_integration_domain.refresh_data
 data:
-  parameter: "setting_name"
-  value: 42
+  config_entry_id: 01JG3T2Q6Z9K4V8P0N5R7X2M1A
 ```
 
 ### Using Services in Automations
 
 ```yaml
 automation:
-  - alias: "Call service at sunset"
+  - alias: "Refresh at sunset"
     trigger:
       - trigger: sun
         event: sunset
     action:
-      - action: ha_integration_domain.example_service
-        target:
-          entity_id: switch.device_name_switch
+      - action: ha_integration_domain.refresh_data
         data:
-          parameter: "mode"
-          value: 1
+          config_entry_id: 01JG3T2Q6Z9K4V8P0N5R7X2M1A
 ```
 
 ## Advanced Configuration

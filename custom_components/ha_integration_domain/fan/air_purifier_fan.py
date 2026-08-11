@@ -1,104 +1,59 @@
 """Air purifier fan entity for ha_integration_domain."""
 
-import math
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from custom_components.ha_integration_domain.api import IntegrationBlueprintApiClientError
-from custom_components.ha_integration_domain.const import LOGGER
+from custom_components.ha_integration_domain.const import DOMAIN
 from custom_components.ha_integration_domain.entity import IntegrationBlueprintEntity
 from homeassistant.components.fan import FanEntity, FanEntityDescription, FanEntityFeature
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.util.percentage import percentage_to_ranged_value
+from homeassistant.util.percentage import percentage_to_ordered_list_item
 
-if TYPE_CHECKING:
-    from custom_components.ha_integration_domain.coordinator import IntegrationBlueprintDataUpdateCoordinator
+ORDERED_SPEEDS = ["low", "medium", "high"]
 
-# Speed range for percentage calculations (Low=1, Medium=2, High=3)
-SPEED_RANGE = (1, 3)
-
-ENTITY_DESCRIPTIONS = (
+# The fan is the device's main feature, so name=None makes its friendly name the
+# device name alone — otherwise the UI reads "Air Purifier Air Purifier".
+ENTITY_DESCRIPTIONS: tuple[FanEntityDescription, ...] = (
     FanEntityDescription(
         key="air_purifier",
-        translation_key="air_purifier",
-        icon="mdi:air-purifier",
-        has_entity_name=True,
+        name=None,
     ),
 )
 
 
 class IntegrationBlueprintFan(FanEntity, IntegrationBlueprintEntity):
-    """
-    Air purifier fan entity.
-
-    This entity is linked to the fan_speed select entity - they control the same thing.
-    When you change one, the other updates automatically.
-    """
+    """The air purifier's fan."""
 
     _attr_supported_features = FanEntityFeature.SET_SPEED | FanEntityFeature.TURN_ON | FanEntityFeature.TURN_OFF
-    _attr_speed_count = 3  # Low, Medium, High (Auto is handled separately)
-
-    def __init__(
-        self,
-        coordinator: IntegrationBlueprintDataUpdateCoordinator,
-        entity_description: FanEntityDescription,
-    ) -> None:
-        """Initialize the fan."""
-        super().__init__(coordinator, entity_description)
-        # Track state locally (in production, get from API)
-        self._is_on = True
-        self._percentage = 66  # Default to Medium (66%)
+    _attr_speed_count = len(ORDERED_SPEEDS)
 
     @property
-    def is_on(self) -> bool:
-        """Return true if fan is on."""
-        # Check if the select entity has "auto" selected
-        # In that case, we're always "on"
-        return self._is_on
+    def is_on(self) -> bool | None:
+        """Return whether the fan is running."""
+        return self.coordinator.data.get("fan_on")
 
     @property
     def percentage(self) -> int | None:
-        """Return the current speed percentage."""
-        if not self.is_on:
-            return 0
-        return self._percentage
+        """Return the current speed as a percentage."""
+        return self.coordinator.data.get("fan_percentage")
 
     async def async_set_percentage(self, percentage: int) -> None:
-        """
-        Set the speed percentage of the fan.
+        """Set the fan speed."""
+        if percentage == 0:
+            await self.async_turn_off()
+            return
 
-        This also updates the fan_speed select entity to match.
-        """
+        speed = percentage_to_ordered_list_item(ORDERED_SPEEDS, percentage)
+        client = self.coordinator.config_entry.runtime_data.client
         try:
-            if percentage == 0:
-                await self.async_turn_off()
-                return
-
-            # Convert percentage to speed value (1-3)
-            speed_value = math.ceil(percentage_to_ranged_value(SPEED_RANGE, percentage))
-
-            # Map to speed name for API call
-            speed_map = {1: "low", 2: "medium", 3: "high"}
-            speed_name = speed_map.get(speed_value, "medium")
-
-            # In production: Send to API
-            # await self.coordinator.config_entry.runtime_data.client.async_set_fan_speed(speed_name)
-
-            self._percentage = percentage
-            self._is_on = True
-
-            # Store in coordinator data for select entity to read
-            # This creates a link: when you change the fan speed here,
-            # the fan_speed select entity will also update
-            self.coordinator.data["demo_fan_speed"] = speed_name
-
-            # Request coordinator refresh - simulates: API call → device updates → fetch new state
-            await self.coordinator.async_request_refresh()
-
-            LOGGER.debug("Fan speed set to %s (%d%%)", speed_name, percentage)
-
+            await client.async_set_fan_speed(speed)
         except IntegrationBlueprintApiClientError as exception:
-            msg = f"Failed to set fan speed: {exception}"
-            raise HomeAssistantError(msg) from exception
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="fan_speed_set_failed",
+            ) from exception
+
+        await self.coordinator.async_request_refresh()
 
     async def async_turn_on(
         self,
@@ -106,15 +61,26 @@ class IntegrationBlueprintFan(FanEntity, IntegrationBlueprintEntity):
         preset_mode: str | None = None,
         **kwargs: Any,
     ) -> None:
-        """Turn on the fan."""
+        """Turn the fan on, optionally at a given speed."""
         if percentage is not None:
             await self.async_set_percentage(percentage)
-        else:
-            self._is_on = True
-            self.async_write_ha_state()
+            return
+
+        await self._async_set_state(is_on=True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn off the fan."""
-        self._is_on = False
-        self._percentage = 0
-        self.async_write_ha_state()
+        """Turn the fan off."""
+        await self._async_set_state(is_on=False)
+
+    async def _async_set_state(self, *, is_on: bool) -> None:
+        """Write the on/off state to the device and refresh."""
+        client = self.coordinator.config_entry.runtime_data.client
+        try:
+            await client.async_set_fan_state(is_on=is_on)
+        except IntegrationBlueprintApiClientError as exception:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="fan_state_set_failed",
+            ) from exception
+
+        await self.coordinator.async_request_refresh()

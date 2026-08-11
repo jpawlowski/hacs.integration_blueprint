@@ -1,16 +1,4 @@
-"""
-Config flow schemas.
-
-Schemas for the main configuration flow steps:
-- User setup
-- Reconfiguration
-- Reauthentication
-
-When this file grows too large (>300 lines), consider splitting into:
-- user.py: User setup schemas
-- reauth.py: Reauthentication schemas
-- reconfigure.py: Reconfiguration schemas
-"""
+"""Config flow schemas for the user, reconfigure and reauth steps."""
 
 from collections.abc import Mapping
 from typing import Any
@@ -20,16 +8,29 @@ import voluptuous as vol
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import selector
 
+_USERNAME_SELECTOR = selector.TextSelector(
+    selector.TextSelectorConfig(
+        type=selector.TextSelectorType.TEXT,
+        autocomplete="username",
+    ),
+)
+_PASSWORD_SELECTOR = selector.TextSelector(
+    selector.TextSelectorConfig(
+        type=selector.TextSelectorType.PASSWORD,
+        autocomplete="current-password",
+    ),
+)
+
 
 def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
     """
-    Get schema for user step (initial setup).
+    Build the schema for the user step.
 
     Args:
-        defaults: Optional dictionary of default values to pre-populate the form.
+        defaults: Previously submitted values, used to pre-fill the form.
 
     Returns:
-        Voluptuous schema for user credentials input.
+        The voluptuous schema for the credentials form.
 
     """
     defaults = defaults or {}
@@ -38,80 +39,46 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
             vol.Required(
                 CONF_USERNAME,
                 default=defaults.get(CONF_USERNAME, vol.UNDEFINED),
-            ): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    type=selector.TextSelectorType.TEXT,
-                ),
-            ),
-            vol.Required(CONF_PASSWORD): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    type=selector.TextSelectorType.PASSWORD,
-                ),
-            ),
+            ): _USERNAME_SELECTOR,
+            vol.Required(CONF_PASSWORD): _PASSWORD_SELECTOR,
         },
     )
 
 
 def get_reconfigure_schema(username: str) -> vol.Schema:
     """
-    Get schema for reconfigure step.
+    Build the schema for the reconfigure step.
 
     Args:
-        username: Current username to pre-fill in the form.
+        username: The entry's current username, used to pre-fill the form.
 
     Returns:
-        Voluptuous schema for reconfiguration.
+        The voluptuous schema for the reconfigure form.
 
     """
     return vol.Schema(
         {
-            vol.Required(
-                CONF_USERNAME,
-                default=username,
-            ): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    type=selector.TextSelectorType.TEXT,
-                ),
-            ),
-            vol.Required(
-                CONF_PASSWORD,
-            ): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    type=selector.TextSelectorType.PASSWORD,
-                ),
-            ),
+            vol.Required(CONF_USERNAME, default=username): _USERNAME_SELECTOR,
+            vol.Required(CONF_PASSWORD): _PASSWORD_SELECTOR,
         },
     )
 
 
 def get_reauth_schema(username: str) -> vol.Schema:
     """
-    Get schema for reauthentication step.
+    Build the schema for the reauth step.
 
     Args:
-        username: Current username to pre-fill in the form.
+        username: The entry's current username, used to pre-fill the form.
 
     Returns:
-        Voluptuous schema for reauthentication.
+        The voluptuous schema for the reauth form.
 
     """
     return vol.Schema(
         {
-            vol.Required(
-                CONF_USERNAME,
-                default=username,
-            ): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    type=selector.TextSelectorType.TEXT,
-                ),
-            ),
-            vol.Required(
-                CONF_PASSWORD,
-            ): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    type=selector.TextSelectorType.PASSWORD,
-                ),
-            ),
+            vol.Required(CONF_USERNAME, default=username): _USERNAME_SELECTOR,
+            vol.Required(CONF_PASSWORD): _PASSWORD_SELECTOR,
         },
     )
 

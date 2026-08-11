@@ -1,18 +1,18 @@
-"""
-API Client for ha_integration_domain.
-
-This module provides the API client for communicating with external services.
-It demonstrates proper error handling, authentication patterns, and async operations.
-
-For more information on creating API clients:
-https://developers.home-assistant.io/docs/api_lib_index
-"""
+"""API client for ha_integration_domain."""
 
 import asyncio
 import socket
 from typing import Any
 
 import aiohttp
+
+API_URL = "https://jsonplaceholder.typicode.com/posts/1"
+REQUEST_TIMEOUT = 10
+
+CURRENT_API_VERSION = "v2"
+
+FAN_SPEEDS = ("low", "medium", "high", "auto")
+SPEED_PERCENTAGES = {"low": 33, "medium": 66, "high": 100, "auto": 66}
 
 
 class IntegrationBlueprintApiClientError(Exception):
@@ -35,49 +35,25 @@ def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
     """
     Verify that the API response is valid.
 
-    Raises appropriate exceptions for authentication and HTTP errors.
-
-    Args:
-        response: The aiohttp ClientResponse to verify.
-
     Raises:
-        IntegrationBlueprintApiClientAuthenticationError: For 401/403 errors.
-        aiohttp.ClientResponseError: For other HTTP errors.
+        IntegrationBlueprintApiClientAuthenticationError: For 401 and 403 responses.
+        aiohttp.ClientResponseError: For every other unsuccessful status.
 
     """
     if response.status in (401, 403):
         msg = "Invalid credentials"
-        raise IntegrationBlueprintApiClientAuthenticationError(
-            msg,
-        )
+        raise IntegrationBlueprintApiClientAuthenticationError(msg)
     response.raise_for_status()
 
 
 class IntegrationBlueprintApiClient:
     """
-    API Client for Smart Air Purifier integration.
+    Stand-in for the client of a real device or service.
 
-    This client demonstrates authentication and API communication patterns
-    for Home Assistant integrations. It handles HTTP requests, error handling,
-    and credential management.
-
-    The username and password are stored and would be used for:
-    - HTTP Basic Auth headers
-    - OAuth token exchange
-    - API key generation
-    - Session token management
-
-    Note: JSONPlaceholder is used as a demo endpoint and doesn't require auth.
-    In production, replace with your actual API endpoint that validates credentials.
-
-    For more information on API clients:
-    https://developers.home-assistant.io/docs/api_lib_index
-
-    Attributes:
-        _username: The username for API authentication.
-        _password: The password for API authentication.
-        _session: The aiohttp ClientSession for making requests.
-
+    JSONPlaceholder is queried so that a real request happens on every poll, and its
+    response is turned into a device-shaped payload. The writable values are kept in
+    memory because the demo endpoint stores nothing; a real client sends them to the
+    device and reads them back on the next poll.
     """
 
     def __init__(
@@ -85,130 +61,129 @@ class IntegrationBlueprintApiClient:
         username: str,
         password: str,
         session: aiohttp.ClientSession,
+        api_version: str = "v1",
     ) -> None:
-        """
-        Initialize the API Client with credentials.
-
-        Args:
-            username: The username for authentication from config flow.
-            password: The password for authentication from config flow.
-            session: The aiohttp ClientSession to use for requests.
-
-        """
+        """Initialize the API client."""
         self._username = username
         self._password = password
         self._session = session
+        self._api_version = api_version
+        self._settings: dict[str, Any] = {
+            "fan_on": True,
+            "fan_speed": "auto",
+            "child_lock": False,
+            "led_display": True,
+            "target_humidity": 50.0,
+        }
+        self._filter_reset_offset = 0
 
-    async def async_get_data(self) -> Any:
+    async def async_get_data(self) -> dict[str, Any]:
         """
-        Get data from the API.
-
-        This method fetches the current state and sensor data from the device.
-        It demonstrates where credentials would be used in production:
-        - Authorization headers (Basic Auth, Bearer Token)
-        - Query parameters (username, api_key)
-        - Session cookies (after login)
+        Fetch the current device state.
 
         Returns:
-            A dictionary containing the device data.
-
-        Raises:
-            IntegrationBlueprintApiClientAuthenticationError: If authentication fails.
-            IntegrationBlueprintApiClientCommunicationError: If communication fails.
-            IntegrationBlueprintApiClientError: For other API errors.
+            The device state, keyed the way entities read it.
 
         """
-        # In production: Use username/password for authentication
-        # Example patterns:
-        # 1. Basic Auth: auth=aiohttp.BasicAuth(self._username, self._password)
-        # 2. Token: headers={"Authorization": f"Bearer {self._get_token()}"}
-        # 3. API Key: params={"username": self._username, "key": self._password}
+        response = await self._api_wrapper(method="get", url=API_URL)
+        return self._build_payload(response)
 
-        return await self._api_wrapper(
-            method="get",
-            url="https://jsonplaceholder.typicode.com/posts/1",
-            # For demo purposes with JSONPlaceholder (no auth required)
-            # In production, add authentication here
-        )
-
-    async def async_set_fan_speed(self, speed: str) -> Any:
-        """
-        Set the fan speed on the device.
-
-        Args:
-            speed: The fan speed to set (low, medium, high, auto).
-
-        Returns:
-            A dictionary containing the API response.
-
-        Raises:
-            IntegrationBlueprintApiClientAuthenticationError: If authentication fails.
-            IntegrationBlueprintApiClientCommunicationError: If communication fails.
-            IntegrationBlueprintApiClientError: For other API errors.
-
-        """
-        # In production: Send authenticated request to change fan speed
-        return await self._api_wrapper(
+    async def async_set_fan_speed(self, speed: str) -> None:
+        """Set the fan speed."""
+        await self._api_wrapper(
             method="patch",
-            url="https://jsonplaceholder.typicode.com/posts/1",
-            data={"fan_speed": speed, "user": self._username},
+            url=API_URL,
+            data={"fan_speed": speed},
             headers={"Content-type": "application/json; charset=UTF-8"},
         )
+        self._settings["fan_speed"] = speed
+        self._settings["fan_on"] = True
 
-    async def async_set_target_humidity(self, humidity: int) -> Any:
-        """
-        Set the target humidity on the device.
-
-        Args:
-            humidity: The target humidity percentage (30-80).
-
-        Returns:
-            A dictionary containing the API response.
-
-        Raises:
-            IntegrationBlueprintApiClientAuthenticationError: If authentication fails.
-            IntegrationBlueprintApiClientCommunicationError: If communication fails.
-            IntegrationBlueprintApiClientError: For other API errors.
-
-        """
-        # In production: Send authenticated request to change humidity setting
-        return await self._api_wrapper(
+    async def async_set_fan_state(self, *, is_on: bool) -> None:
+        """Turn the fan on or off."""
+        await self._api_wrapper(
             method="patch",
-            url="https://jsonplaceholder.typicode.com/posts/1",
-            data={"target_humidity": humidity, "user": self._username},
+            url=API_URL,
+            data={"fan_on": is_on},
             headers={"Content-type": "application/json; charset=UTF-8"},
         )
+        self._settings["fan_on"] = is_on
+
+    async def async_set_target_humidity(self, humidity: float) -> None:
+        """Set the target humidity."""
+        await self._api_wrapper(
+            method="patch",
+            url=API_URL,
+            data={"target_humidity": humidity},
+            headers={"Content-type": "application/json; charset=UTF-8"},
+        )
+        self._settings["target_humidity"] = humidity
+
+    async def async_set_toggle(self, key: str, *, enabled: bool) -> None:
+        """Set one of the device's boolean settings."""
+        await self._api_wrapper(
+            method="patch",
+            url=API_URL,
+            data={key: enabled},
+            headers={"Content-type": "application/json; charset=UTF-8"},
+        )
+        self._settings[key] = enabled
+
+    async def async_reset_filter(self) -> None:
+        """Reset the filter timer."""
+        await self._api_wrapper(
+            method="post",
+            url=API_URL,
+            data={"command": "reset_filter"},
+            headers={"Content-type": "application/json; charset=UTF-8"},
+        )
+        self._filter_reset_offset = 0
+
+    def _build_payload(self, response: dict[str, Any]) -> dict[str, Any]:
+        """Derive a device-shaped payload from the demo endpoint's response."""
+        seed = int(response.get("userId", 1)) * 47 + int(response.get("id", 1)) * 13
+        fan_speed = str(self._settings["fan_speed"])
+        filter_life = max(0, 100 - (seed % 100) - self._filter_reset_offset)
+
+        return {
+            "model": "Blueprint Air Purifier",
+            "serial_number": f"BP-{seed:06d}",
+            "sw_version": "1.4.2",
+            "air_quality_index": seed % 501,
+            "pm25": round((seed * 0.37) % 300, 1),
+            "filter_life": filter_life,
+            "filter_replacement": filter_life < 10,
+            "runtime": (seed * 12) % 10000,
+            "fan_on": self._settings["fan_on"],
+            "fan_speed": fan_speed,
+            "fan_percentage": SPEED_PERCENTAGES[fan_speed] if self._settings["fan_on"] else 0,
+            "child_lock": self._settings["child_lock"],
+            "led_display": self._settings["led_display"],
+            "target_humidity": self._settings["target_humidity"],
+            "api_deprecated": self._api_version != CURRENT_API_VERSION,
+        }
 
     async def _api_wrapper(
         self,
         method: str,
         url: str,
-        data: dict | None = None,
-        headers: dict | None = None,
-    ) -> Any:
+        data: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         """
-        Wrapper for API requests with error handling.
-
-        This method handles all HTTP requests and translates exceptions
-        into integration-specific exceptions.
-
-        Args:
-            method: The HTTP method (get, post, patch, etc.).
-            url: The URL to request.
-            data: Optional data to send in the request body.
-            headers: Optional headers to include in the request.
+        Perform a request and translate transport errors into client exceptions.
 
         Returns:
-            The JSON response from the API.
+            The decoded JSON response.
 
         Raises:
-            IntegrationBlueprintApiClientAuthenticationError: If authentication fails.
-            IntegrationBlueprintApiClientCommunicationError: If communication fails.
-            IntegrationBlueprintApiClientError: For other API errors.
+            IntegrationBlueprintApiClientAuthenticationError: If the credentials are rejected.
+            IntegrationBlueprintApiClientCommunicationError: If the request does not complete.
+            IntegrationBlueprintApiClientError: For any other failure.
 
         """
         try:
-            async with asyncio.timeout(10):
+            async with asyncio.timeout(REQUEST_TIMEOUT):
                 response = await self._session.request(
                     method=method,
                     url=url,
@@ -220,16 +195,12 @@ class IntegrationBlueprintApiClient:
 
         except TimeoutError as exception:
             msg = f"Timeout error fetching information - {exception}"
-            raise IntegrationBlueprintApiClientCommunicationError(
-                msg,
-            ) from exception
+            raise IntegrationBlueprintApiClientCommunicationError(msg) from exception
         except (aiohttp.ClientError, socket.gaierror) as exception:
             msg = f"Error fetching information - {exception}"
-            raise IntegrationBlueprintApiClientCommunicationError(
-                msg,
-            ) from exception
+            raise IntegrationBlueprintApiClientCommunicationError(msg) from exception
+        except IntegrationBlueprintApiClientError:
+            raise
         except Exception as exception:
-            msg = f"Something really wrong happened! - {exception}"
-            raise IntegrationBlueprintApiClientError(
-                msg,
-            ) from exception
+            msg = f"Unexpected error talking to the API - {exception}"
+            raise IntegrationBlueprintApiClientError(msg) from exception

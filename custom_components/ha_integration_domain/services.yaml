@@ -1,30 +1,16 @@
 # yaml-language-server: $schema=../../schemas/yaml/services_schema.yaml
-# Describes the format for available services for ha_integration_domain
+# The names and descriptions here are only the fallback shown when a translation is
+# missing; users see services.<action>.* from translations/en.json.
 
-example_action:
-  name: Example Action
-  description: Execute an example action (dummy service for demonstration)
+refresh_data:
+  name: Refresh data
+  description: Fetch the current device state immediately instead of waiting for the next poll.
   fields:
-    action_type:
-      name: Action Type
-      description: The type of action to perform
-      required: false
-      default: default
-      example: "update"
+    config_entry_id:
+      name: Integration entry
+      description: The configuration entry to refresh.
+      required: true
+      example: 01JG3T2Q6Z9K4V8P0N5R7X2M1A
       selector:
-        select:
-          options:
-            - "default"
-            - "update"
-            - "reset"
-    target_value:
-      name: Target Value
-      description: The target value for the action
-      required: false
-      example: "new_value"
-      selector:
-        text:
-
-reload_data:
-  name: Reload Data
-  description: Force a refresh of the integration data from the API
+        config_entry:
+          integration: ha_integration_domain

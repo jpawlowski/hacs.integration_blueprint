@@ -1,18 +1,9 @@
-"""
-Credential validators.
-
-Validation functions for user credentials and authentication.
-
-When this file grows, consider splitting into:
-- credentials.py: Basic credential validation
-- oauth.py: OAuth-specific validation
-- api_auth.py: API authentication methods
-"""
+"""Credential validation for the config flow."""
 
 from typing import TYPE_CHECKING
 
 from custom_components.ha_integration_domain.api import IntegrationBlueprintApiClient
-from homeassistant.helpers.aiohttp_client import async_create_clientsession
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -20,27 +11,25 @@ if TYPE_CHECKING:
 
 async def validate_credentials(hass: HomeAssistant, username: str, password: str) -> None:
     """
-    Validate user credentials by testing API connection.
+    Test the credentials against the API.
 
     Args:
-        hass: Home Assistant instance.
+        hass: The Home Assistant instance.
         username: The username to validate.
         password: The password to validate.
 
     Raises:
-        IntegrationBlueprintApiClientAuthenticationError: If credentials are invalid.
-        IntegrationBlueprintApiClientCommunicationError: If communication fails.
-        IntegrationBlueprintApiClientError: For other API errors.
+        IntegrationBlueprintApiClientAuthenticationError: If the credentials are rejected.
+        IntegrationBlueprintApiClientCommunicationError: If the API cannot be reached.
+        IntegrationBlueprintApiClientError: For any other API failure.
 
     """
     client = IntegrationBlueprintApiClient(
         username=username,
         password=password,
-        session=async_create_clientsession(hass),
+        session=async_get_clientsession(hass),
     )
-    await client.async_get_data()  # May raise authentication/communication errors
+    await client.async_get_data()
 
 
-__all__ = [
-    "validate_credentials",
-]
+__all__ = ["validate_credentials"]

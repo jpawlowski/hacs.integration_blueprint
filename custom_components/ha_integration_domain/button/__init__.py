@@ -2,9 +2,7 @@
 
 from typing import TYPE_CHECKING
 
-from homeassistant.components.button import ButtonEntityDescription
-
-from .reset_filter import ENTITY_DESCRIPTIONS as RESET_DESCRIPTIONS, IntegrationBlueprintButton
+from .reset_filter import ENTITY_DESCRIPTIONS, IntegrationBlueprintButton
 
 # Acts on the device: the coordinator does not limit outbound calls.
 PARALLEL_UPDATES = 1
@@ -14,9 +12,6 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-# Combine all entity descriptions from different modules
-ENTITY_DESCRIPTIONS: tuple[ButtonEntityDescription, ...] = (*RESET_DESCRIPTIONS,)
-
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -25,9 +20,5 @@ async def async_setup_entry(
 ) -> None:
     """Set up the button platform."""
     async_add_entities(
-        IntegrationBlueprintButton(
-            coordinator=entry.runtime_data.coordinator,
-            entity_description=entity_description,
-        )
-        for entity_description in ENTITY_DESCRIPTIONS
+        IntegrationBlueprintButton(entry.runtime_data.coordinator, description) for description in ENTITY_DESCRIPTIONS
     )
