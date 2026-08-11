@@ -2,9 +2,10 @@
 
 # script/develop: Start Home Assistant in development mode
 #
-# Starts Home Assistant with debug logging enabled, using the config/ directory
-# for configuration. Automatically cleans up accidental package installations and
-# sets PYTHONPATH to load the integration from custom_components/.
+# Starts Home Assistant with asyncio debug mode enabled, using the config/ directory
+# for configuration. This does not change any log level — those come from the logger:
+# block in config/configuration.yaml. Automatically cleans up accidental package
+# installations and sets PYTHONPATH to load the integration from custom_components/.
 #
 # Usage:
 #   ./script/develop
@@ -73,7 +74,7 @@ export PYTHONPATH="${PYTHONPATH:-}:${PWD}/custom_components"
 
 log_header "Starting Home Assistant in development mode"
 log_info "Config directory: ${PWD}/config"
-log_info "Debug logging: enabled"
+log_info "asyncio debug mode: enabled"
 log_separator
 echo ""
 
