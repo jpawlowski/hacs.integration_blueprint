@@ -59,39 +59,18 @@ as if it were user-facing, while the `ci` **type** is `hidden` in
 
 ## Rules
 
-1. **Always analyze the full staged diff** — every modified file must be accounted for
-2. **Always include a body** when more than one file changes or the subject alone is ambiguous
-3. **Always include a scope** when the change is clearly scoped to one component or layer
-4. Subject line: ≤ 72 chars, no capital after colon, no trailing period
-5. Body: blank line between subject and body; use bullet points, not prose
-6. Breaking changes: add `BREAKING CHANGE:` footer **and** warn the developer before implementing
-7. Multiple unrelated changes → separate commits, not one large commit
-8. **Never use a type name as a scope** — `ci: …`, not `feat(ci): …` (see Scopes)
+1. **Always include a body** when more than one file changes or the subject alone is ambiguous
+2. **Always include a scope** when the change is clearly scoped to one component or layer
+3. Subject line: ≤ 72 chars, no capital after colon, no trailing period
+4. Body: blank line between subject and body; use bullet points, not prose
+5. Breaking changes: add `BREAKING CHANGE:` footer **and** warn the developer before implementing
+6. Multiple unrelated changes → separate commits, not one large commit
 
-## Examples
+## Example
+
+The breaking-change shape, which the rules above do not show:
 
 ```text
-feat(sensor): add temperature sensor for air purifier
-
-- Add AirPurifierTemperatureSensor entity class
-- Register sensor in sensor/__init__.py platform setup
-- Add TEMPERATURE key to AirPurifierSensorEntityDescription
-
-fix(coordinator): handle API timeout during initial refresh
-
-- Wrap async_config_entry_first_refresh in try/except for TimeoutError
-- Raise ConfigEntryNotReady instead of letting exception propagate
-
-chore(devcontainer): add commit message instructions for Copilot
-
-- Add .agents/instructions/blueprint.commit-message.instructions.md with
-  Conventional Commits types, scopes, rules, and examples
-- Wire github.copilot.chat.commitMessageGeneration.instructions
-  in devcontainer.json and settings.default.jsonc
-- Add JSONC trailingComma override in .prettierrc.yml
-- Trim verbose commit format blocks from copilot-instructions.md
-  and AGENTS.md; both now reference the new file
-
 feat!: redesign config entry data structure
 
 - Replace flat dict with TypedDict ConfigEntryData

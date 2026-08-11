@@ -77,62 +77,19 @@ nest the data: a field inside a section still arrives as `{"speed_pct": 50}`, no
 
 Under `target.entity.supported_features`, a nested list means AND — both features must be present.
 
-## Selector Types
+## Selectors
 
-Common selectors for service action parameters:
+Every field takes one — the full list is in the schema at `/schemas/yaml/services_schema.yaml`. Pick the specific one
+(`number:` with `min`/`max`/`step`, `duration:`, `color_rgb:`, `entity:` with a domain filter) over `text:`; a field
+that renders as an untyped box is a review blocker.
 
-- `text:` - String input
-- `number:` - Numeric input with optional min/max/step
-- `boolean:` - Toggle switch
-- `select:` - Dropdown with options
-- `entity:` - Entity picker with optional domain filter
-- `device:` - Device picker with optional integration filter
-- `time:` - Time picker
-- `date:` - Date picker
-- `duration:` - Duration input
-- `color_rgb:` - RGB color picker
-- `template:` - Template input
+**If `target:` is defined, do NOT define `entity_id` as a field.**
 
-**Example with selector:**
+## Conventions
 
-```yaml
-brightness:
-  name: Brightness
-  description: Brightness level (0-255)
-  required: false
-  example: 128
-  selector:
-    number:
-      min: 0
-      max: 255
-      step: 1
-      mode: slider
-```
-
-## Target Selector
-
-Use `target:` to allow users to select entities, devices, or areas:
-
-```yaml
-turn_on:
-  name: Turn On
-  description: Turns on the device.
-  target:
-    entity:
-      - domain: light
-      - domain: switch
-```
-
-**Important:** If `target:` is defined, do NOT define `entity_id` as a field.
-
-## Best Practices
-
-- Always provide meaningful descriptions
-- Include realistic examples for complex fields
-- Use appropriate selectors for better UI
-- Mark fields as required only when necessary
-- Keep action names verb-based (e.g., `set_mode`, `reset_filter`)
-- Validate against schema before committing
+- Action names are verb-based: `set_mode`, `reset_filter`
+- `required: true` only when there is no sensible default
+- Realistic `example:` values for anything non-obvious
 
 ## Related Files
 
@@ -140,11 +97,7 @@ Service action implementations are in `custom_components/<your_domain>/service_a
 
 ## Validation
 
-```bash
-script/yaml-check   # yamllint — catches YAML syntax and style errors
-```
-
-Service action schemas are also validated by Home Assistant on integration load.
-Check `config/home-assistant.log` for runtime schema errors.
+`script/hassfest` cross-checks this file against the translation keys, and `script/yaml-check` runs yamllint. Home
+Assistant validates the schema again on load — see `config/home-assistant.log`.
 
 Reference: <https://developers.home-assistant.io/docs/dev_101_services/>

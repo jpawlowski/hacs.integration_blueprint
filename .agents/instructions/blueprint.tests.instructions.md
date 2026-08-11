@@ -135,39 +135,10 @@ script/test --cov-report term-missing   # Coverage with the uncovered lines list
 `development_testing.md` upstream is mostly the **Core** workflow — `prek`, `script/gen_requirements_all.py` and its
 `pytest ./tests/components/...` paths do not exist here. Take its patterns, not its commands.
 
-## Rules
+## Coverage targets
 
-**Do:**
+Coordinator logic, config flow validation, error handling, entity state calculations. Check with
+`script/test --cov-html`.
 
-- Test success and error cases
-- Mock external dependencies (API, network, time)
-- Use descriptive test names and docstrings
-- Keep tests focused (one assertion concept per test)
-- Use fixtures for setup
-- Test through core interfaces (`hass.states`, `hass.services`)
-- Use snapshots for large outputs (don't replace functional tests)
-- Verify registry entries and config entry lifecycle
-- Use `async_fire_time_changed` instead of `time.sleep()`
-
-**Don't:**
-
-- Make real network requests
-- Test Home Assistant internals
-- Access entity objects directly
-- Create complex test scenarios
-- Skip error condition testing
-- Assume patterns - research when uncertain
-
-## Research Resources
-
-**When uncertain about testing patterns:**
-
-- [Home Assistant Testing Docs](https://developers.home-assistant.io/docs/development_testing) - HA-specific patterns
-- [pytest Documentation](https://docs.pytest.org/) - Fixtures, markers, advanced usage
-- [Home Assistant Core Tests](https://github.com/home-assistant/core/tree/dev/tests/components) - Integration examples
-- Google: `site:developers.home-assistant.io testing [topic]`
-
-**Coverage targets:**
-
-- Coordinator logic, config flow validation, error handling, entity state calculations
-- Check: `script/test --cov-html`
+[Home Assistant Core's own tests](https://github.com/home-assistant/core/tree/dev/tests/components) are the reference
+for a pattern this file does not cover.

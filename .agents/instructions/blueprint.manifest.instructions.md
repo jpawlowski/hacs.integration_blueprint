@@ -99,42 +99,9 @@ Use package name with version constraint:
 own `requirements.txt` — `aiohttp`, `voluptuous`, `httpx`, `awesomeversion` and friends are already there, and
 pinning them from here can only conflict with Core.
 
-## Codeowners Format
-
-GitHub usernames with `@` prefix:
-
-```json
-"codeowners": [
-  "@jpawlowski"
-]
-```
-
-## Version
-
-Use semantic versioning: `MAJOR.MINOR.PATCH`
-
-- Increment MAJOR for breaking changes
-- Increment MINOR for new features
-- Increment PATCH for bug fixes
-
 ## Validation
 
-Manifest is validated by:
-
-- Home Assistant on integration load
-- HACS validation
-- Schema validator
-
-Errors appear in Home Assistant logs.
-
-## Common Mistakes
-
-- ❌ Missing `version` (required for HACS)
-- ❌ Missing `issue_tracker` (required for HACS)
-- ❌ Wrong `domain` (must match directory)
-- ❌ Invalid `iot_class` value
-- ❌ Unquoted version numbers
-- ❌ Trailing commas in JSON
+`script/hassfest` is the gate. Home Assistant and HACS also validate on load, and errors appear in the log.
 
 ## References
 

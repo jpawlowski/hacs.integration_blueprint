@@ -1,72 +1,133 @@
 ---
-name: "Coordinator"
-description: "Update intervals, pull versus push, and mapping API errors to HA exceptions"
+name: "Coordinator and API Client"
+description: "Three-layer architecture, update intervals, pull versus push, caching, and the API exception hierarchy"
 applyTo: "custom_components/**/coordinator/**/*.py, custom_components/**/api/**/*.py"
 paths:
   - "custom_components/**/coordinator/**/*.py"
   - "custom_components/**/api/**/*.py"
 ---
 
-# Coordinator Instructions
+# Coordinator and API Client Instructions
 
 **Procedure:** [`ha-coordinator-debug`](../skills/ha-coordinator-debug/SKILL.md) — load it when data is stale, entities
 are unavailable or setup fails. This file is the rule set; the skill is the local run loop, how to read the log, and
 the four coordinator failures no exception-mapping table can express.
 
-**Applies to:** Coordinator implementation files (always sent together with `blueprint.api.instructions.md`)
+**Applies to:** the coordinator and the API client. An integration that fetches nothing has no `api/` package; the
+layering below is unchanged either way.
 
-## Using the Coordinator
+## Three-Layer Architecture (CRITICAL)
+
+**Entities → Coordinator → API Client** - Never skip layers
+
+- **Entities:** Read `coordinator.data` only, never call API
+- **Coordinator:** Calls API, transforms data, handles errors/timing
+- **API Client:** HTTP communication, auth, exception translation
 
 ✅ **Correct:** `self.coordinator.data.temperature` (in entity properties)
 
 ❌ **Wrong:** `await self.api_client.get_data()` (never fetch directly in entities)
 
+## API Client vs PyPI Library
+
+The criteria are in `AGENTS.md` § Custom Integration Flexibility. The choice is expensive to reverse: record it in
+`docs/development/DECISIONS.md` (see [`ha-planning`](../skills/ha-planning/SKILL.md)). Adding the dependency itself —
+`manifest.json` **and** `requirements.txt`, kept in sync — is covered by
+[`blueprint-tooling`](../skills/blueprint-tooling/SKILL.md).
+
+## API Client Rules
+
+**Session management:**
+
+- MUST accept `aiohttp.ClientSession` parameter in `__init__`
+- NEVER create session (`aiohttp.ClientSession()`) in client
+- Session comes from `async_get_clientsession(hass)` in `__init__.py`
+
+**Timeout handling:**
+
+- Use `asyncio.timeout()` not `async_timeout`
+- Set reasonable timeout per request (10-30s typical)
+
+**Return values:**
+
+- Return raw API response data; let the coordinator transform it for entities
+- **Mirror the API's own structure**, even where it is badly designed or contains a typo. A client that "improves"
+  the shape hides what the service actually returns, and the next reader cannot match it against the API docs.
+- **Never convert units** (Celsius/Fahrenheit and friends). That decides precision and rounding on the caller's
+  behalf; set `native_unit_of_measurement` on the entity and let Home Assistant convert.
+- Implement pagination here — fetch all pages and hand the coordinator a complete dataset.
+
+**Building a URL that points back at Home Assistant** — a webhook target, a device callback, a proxied image — use
+`homeassistant.helpers.network.get_url(hass, ...)`. It knows about internal versus external, SSL, and Nabu Casa, none
+of which can be reconstructed from `hass.config.internal_url`. It raises `NoURLAvailableError` when no suitable URL
+exists; catch it rather than falling back to a guess.
+
+**Authentication:**
+
+- The auth layer authenticates; it does not **store**. Persisting tokens is the config entry's job.
+- Return tokens as JSON-serializable values (`str`, `int`, `float`, and dicts of those) so they survive being written
+  into `entry.data`.
+
+**Do not** implement retry logic here, and do not catch `TimeoutError` / `aiohttp.ClientError` in the coordinator —
+the coordinator base class already handles both.
+
+## Exception Hierarchy (REQUIRED)
+
+Define in `api/__init__.py`:
+
+- `{ClassPrefix}ApiClientError` (Base)
+- `{ClassPrefix}ApiClientCommunicationError` (Network, timeout, HTTP errors)
+- `{ClassPrefix}ApiClientAuthenticationError` (401, 403, invalid credentials)
+- Optional: `ApiClientRateLimitError(retry_after)` for rate limiting
+
+**Mapping:** HTTP 401/403 → Auth, HTTP 429 → RateLimit (parse `Retry-After`), Timeout/ClientError → Communication
+
 ## Error Handling in `_async_update_data()`
 
-**Exception mapping:**
+Translate API exceptions into Home Assistant ones here, and only here:
 
-- `ApiAuthError` → `raise ConfigEntryAuthFailed from err` (triggers reauth)
-- `ApiError` → `raise UpdateFailed("message") from err` (retry at next interval)
-- `ApiRateLimited` → `raise UpdateFailed(retry_after=60) from err` (backoff)
+| API Exception         | Raise                          | Home Assistant Behavior |
+| --------------------- | ------------------------------ | ----------------------- |
+| `AuthenticationError` | `ConfigEntryAuthFailed`        | Triggers reauth flow    |
+| `CommunicationError`  | `UpdateFailed("message")`      | Retry with backoff      |
+| `RateLimitError`      | `UpdateFailed(retry_after=60)` | Wait before retry       |
 
-**Automatic handling:** `TimeoutError` and `aiohttp.ClientError` handled by coordinator base class
+**Import from:** `homeassistant.exceptions.ConfigEntryAuthFailed`,
+`homeassistant.helpers.update_coordinator.UpdateFailed`
+
+Use `raise ... from err`. Pass the error message to the exception constructor and **do not log** setup or update
+failures manually — Home Assistant does it, and manual logging buries the real error in repetition. Normal operation
+logging (debug/info) is still appropriate.
+
+See [Integration Setup Failures](https://developers.home-assistant.io/docs/integration_setup_failures).
+
+## Data Transformation (Coordinator Responsibility)
+
+`_async_update_data()` fetches the raw API data and transforms it into a shape entities read by key: entities read
+`coordinator.data["temperature"]`, not `coordinator.data["sensors"]["temp"]["value"]`.
+
+## Update Interval
+
+**Set in coordinator:**
+`super().__init__(hass, LOGGER, config_entry=entry, name="...", update_interval=timedelta(seconds=30))`
+
+**Always pass `config_entry=`.** Omitting it makes the coordinator fall back to a ContextVar, which for a custom
+integration is set to ignore the problem — so it fails silently rather than loudly.
+
+**Guidelines:** Environmental sensors (30-60s), Energy (10-30s), Status (60-300s), Slow data (5-15min). The floor
+Home Assistant accepts is 5 seconds.
 
 ## Pull vs. Push Architecture
 
-**Polling (Pull) - Default for most integrations:**
+**Prefer push whenever the device or service offers it** — WebSocket, webhook, MQTT — and fall back to polling when
+the protocol is proprietary, undocumented, or not worth the implementation effort.
 
-- Coordinator fetches data at fixed intervals via `_async_update_data()`
-- Simple, reliable, works with any API
-- Set via `update_interval` parameter in coordinator constructor
-
-**Push (Event-driven) - Preferred when available:**
-
-- Device/service sends updates to Home Assistant
-- Requires: WebSocket, Webhook, MQTT, or similar push mechanism
-- Call `coordinator.async_set_updated_data(new_data)` when data arrives
-- Set `update_interval=None` or use long interval as fallback for offline detection
-
-**Prefer push over polling when:**
-
-- Device supports push notifications (WebSocket, Webhook, etc.)
-- Protocol is well-documented and implementation effort is reasonable
-- Real-time updates improve user experience (faster reaction, less lag)
-- Reduces system load (no periodic polling overhead, lower API/network usage)
-
-**Use polling when:**
-
-- Device/API doesn't support push
-- Push protocol is proprietary/undocumented
-- Implementation complexity outweighs benefits
-
-**Implementation notes:**
-
-- Pull: Coordinator handles everything automatically via `update_interval`
-- Push: Set up the coordinator-level listener in `async_setup_entry()`, call `async_set_updated_data()` on events.
-  A subscription held by an **entity** goes in `async_added_to_hass()` instead and is released via
-  `self.async_on_remove(...)` — a disabled entity is never added, so subscribing at setup leaks.
-- `async_set_updated_data()` on a polling coordinator also resets the timer until the next poll
-- Hybrid: Use push for updates + polling as fallback for connection monitoring
+- **Pull:** the coordinator handles everything via `update_interval`.
+- **Push:** set up the coordinator-level listener in `async_setup_entry()` and call
+  `coordinator.async_set_updated_data(new_data)` on events. Set `update_interval=None`, or keep a long one as a
+  fallback for offline detection. A subscription held by an **entity** goes in `async_added_to_hass()` instead and is
+  released via `self.async_on_remove(...)` — a disabled entity is never added, so subscribing at setup leaks.
+- `async_set_updated_data()` on a polling coordinator also resets the timer until the next poll.
 
 See [HA Data Update Patterns](https://developers.home-assistant.io/docs/integration_fetching_data)
 
@@ -91,13 +152,9 @@ See [Integration Setup Failures](https://developers.home-assistant.io/docs/integ
 
 ### In memory, to fetch less often than entities update
 
-**When:** API rate limits stricter than update needs (e.g., API allows 1 req/5min, entities need 30s updates)
-
-**Pattern:** Store `_api_cache`, `_api_cache_time`, `_api_cache_ttl` as instance variables. In `_async_update_data()`: Check if cache fresh (TTL not expired), return cached data if fresh, else fetch new data and update cache.
-
-**Use cases:** Expensive API calls, rate-limited APIs, multiple entities reading same raw data
-
-**Result:** Entities update frequently (coordinator `update_interval`), API fetches less often (cache TTL)
+**When:** API rate limits stricter than update needs (e.g. API allows 1 req/5min, entities need 30s updates). Hold the
+payload and its timestamp on the coordinator, and return the cached copy from `_async_update_data()` while the TTL
+holds. Entities then update at `update_interval` while the API is called far less often.
 
 ### Persisted, so the integration works without a connection at startup
 
@@ -138,3 +195,17 @@ value happens to flip in time. Polling for something the integration can compute
 Entity-level state restoration is a different mechanism for a different problem — see `RestoreSensor` in
 [`platform-members.md`](../skills/ha-entity-platform/references/platform-members.md). Use it for a value the entity
 accumulates itself; use `Store` for the payload the coordinator hands out.
+
+## Package Organization
+
+**Split large modules (~200-400 lines per file):**
+
+- `coordinator/base.py` - Core coordinator
+- `coordinator/data_processing.py` - Transform helpers
+- `api/client.py` - Main client
+- `api/auth.py` - Auth helpers (OAuth, token refresh)
+- `api/endpoints/` - Grouped endpoints (if many)
+
+## Reference
+
+[Home Assistant: Fetching Data](https://developers.home-assistant.io/docs/integration_fetching_data)

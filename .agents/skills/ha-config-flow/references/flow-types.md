@@ -7,15 +7,8 @@ automatically.
 
 ## User flow
 
-**MUST:**
-
-- Validate input before creating entry
-- Set unique ID if available: `await self.async_set_unique_id(unique_id)`
-- Abort if duplicate: `self._abort_if_unique_id_configured()`
-- Return errors dict with translation keys: `{"base": "cannot_connect"}`
-- Log unexpected exceptions: `_LOGGER.exception("Unexpected exception")`
-
-**Common error keys:** `cannot_connect`, `invalid_auth`, `already_configured`, `unknown`
+Nothing beyond the general rules: validate before creating, set the unique ID and abort on a duplicate, return errors
+by translation key, log unexpected exceptions.
 
 ## Discovery flow
 

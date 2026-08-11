@@ -70,10 +70,8 @@ script/clean             # remove caches, logs, build artifacts
 script/help              # list every script with its description
 ```
 
-`script/develop` **kills any Home Assistant already bound to `config/` and starts its own.** That is deliberate — the
-log has to stream into the terminal that launched it — but it means running it is a takeover, not a "start if needed".
-Whoever was watching the previous instance loses their live log. Check `script/ha status` first and use the instance
-that is already there.
+`script/develop` is a **takeover**, not a "start if needed" — the run-loop rules, and why, are in
+[`ha-coordinator-debug`](../ha-coordinator-debug/SKILL.md).
 
 ### Talking to the running instance
 
@@ -81,18 +79,10 @@ that is already there.
 `script/develop` started, calls service actions, and drives config flows — so debugging does not require reading a log
 file and asking a human to click through the UI.
 
-```bash
-script/ha entries                                  # config entry state and failure reason
-script/ha states                                   # this integration's entities
-script/ha diagnostics | jq .                       # no UI download step
-script/ha logs --level error
-script/ha loglevel custom_components.<domain>=debug   # immediate, no restart
-```
-
 Authentication is automatic: `script/develop` runs `script/setup/seed-auth`, which mints a long-lived access token
 offline into `config/.storage/dev_access_token`. `script/ha` reads that file itself, so **the token never appears in a
 command line or in output**. On a fresh environment the instance has to be onboarded in the browser once; the token
-then appears on the next `script/develop`.
+then appears on the next `script/develop`. Every command with its options: [`references/ha-cli.md`](references/ha-cli.md).
 
 ### When a check keeps failing
 
@@ -123,9 +113,8 @@ Pin versions in both, and keep them identical.
 | `requirements_test.txt`  | ✅ synced      | shared test dependencies                         |
 | `requirements.local.txt` | — (gitignored) | your personal extras (`ipdb`, profilers, …)      |
 
-Before adding a dependency at all, decide whether you want it: the criteria are in
-[`blueprint.api.instructions.md`](../../instructions/blueprint.api.instructions.md), and the choice belongs
-in `docs/development/DECISIONS.md` ([`ha-planning`](../ha-planning/SKILL.md)).
+Before adding a dependency at all, decide whether you want it: the criteria are in `AGENTS.md` § Custom Integration
+Flexibility, and the choice belongs in `docs/development/DECISIONS.md` ([`ha-planning`](../ha-planning/SKILL.md)).
 
 ## Extending the scripts with hooks
 

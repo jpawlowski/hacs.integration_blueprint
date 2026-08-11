@@ -42,6 +42,11 @@ auto-heals formatting, so only its **remaining** output counts.
 
 - Layering is Entity → Coordinator → source. Any entity importing `api/` directly, or any coordinator holding HTTP
   details, is a finding.
+- Package structure matches the fixed set (`api/`, `coordinator/`, `config_flow_handler/`, `entity/`, `entity_utils/`,
+  `<platform>/`, `service_actions/`, `utils/`). A `helpers/`, `common/`, `shared/`, or `lib/` package is a finding.
+- Files are 200–400 lines, one entity class per file.
+- Runtime state lives in `entry.runtime_data`, never `hass.data[DOMAIN]`.
+- No circular imports; `TYPE_CHECKING` guards for type-only imports.
 
 **Two upstream requirements this project deliberately does not meet.** Neither is a finding here, and both should be
 stated as decisions rather than silently passed over:
@@ -51,11 +56,6 @@ stated as decisions rather than silently passed over:
   client would have to be extracted before this could ever be submitted to Core.
 - `creating_component_code_review.md` still recommends `hass.data[DOMAIN]`. That page is out of date and is
   contradicted by the Bronze `runtime-data` rule. Do not "correct" `entry.runtime_data` back to it.
-- Package structure matches the fixed set (`api/`, `coordinator/`, `config_flow_handler/`, `entity/`, `entity_utils/`,
-  `<platform>/`, `service_actions/`, `utils/`). A `helpers/`, `common/`, `shared/`, or `lib/` package is a finding.
-- Files are 200–400 lines, one entity class per file.
-- Runtime state lives in `entry.runtime_data`, never `hass.data[DOMAIN]`.
-- No circular imports; `TYPE_CHECKING` guards for type-only imports.
 
 ## 3. Quality scale audit
 

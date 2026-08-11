@@ -192,9 +192,8 @@ implements diagnostics.
 
 `_async_update_data` communicates through exception type, and getting it wrong is the root of most availability bugs.
 The exception mapping table is in
-[`blueprint.coordinator.instructions.md`](../../instructions/blueprint.coordinator.instructions.md) and
-[`blueprint.api.instructions.md`](../../instructions/blueprint.api.instructions.md). Read the coordinator
-against it and check for the four failures that table cannot express:
+[`blueprint.coordinator.instructions.md`](../../instructions/blueprint.coordinator.instructions.md). Read the
+coordinator against it and check for the four failures that table cannot express:
 
 - **Signalling failure by returning** `None` or an empty dict instead of raising. Entities then show `unknown` forever
   instead of going unavailable, and nothing retries.

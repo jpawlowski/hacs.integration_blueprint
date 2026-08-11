@@ -101,61 +101,23 @@ These fields support Markdown formatting:
 
 ### Formality Level
 
-**Use informal language** in languages that distinguish between formal and informal address:
-
-- **German:** Use "du" (informal), not "Sie" (formal). Use correct imperative forms (e.g., "Gib", not "Gebe").
-- **French:** Use "tu" (informal), not "vous" (formal)
-- **Spanish:** Use "tú" (informal), not "usted" (formal)
-- Apply to all variations (we/you plural: wir/ihr, nous/vous, etc.)
-
-**Example (German):**
-
-- ✅ "Gib deine Anmeldedaten ein" (informal, correct imperative)
-- ❌ "Geben Sie Ihre Anmeldedaten ein" (formal)
-- ❌ "Gebe deine Anmeldedaten ein" (wrong imperative form)
-
-**German-specific rule:** Pay attention to correct imperative forms (Befehlsform). See [Duden: Bildung des Imperativs](https://www.duden.de/sprachwissen/sprachratgeber/Bildung-des-Imperativs).
+**Use informal address** in every language that distinguishes it — German "du" not "Sie", French "tu" not "vous",
+Spanish "tú" not "usted", and the same for the plural forms. German additionally needs the correct imperative:
+"Gib deine Anmeldedaten ein", never "Gebe" ([Duden: Bildung des
+Imperativs](https://www.duden.de/sprachwissen/sprachratgeber/Bildung-des-Imperativs)).
 
 ### Multi-Language Files
 
-All language files must have identical structure - only values differ:
-
-**en.json:**
-
-```json
-{ "config": { "step": { "user": { "title": "Configure Device" } } } }
-```
-
-**de.json:**
-
-```json
-{ "config": { "step": { "user": { "title": "Gerät konfigurieren" } } } }
-```
-
-## Common Mistakes
-
-- ❌ Translating placeholder names (e.g., `{host}` → `{hôte}`)
-- ❌ Translating proper nouns (Home Assistant, brand names)
-- ❌ Using formal language (Sie/vous) instead of informal (du/tu)
-- ❌ Missing `translation_key` in entity code
-- ❌ Using entity translations without `has_entity_name=True`
-- ❌ Inconsistent key structure across language files
-- ❌ Invalid JSON syntax (trailing commas, comments)
-- ❌ Any `[%key:...%]` reference, or a `strings.json` file — Core-only, and they break translations here
+All language files must have identical structure — only the values differ. For a region-specific file (`en-US`,
+`fr-CA`), only include keys whose translation actually differs from the base language.
 
 ## Best Practices
 
-**Translation Quality Guidelines:**
-
-1. **Only native speakers** should provide translations
-2. **Stick to [Material Design guidelines](https://material.io/design/communication/writing.html)** for writing
-3. **Don't translate proper nouns** (Home Assistant, Supervisor, brand names)
-4. **Keep badge labels short** - Test `state_badge` translations fit in UI without overflowing
-5. **Accept duplicated text** — there is no reference syntax here, so the same sentence is written out per key
-6. **Keep consistent terminology** within and across languages
-7. **Provide helpful descriptions** for non-obvious fields in `data_description`
-
-**For region-specific translations** (e.g., `en-US`, `fr-CA`): Only include if translations differ from base language. Clone unchanged keys from source (helps track review status).
+- **Only native speakers** should provide translations
+- **Keep badge labels short** — a `state_badge` translation that overflows is only visible in the UI
+- **Accept duplicated text** — there is no reference syntax here, so the same sentence is written out per key
+- **Keep consistent terminology** within and across languages
+- **Provide helpful descriptions** for non-obvious fields in `data_description`
 
 ## References
 

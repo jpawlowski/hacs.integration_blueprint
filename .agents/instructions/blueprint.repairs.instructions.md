@@ -116,37 +116,12 @@ class MyRepairFlow(RepairsFlow):
         return self.async_show_form(step_id="init")
 ```
 
-## Data Entry Flow Patterns
+The form mechanics are Data Entry Flow's and are identical to the config flow's — see
+[`blueprint.config_flow`](blueprint.config_flow.instructions.md). Two things differ here:
+`async_create_entry(data={})` always takes an **empty** dict, and the issue must be deleted before you return it.
 
-**Show form:**
-
-```python
-return self.async_show_form(
-    step_id="init",
-    data_schema=vol.Schema({...}),
-    errors={"base": "error_key"},
-)
-```
-
-**Complete repair:**
-
-```python
-return self.async_create_entry(data={})  # Always empty dict
-```
-
-**Multi-step flow:**
-
-```python
-async def async_step_init(self, user_input=None):
-    if user_input:
-        self._data = user_input
-        return await self.async_step_confirm()
-    return self.async_show_form(step_id="init", data_schema=SCHEMA)
-```
-
-## Common Patterns
-
-**Redirect to reauth:**
+**Redirecting to reauth** is the pattern worth having in full, because the ordering is not obvious — delete the issue
+first, then start the flow:
 
 ```python
 async def async_step_init(self, user_input=None):
@@ -156,22 +131,6 @@ async def async_step_init(self, user_input=None):
         entry.async_start_reauth(self.hass)
         return self.async_create_entry(data={})
     return self.async_show_form(step_id="init")
-```
-
-**With validation:**
-
-```python
-async def async_step_init(self, user_input=None):
-    errors = {}
-    if user_input:
-        try:
-            await validate(user_input)
-            # Apply fix
-            ir.async_delete_issue(self.hass, entry.domain, "issue_id")
-            return self.async_create_entry(data={})
-        except ValueError:
-            errors["base"] = "invalid_input"
-    return self.async_show_form(step_id="init", data_schema=SCHEMA, errors=errors)
 ```
 
 ## Translations

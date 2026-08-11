@@ -12,82 +12,24 @@ paths:
 
 ## Linting and Validation
 
-**markdownlint is configured but not enforced:**
+`script/markdown` formats and reports; the configuration is `.markdownlint.json`. The three rules that differ from the
+defaults and would otherwise surprise you: **MD013 off** (no line-length limit), **MD033 off** (inline HTML allowed),
+**MD041 off** (the first line need not be an H1). MD049/MD050 enforce `_italic_` and `**bold**`.
 
-- Extension installed: `davidanson.vscode-markdownlint`
-- Configuration: `.markdownlint.json` in project root
-- Shows warnings in editor, but **no automatic formatting on save**
-- User can manually format via Command Palette if desired
+## Conventions here
 
-**Key rules from `.markdownlint.json`:**
-
-- ✅ Fenced code blocks preferred (`code-block-style: fenced`)
-- ✅ Underscore for emphasis (`_italic_`), asterisks for strong (`**bold**`) — MD049/MD050 enforce this split
-- ❌ MD013 disabled (no line length limit for prose)
-- ❌ MD033 disabled (inline HTML allowed: `<br>`, `<details>`, `<kbd>`, etc.)
-- ❌ MD041 disabled (first line doesn't need to be H1)
-
-## Formatting Standards
-
-**Headers:**
-
-- Use ATX-style (`#` not underlines)
-- One H1 per file (usually)
-- Don't skip heading levels (H1 → H2 → H3, not H1 → H3)
-
-**Code blocks:**
-
-- Always specify language: ` ```python `, ` ```bash `, ` ```yaml `
-- Use `console` or `bash` for terminal commands
-- Use `text` for plain output
-
-**Lists:**
-
-- Unordered: Use `-` (dash)
-- Ordered: Use `1.` with proper numbering
-- Consistent indentation (2 spaces for nested items)
-
-**Links:**
-
-- Relative links for internal docs: `[Getting Started](../../docs/user/GETTING_STARTED.md)`
-- Absolute URLs for external: `https://developers.home-assistant.io/`
-- Reference-style for repeated URLs
+- Unordered lists use `-`; code fences always name their language (`text` for plain output).
+- Relative links for anything inside the repository, absolute URLs for everything else.
+- `✅` / `❌` / `⚠️` are the project's markers for do / don't / warning. Use them or plain prose, not a third scheme.
 
 ## Structure
 
-**Documentation organization:**
+- `docs/development/` — developer documentation (architecture, decisions)
+- `docs/user/` — end-user guides (installation, configuration)
+- `.agents/scratch/` — temporary AI notes, never committed
+- Root `*.md` — project metadata (README, CONTRIBUTING, …)
 
-- `docs/development/` - Developer documentation (architecture, decisions)
-- `docs/user/` - End-user guides (installation, configuration)
-- `.agents/scratch/` - Temporary AI notes (not committed)
-- Root `*.md` files - Project metadata (README, CONTRIBUTING, etc.)
-
-**Long documents (>500 lines):**
-
-- Add table of contents near top
-- Use clear section headers
-- Consider splitting into multiple files
-
-## Common Patterns
-
-**Inline code:** Use backticks for `filenames`, `symbols`, `commands`
-
-**Emphasis:** Use `_italic_` for emphasis, `**bold**` for strong emphasis
-
-**Tables:** Use proper alignment, pipes, and headers:
-
-```markdown
-| Column 1 | Column 2 | Column 3 |
-| -------- | -------- | -------- |
-| Value    | Value    | Value    |
-```
-
-**Admonitions (optional):** Use `> **Note:**` or emoji indicators:
-
-- ✅ Do this
-- ❌ Don't do this
-- 🎯 Best practice
-- ⚠️ Warning
+Past ~500 lines, add a table of contents or split the file.
 
 ## Instructions Files
 

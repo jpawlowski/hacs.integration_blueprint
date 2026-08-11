@@ -73,7 +73,7 @@ agent that implements it. If yours does not, read the `SKILL.md` before starting
 | an entity platform or an individual entity             | [`ha-entity-platform`](.agents/skills/ha-entity-platform/SKILL.md)     | `blueprint.entities`                                   |
 | a service action                                       | [`ha-service-action`](.agents/skills/ha-service-action/SKILL.md)       | `blueprint.service_actions`, `blueprint.services_yaml` |
 | config flow, options, reauth, reconfigure, discovery   | [`ha-config-flow`](.agents/skills/ha-config-flow/SKILL.md)             | `blueprint.config_flow`                                |
-| the coordinator, the API client, runtime debugging     | [`ha-coordinator-debug`](.agents/skills/ha-coordinator-debug/SKILL.md) | `blueprint.coordinator`, `blueprint.api`               |
+| the coordinator, the API client, runtime debugging     | [`ha-coordinator-debug`](.agents/skills/ha-coordinator-debug/SKILL.md) | `blueprint.coordinator`                                |
 | translations, `icons.json`                             | [`ha-translations`](.agents/skills/ha-translations/SKILL.md)           | `blueprint.translations`                               |
 | tests                                                  | [`ha-testing`](.agents/skills/ha-testing/SKILL.md)                     | `blueprint.tests`                                      |
 | repair issues and flows                                | [`ha-breaking-changes`](.agents/skills/ha-breaking-changes/SKILL.md)   | `blueprint.repairs`                                    |
@@ -182,15 +182,9 @@ script/type-check   # Pyright — no auto-fix, always a manual loop
 # Fix what remains in the output above, then repeat.
 ```
 
-No separate check-run is needed after a fix-mode script — its exit code and output are the complete picture.
-`script/check`, `script/lint-check` and `script/python-check` are check-only variants for CI; agents should use fix
-mode. `script/hassfest` validates the manifest, translations and `services.yaml` against Home Assistant's own rules.
-
-```bash
-script/test                    # all tests
-script/test --cov-html         # with coverage report
-script/test --snapshot-update  # update Syrupy snapshots
-```
+No separate check-run is needed after a fix-mode script — its exit code and output are the complete picture. The
+`-check` variants are for CI; agents use fix mode. `script/hassfest` validates the manifest, translations and
+`services.yaml`, and `script/test` runs the suite (`--cov-html`, `--snapshot-update`).
 
 Which script for which change, the full fix/check matrix, and the configured tools:
 [`blueprint-tooling`](.agents/skills/blueprint-tooling/SKILL.md).
@@ -217,18 +211,14 @@ you.** It authenticates itself with a token `script/develop` mints — there is 
 appears in a command line or in output.
 
 ```bash
-script/ha entries                                     # did the config entry load, and why not
-script/ha states                                      # this integration's entities
-script/ha entity sensor.example                       # state + registry entry + source
-script/ha diagnostics | jq .                          # replaces the UI download step
-script/ha logs --level error                          # structured, deduplicated
-script/ha loglevel custom_components.ha_integration_domain=debug   # immediate, no restart
-script/ha watch --seconds 60                          # does the value actually change
-script/ha call ha_integration_domain.example_action
-script/ha flow start                                  # walk a config flow without a browser
+script/ha entries        # did the config entry load, and why not
+script/ha states         # this integration's entities
+script/ha diagnostics    # replaces the UI download step
+script/ha logs --level error
+script/ha flow start     # walk a config flow without a browser
 ```
 
-Persistent log levels still belong in `config/configuration.yaml`. Full command reference:
+Persistent log levels still belong in `config/configuration.yaml`. Every command, with its options:
 [`references/ha-cli.md`](.agents/skills/blueprint-tooling/references/ha-cli.md).
 
 **The instance is shared — the developer starts, stops and restarts it while you work.** Never carry its run state
@@ -236,13 +226,10 @@ from one step to the next; `script/ha status` reports it along with `uptime`, wh
 not perform. Finding it in a different state than you left it is normal: adapt in one step, never go through `ps` or
 the process tree looking for an explanation.
 
-**`./script/develop` is a takeover, not "start if not running"** — it kills whatever is already bound to `config/`, so
-the developer's terminal loses the live log it was streaming. Check first, and use the instance that is already there.
-Announce a restart, and announce **beforehand** when you need the instance exclusively — `script/setup/reset`,
-`script/ha token --rotate|--revoke`, or a repeated restart loop — so the developer knows whether they can experiment in
-parallel. Rules: [`ha-coordinator-debug`](.agents/skills/ha-coordinator-debug/SKILL.md).
-
-Log reading, failure triage and the debugging loop: [`ha-coordinator-debug`](.agents/skills/ha-coordinator-debug/SKILL.md).
+**`./script/develop` is a takeover, not "start if not running"** — it kills whatever is already bound to `config/`.
+Check `script/ha status` first, announce a restart, and announce **beforehand** when you need the instance
+exclusively. Log reading, failure triage, and the rest of the run-loop rules:
+[`ha-coordinator-debug`](.agents/skills/ha-coordinator-debug/SKILL.md).
 
 **Devcontainer CLI tools:** `fd`, `fzf`, `gron`, `http`, `hyperfine`, `ipython`, `jq`, `jo`, `mlr`, `rg`,
 `shellcheck`, `shfmt`, `sponge`, `sqlite3`, `yq`, `yamllint`. Debian package names differ from the common spellings,
@@ -250,9 +237,8 @@ so `fdfind`, `git-delta`, `httpie`, `miller` and `ripgrep` also resolve. `yq` is
 syntax). `gron` flattens JSON into greppable assignments — `script/ha diagnostics | gron | rg <key>` gives the value
 and its path without pulling the whole document into context.
 
-`bat`, `delta`, `eza` and `tree` are installed for the developer's terminal, not for you: `bat` and `delta` pass
-their input through unchanged when the caller is not a TTY, and the other two only prettify what `ls` and `fd`
-already gave you. A tool that _reduces_ output earns its place here; one that formats it does not.
+`bat`, `delta`, `eza` and `tree` are installed for the developer's terminal, not for you — they format output rather
+than reduce it, and buy you nothing.
 
 **Never start a search at `custom_components/`** — `rg` and `fd` silently skip every subdirectory of the integration
 when the walk begins there, so a search returns the handful of top-level modules and nothing from `api/`,
@@ -277,8 +263,8 @@ hand it over. `AI_POLICY.md` has the rest of what applies there.
 ### Do not assume the developer speaks Home Assistant's vocabulary
 
 Coordinator, config entry, unique ID, entity registry, device class, state class, `iot_class`, subentry, repair
-issue — these are this project's words, not general knowledge. Someone can know their device or service perfectly
-and have met none of them. Writing a custom integration is often how a person meets them for the first time.
+issue — these are this project's words, not general knowledge. Someone can know their device perfectly and have met
+none of them.
 
 - **Where a term is unavoidable, define it in one line at first use**, then keep using it — "the coordinator, the one
   place that fetches the data so every entity reads the same copy" costs a clause and buys the rest of the paragraph.
@@ -338,11 +324,8 @@ Procedure: [`ha-breaking-changes`](.agents/skills/ha-breaking-changes/SKILL.md).
 ### Code that predates the current rules
 
 This file, `.agents/instructions/` and the skills are the reference; the surrounding code is not. When a file you are
-already editing turns out not to follow them, **bring it into line as part of that change, without asking**. A rule
-that is only applied to new code never reaches the old code, and a large codebase converges only if every edit leaves
-its file slightly closer.
-
-Bound it to what you are already in:
+already editing turns out not to follow them, **bring it into line as part of that change, without asking** — a rule
+only ever applied to new code never reaches the old code. Bound it to what you are already in:
 
 - ✅ The function, class or block you are editing, and file-wide changes a tool verifies for you — an import ban, a
   renamed API, a formatting rule.

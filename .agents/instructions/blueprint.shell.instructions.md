@@ -81,11 +81,3 @@ script/shell-check  # shfmt -d + shellcheck -x  (reports remaining issues)
 
 `script/shell` fixes formatting but does not run shellcheck (no auto-fix available).
 Always follow with `script/shell-check` to catch logic and style issues.
-
-**Suppressing shellcheck for an entire file** (use only in library scripts):
-
-```bash
-# shellcheck disable=SC2034
-```
-
-Place at the top of the file, after the shebang and `set -euo pipefail`.

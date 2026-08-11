@@ -130,20 +130,7 @@ service.async_register_platform_entity_service(
 )
 ```
 
-Alternative with custom handler function:
-
-```python
-async def custom_handler(entity, service_call):
-    """Custom handler logic."""
-    await entity.set_sleep_timer(service_call.data['sleep_time'])
-
-service.async_register_platform_entity_service(
-    hass, DOMAIN, "set_timer",
-    entity_domain="media_player",
-    schema={vol.Required("sleep_time"): cv.time_period},
-    func=custom_handler,  # Function instead of method name
-)
-```
+`func` takes either the name of a method on the entity class, as above, or a callable `(entity, service_call)`.
 
 ## Service Icons
 

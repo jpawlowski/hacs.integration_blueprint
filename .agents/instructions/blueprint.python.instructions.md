@@ -191,23 +191,7 @@ See [Integration Setup Failures](https://developers.home-assistant.io/docs/integ
 
 ## Imports
 
-**Order (separated by blank lines):**
-
-1. Standard library
-2. Third-party packages
-3. Home Assistant core
-4. Local integration imports
-
-**Standard HA aliases:** `vol`, `cv`, `dr`, `er`, `dt_util`
-
-## Entity Classes
-
-**Structure requirements:**
-
-- Inherit from both platform entity and the base entity class from `..entity` (order matters)
-- Set `_attr_unique_id` in `__init__` (format: `{entry_id}_{key}`)
-- Use coordinator data only - Never call API directly
-- Handle unavailability via `_attr_available`
+Ruff orders them. **Standard HA aliases:** `vol`, `cv`, `dr`, `er`, `dt_util`.
 
 ## Error Handling
 
@@ -223,70 +207,17 @@ See [Integration Setup Failures](https://developers.home-assistant.io/docs/integ
 
 Both take `translation_domain`, `translation_key` and `translation_placeholders` — never a plain English string.
 
-**Logging levels:**
-
-- `_LOGGER.critical()` - System-critical failures
-- `_LOGGER.exception()` - Errors with full traceback (in exception handlers)
-- `_LOGGER.error()` - Errors affecting functionality
-- `_LOGGER.warning()` - Recoverable issues
-- `_LOGGER.info()` - Sparingly, user-facing only
-- `_LOGGER.debug()` - Detailed troubleshooting
-
-**Log message style:**
-
-- No periods at end (syslog style)
-- Never log credentials/tokens/API keys
-- Use `%` formatting (enforced by Ruff G004)
-
-## Testing Considerations
-
-**Note: Only write tests when explicitly requested by the developer.**
-
-If you are asked to write tests for entities:
-
-**Example test structure:**
-
-```python
-"""Test sensor platform."""
-
-import pytest
-
-from custom_components.{domain}.sensor import async_setup_entry
-
-@pytest.mark.unit
-async def test_sensor_setup(hass, config_entry, coordinator):
-    """Test sensor platform setup."""
-    # Test implementation
-```
-
-## Common Patterns
-
-**Config entry data:** `entry.runtime_data.coordinator` / `entry.runtime_data.client` — runtime objects stored during `async_setup_entry()` in `data.py`
-
-**Device info:** Provided via base entity class (manufacturer, model, serial, config URL, firmware)
+**Logging:** `_LOGGER.exception()` inside an exception handler, `_LOGGER.info()` sparingly and only for something the
+user needs. No period at the end (syslog style), never a credential, token or API key in any line at any level, and
+`%` formatting rather than an f-string (Ruff G004).
 
 ## Validation
 
-**Recommended workflow — run fix scripts first, they report what they couldn't fix:**
+`script/python` then `script/type-check`, until both exit 0 — the full loop and the fix/check matrix are in
+[`blueprint-tooling`](../skills/blueprint-tooling/SKILL.md).
 
-```bash
-script/python       # Ruff format + ruff check --fix — output shows remaining errors
-script/type-check   # Pyright — no auto-fix, always manual
-```
-
-Repeat until both exit 0. Only manually edit files for errors that remain in the output.
-
-**When validation fails:**
-
-- Look up error codes: [Ruff rules](https://docs.astral.sh/ruff/rules/), [Pyright docs](https://microsoft.github.io/pyright/)
-- Search [HA docs](https://developers.home-assistant.io/) for patterns
-- Fix root cause — don't bypass checks
-
-**Suppressing checks (use sparingly for false positives/library issues):**
-
-- Specific suppression: `# noqa: F401 - Reason` or `# type: ignore[attr-defined] - Reason`
-- **Never use blanket:** `# noqa`, `# type: ignore`, `# ruff: noqa`
-- Always include error codes and explanatory comments
+**Suppressing a check:** always with the specific code and a reason — `# noqa: F401 - Reason`,
+`# type: ignore[attr-defined] - Reason`. Never bare `# noqa`, `# type: ignore` or `# ruff: noqa`.
 
 ## Verify Current Patterns
 
@@ -297,8 +228,4 @@ devcontainer is the authority** — grep it before trusting recall, a blog post,
 rg -n "deprecated|breaks_in_ha_version" .venv/lib/python*/site-packages/homeassistant/helpers/<module>.py
 ```
 
-For the procedure and the full deprecation table, see the `ha-modern-apis` agent skill
-(`.agents/skills/ha-modern-apis/SKILL.md`). Secondary sources:
-
-- [Home Assistant Developer Docs](https://developers.home-assistant.io/)
-- [Developer Blog](https://developers.home-assistant.io/blog/) for deprecations/changes
+The procedure and the full deprecation table: [`ha-modern-apis`](../skills/ha-modern-apis/SKILL.md).

@@ -233,16 +233,6 @@ Home Assistant Core 2026.8 and newer assigns every device to exactly one config 
   device by assigning `self.device_entry` instead of copying its identifiers or connections into `DeviceInfo`.
 - Depend on a device being shared or merged across config entries.
 
-## Type Hints
-
-**Avoid circular imports:** Use `TYPE_CHECKING` block for coordinator imports
-
-```python
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from ..coordinator import {ClassPrefix}DataUpdateCoordinator
-```
-
 ## PARALLEL_UPDATES
 
 Home Assistant reads `PARALLEL_UPDATES` from the platform module, so every platform `__init__.py` declares it as a
@@ -270,22 +260,4 @@ Missing it on a platform is a quality scale failure (`parallel-updates`).
 
 **Conditional features:** Use `self.coordinator.data.get("capability")` to determine `supported_features`
 
-## Common Pitfalls
-
-**❌ Don't:**
-
-- Call API directly from entities
-- Create entities without EntityDescription
-- Override base class methods unnecessarily
-- Hardcode unique IDs
-- Log in property getters (called frequently)
-- Duplicate constants (use `homeassistant.const` or integration `const.py`)
-
-**✅ Do:**
-
-- Use coordinator data exclusively
-- Define EntityDescriptions with all metadata
-- Generate unique IDs from `entry_id + description.key`
-- Log only in async methods or `__init__`
-- Consult HA docs for platform-specific patterns
-- Use `entity_utils/` for shared logic
+**Never log in a property getter** — they are called on every state read.

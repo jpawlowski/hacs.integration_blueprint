@@ -36,46 +36,11 @@ logger:
 
 ## Modern Syntax Only
 
-**Always use modern automation/script syntax:**
+Three renames that older examples still get wrong, and Home Assistant accepts silently:
 
-```yaml
-# ✅ Correct (modern)
-automation:
-  - alias: "Motion detected"
-    trigger:
-      - trigger: state
-        entity_id: binary_sensor.motion
-        to: "on"
-    action:
-      - action: light.turn_on
-        target:
-          entity_id: light.hallway
-```
-
-**Never use legacy platform-based syntax:**
-
-```yaml
-# ❌ Wrong (legacy)
-automation:
-  - alias: "Motion detected"
-    trigger:
-      platform: state # Don't use this!
-      entity_id: binary_sensor.motion
-      to: "on"
-```
-
-## Service Calls
-
-**Use `action:` key (not deprecated `service:`):**
-
-```yaml
-action:
-  - action: light.turn_on # Modern syntax
-    target:
-      entity_id: light.living_room
-    data:
-      brightness: 255
-```
+- `trigger: state` inside the trigger list, **not** `platform: state`
+- `action:` for a service call, **not** the deprecated `service:`
+- triggers and conditions are lists, even with one entry
 
 ## Logger Configuration
 
@@ -98,59 +63,8 @@ logger:
     homeassistant.config_entries: info
 ```
 
-## Common Patterns
-
-**Conditions:**
-
-```yaml
-condition:
-  - condition: state
-    entity_id: input_boolean.enable_automation
-    state: "on"
-  - condition: time
-    after: "07:00:00"
-    before: "23:00:00"
-```
-
-**Templates:**
-
-```yaml
-action:
-  - action: notify.notify
-    data:
-      message: >
-        Temperature is {{ states('sensor.temperature') }}°C
-```
-
-**Delays:**
-
-```yaml
-action:
-  - action: light.turn_on
-    target:
-      entity_id: light.hallway
-  - delay:
-      seconds: 30
-  - action: light.turn_off
-    target:
-      entity_id: light.hallway
-```
-
 ## Validation
 
-Configuration is validated on Home Assistant startup:
-
-```bash
-script/develop  # Start HA and check logs for validation errors
-```
-
-Check terminal output and `config/home-assistant.log` for schema errors.
-
-## Staying Current
-
-**Home Assistant configuration syntax evolves:**
-
-- Check [automation documentation](https://www.home-assistant.io/docs/automation/)
-- Review [condition documentation](https://www.home-assistant.io/docs/scripts/conditions/)
-- Search for examples: `site:www.home-assistant.io automation [trigger type]`
-- Don't use deprecated syntax even if it still works
+Home Assistant validates this file at startup — `script/develop`, then read the terminal or
+`config/home-assistant.log`. Deprecated syntax still loads, so a clean start is not proof it is current; check the
+[automation documentation](https://www.home-assistant.io/docs/automation/) when in doubt.

@@ -236,15 +236,6 @@ placeholders at all), or it is non-empty but has no `name` key and there is no l
 
 **Translation keys:** `config.step.<step>.title`, `config.error.<key>`, `config.abort.<key>`
 
-## Code Organization
-
-**MUST:**
-
-- Place schemas in `schemas/` directory, one file per schema
-- Place validators in `validators/` directory, one file per validator type
-- Import in `__init__.py` for each subdirectory
-- Keep flow files focused (<400 lines per file)
-
 ## Config Entry Lifecycle
 
 **States:** `not loaded`, `setup in progress`, `loaded`, `setup error`, `setup retry`, `migration error`, `unload in progress`, `failed unload`
@@ -265,30 +256,3 @@ and they also run when `async_setup_entry` raises.
 - To react to another entry changing state: `entry.async_on_unload(entry.async_on_state_change(callback))`
 - `ConfigEntryNotReady` only works from `async_setup_entry` in `__init__.py`. Raised from a platform it is inert.
 - Entity cleanup: `async_will_remove_from_hass()` in entities
-
-## Rules Summary
-
-**ALWAYS:**
-
-- Set unique ID for discovery flows
-- Abort if unique ID already configured
-- Confirm with user before creating entry
-- Update existing entries in reauth/reconfigure (never create new)
-- Verify unique ID unchanged in reauth/reconfigure
-- Validate input before creating/updating entries
-- Use translation keys for errors
-- Pre-fill forms with current values
-- Log unexpected exceptions
-- Use `async_forward_entry_setups()` for platform setup
-- Implement `async_unload_entry()` for clean teardown (Silver+ Quality Scale)
-- Use `hass.config_entries.async_update_entry()` to modify entries
-
-**NEVER:**
-
-- Auto-create entries from discovery
-- Use changeable values as unique IDs
-- Create new entries in reauth/reconfigure
-- Log `ConfigEntryNotReady` manually
-- Skip unique ID check in discovery flows
-- Skip confirmation in discovery flows
-- Mutate ConfigEntry objects directly (use `async_update_entry()` instead)

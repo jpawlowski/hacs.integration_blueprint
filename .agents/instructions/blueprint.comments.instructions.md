@@ -76,6 +76,9 @@ Dropping a comment is not dropping the knowledge. Route it:
 The last row is the one that gets ignored. Research does not need a resting place just because it was work; store it
 only if a **future** decision will turn on it, and then store the decision, not the search result.
 
+**When in doubt, leave it out and put it in the commit message.** It reaches exactly the person who needs it, at the
+moment they go looking, and it cannot go stale — the code it describes is frozen next to it forever.
+
 ## Per-format conventions
 
 | Format                                  | Syntax     | Convention here                                                                                                                                 |
@@ -86,8 +89,3 @@ only if a **future** decision will turn on it, and then store the decision, not 
 | JSONC (`.devcontainer/`, `*.jsonc`)     | `//`       | Comments are _possible_ here, which is not the same as wanted. Gate 1 decides, and the answer is usually no.                                    |
 | Shell in `script/`                      | `#`        | The header block from `blueprint.shell` (name, description, usage); in the body only for non-obvious logic. Shellcheck disables carry a reason. |
 | Markdown                                | `<!-- -->` | Only for machine-read markers such as `blueprint-only` and `repo-role`. Prose explains itself.                                                  |
-
-## When in doubt
-
-Leave it out and put it in the commit message. A commit message reaches exactly the person who needs it, at the moment
-they go looking, and it cannot go stale — the code it describes is frozen next to it forever.
