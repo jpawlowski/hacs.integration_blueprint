@@ -51,6 +51,21 @@ custom_components/<domain>/<platform>/
 └── <group>.py         # ENTITY_DESCRIPTIONS + entity class for one logical group
 ```
 
+Once a `value_fn` description carries the value lookup, one entity class serves every group on the platform, and
+copying it per file would be the duplication `value_fn` exists to remove. Give it its own module and leave the group
+files holding descriptions only — this is what `sensor/` does:
+
+```text
+custom_components/<domain>/sensor/
+├── __init__.py        # async_setup_entry + aggregated ENTITY_DESCRIPTIONS
+├── entity.py          # the description subclass and the single entity class
+├── air_quality.py     # ENTITY_DESCRIPTIONS only
+└── diagnostic.py      # ENTITY_DESCRIPTIONS only
+```
+
+Keep the first shape while a platform has one group, and split when a second class would otherwise be a copy of the
+first.
+
 ## Procedure
 
 ### 1. Decide the metadata, then write the descriptions

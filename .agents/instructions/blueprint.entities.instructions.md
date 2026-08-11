@@ -59,7 +59,7 @@ migration ([`ha-breaking-changes`](../skills/ha-breaking-changes/SKILL.md)).
 
 **You implement:** Platform-specific properties/methods (`native_value`, `is_on`, `async_press`, etc.)
 
-**Imports pattern:** `from homeassistant.components.PLATFORM import PlatformEntity, PlatformEntityDescription` + `from ..entity import {ClassPrefix}Entity`
+**Imports pattern:** `from homeassistant.components.PLATFORM import PlatformEntity, PlatformEntityDescription` + `from custom_components.<domain>.entity import {ClassPrefix}Entity` — absolute, because Ruff rejects a relative import that reaches into a parent package (`blueprint.python`)
 
 **Constructor:** Call `super().__init__(coordinator, entity_description)` - base handles setup
 
@@ -209,7 +209,7 @@ each change forces voice-assistant integrations to resynchronise with their clou
 - Complex logic benefiting from testing
 - Device info customization, state formatting
 
-**Import pattern:** `from ..entity_utils.module import function`
+**Import pattern:** `from custom_components.<domain>.entity_utils.module import function`
 
 ## Device Registry Ownership
 

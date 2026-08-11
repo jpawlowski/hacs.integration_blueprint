@@ -193,6 +193,18 @@ See [Integration Setup Failures](https://developers.home-assistant.io/docs/integ
 
 Ruff orders them. **Standard HA aliases:** `vol`, `cv`, `dr`, `er`, `dt_util`.
 
+**A relative import may not reach into a parent package.** Ruff's `TID252` runs with the default
+`ban-relative-imports = "parents"`, the same setting Home Assistant Core uses, so `from ..const import DOMAIN` is
+rejected wherever it appears — including inside an `if TYPE_CHECKING:` block. Siblings within the same package are
+fine.
+
+- ✅ `from .base import {ClassPrefix}Entity` — same package
+- ✅ `from custom_components.<domain>.const import DOMAIN` — anything above it
+- ❌ `from ..const import DOMAIN`, `from ...api import ApiClient`
+
+The absolute form is long, and reaching for `..` to shorten it is the reflex this rule exists to stop: `script/lint`
+reports it, but only after the file is written.
+
 ## Error Handling
 
 **Use specific exceptions from integration's exception module**

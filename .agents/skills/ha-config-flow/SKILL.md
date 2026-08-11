@@ -32,11 +32,15 @@ MUST/NEVER list for each individual flow is in the first reference below.
 
 ## Package layout
 
+Where each piece goes. Only the first four exist from the start; create the rest when something needs them, rather
+than leaving empty scaffolding behind.
+
 ```text
 config_flow_handler/
 ├── __init__.py          # exports
 ├── config_flow.py       # user, reauth, reauth_confirm, reconfigure, discovery steps
 ├── options_flow.py      # post-setup options
+├── handler.py           # logic shared between the flows above
 ├── subentry_flow.py     # multi-device / multi-account subentries
 ├── schemas/
 │   ├── config.py        # voluptuous schemas for setup steps

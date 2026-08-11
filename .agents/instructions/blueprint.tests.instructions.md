@@ -26,7 +26,7 @@ tests/
   test_init.py         # Integration setup
   test_config_flow.py  # Config flow
   sensor/test_air_quality.py
-  binary_sensor/test_connectivity.py
+  binary_sensor/test_filter.py
 ```
 
 **File organization:**

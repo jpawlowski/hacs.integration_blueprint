@@ -199,8 +199,14 @@ they do not replace them. Regenerate with `script/test --snapshot-update` and **
 
 **Warnings are errors.** `filterwarnings = ["error"]` in `pyproject.toml` means a `DeprecationWarning` from Home
 Assistant fails the suite. That is the intended early-warning system — fix the deprecation
-([`ha-modern-apis`](../ha-modern-apis/SKILL.md)) rather than adding an ignore. If an upstream library leaves you no
-choice, scope the ignore narrowly and comment why.
+([`ha-modern-apis`](../ha-modern-apis/SKILL.md)) rather than adding an ignore.
+
+The exception is a warning **Home Assistant Core raises about its own use of a library it pins**, which no change
+here can fix and which would otherwise block every test that touches that subsystem — the aiohttp warnings from
+`homeassistant/helpers/aiohttp_client.py` and `homeassistant/components/http/` are the ones already ignored. Before
+adding one, confirm the warning's origin is a Core file and not this integration; a warning about our own code stays
+an error. Then key the ignore to the exact message rather than the category, and say in a comment where it comes from
+and why it cannot be fixed here — a bare `DeprecationWarning` ignore also hides the next real deprecation.
 
 **`asyncio_mode = "auto"`**, so async tests need no `@pytest.mark.asyncio`.
 

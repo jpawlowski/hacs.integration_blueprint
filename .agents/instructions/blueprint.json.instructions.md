@@ -40,3 +40,9 @@ JSON schema files are available in `/schemas/json/`:
 - `hacs_schema.json` — Validates `hacs.json`
 
 Consult the relevant schema when editing JSON files to ensure correct structure.
+
+**These are local copies, and `script/hassfest` is the authority.** They exist so an editor can validate a file
+before the gate runs, but they are maintained by hand and drift as Home Assistant evolves. When a schema rejects
+something hassfest accepts, **the schema is the bug** — fix it against the validator upstream
+(`script/hassfest/*.py` in the Home Assistant Core checkout) rather than changing valid JSON to satisfy a stale copy.
+Neither editor validation nor these files gate anything in CI.

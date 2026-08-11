@@ -123,7 +123,6 @@ raise HomeAssistantError(
 ## icons.json
 
 Entity icons belong in `custom_components/<domain>/icons.json`, not in `EntityDescription(icon=...)`.
-The file does not exist yet in this integration — create it when the first icon is needed.
 
 **Do not give an entity an icon its device class already provides.** A PM2.5 sensor, a temperature sensor, a battery
 sensor are all iconed correctly by Home Assistant; overriding them makes the integration look inconsistent with every
