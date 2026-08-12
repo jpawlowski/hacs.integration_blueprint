@@ -90,22 +90,56 @@ require_command() {
 
 # Activate the Home Assistant virtual environment if not already active.
 # Silently skips when VIRTUAL_ENV is already set (e.g. in CI or nested calls).
+# Print the path of the virtual environment this environment should use.
+# Returns 1 and prints nothing when none exists.
+#
+# The location must agree with script/setup/bootstrap, which creates and
+# maintains it: DevContainer and Codespaces keep the venv in $HOME (a named
+# volume), GitHub Actions and local development keep it in the workspace.
+# Preferring $HOME/ha-venv unconditionally fails quietly in the one case that
+# matters: a leftover $HOME/ha-venv from an earlier DevContainer session
+# outranks the workspace venv that bootstrap actually updates, so every script
+# keeps running against a stale Home Assistant version while looking perfectly
+# healthy. Fall back to the other locations, but say so.
+resolve_venv_path() {
+    local preferred candidate
+    if [[ -n ${REMOTE_CONTAINERS:-} || -n ${CODESPACES:-} ]]; then
+        preferred="$HOME/ha-venv"
+    elif [[ -n ${GITHUB_ACTIONS:-} ]]; then
+        preferred="${GITHUB_WORKSPACE:-.}/.local/ha-venv"
+    else
+        preferred="$PWD/.local/ha-venv"
+    fi
+
+    if [[ -f "$preferred/bin/activate" ]]; then
+        printf '%s' "$preferred"
+        return 0
+    fi
+
+    for candidate in "$HOME/ha-venv" "$PWD/.local/ha-venv" "$HOME/.local/ha-venv"; do
+        if [[ "$candidate" != "$preferred" && -f "$candidate/bin/activate" ]]; then
+            # To stderr: this function's stdout is the resolved path.
+            log_warning "Expected the virtual environment at $preferred, using $candidate instead — run script/setup/bootstrap to rebuild it where this environment looks for it" >&2
+            printf '%s' "$candidate"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
 activate_venv() {
     if [[ -n ${VIRTUAL_ENV:-} ]]; then
         return 0
     fi
-    log_header "Activating virtual environment"
-    # shellcheck source=/dev/null
-    if [[ -f "$HOME/ha-venv/bin/activate" ]]; then
-        source "$HOME/ha-venv/bin/activate"
-    elif [[ -f "$PWD/.local/ha-venv/bin/activate" ]]; then
-        source "$PWD/.local/ha-venv/bin/activate"
-    elif [[ -f "$HOME/.local/ha-venv/bin/activate" ]]; then
-        source "$HOME/.local/ha-venv/bin/activate"
-    else
+    local venv_path
+    if ! venv_path="$(resolve_venv_path)"; then
         log_error "Virtual environment not found. Run: script/setup/bootstrap"
         exit 1
     fi
+    log_header "Activating virtual environment"
+    # shellcheck source=/dev/null
+    source "$venv_path/bin/activate"
 }
 
 # Run a user-defined hook script if it exists.

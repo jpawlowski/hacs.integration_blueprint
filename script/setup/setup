@@ -86,11 +86,7 @@ ensure_command_alias "ripgrep" "rg"
 ensure_workspace_binary_link "copilot"
 ensure_workspace_binary_link "pyright"
 
-if [[ -z ${VIRTUAL_ENV:-} ]]; then
-    log_header "Activating virtual environment"
-    # shellcheck source=/dev/null
-    source "$HOME/ha-venv/bin/activate"
-fi
+activate_venv
 
 "$SCRIPT_DIR/setup/seed-http-config"
 
