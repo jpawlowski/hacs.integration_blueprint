@@ -174,24 +174,6 @@ EOF
     set -e
 fi
 
-log_header "Installing development dependencies"
-uv pip install --requirement requirements_dev.txt
-
-log_header "Installing test dependencies"
-uv pip install --requirement requirements_test.txt
-
-log_header "Installing runtime dependencies"
-if [[ -s requirements.txt ]] && grep -qv '^#' requirements.txt | grep -q '[^[:space:]]'; then
-    uv pip install --requirement requirements.txt
-else
-    log_info "No runtime dependencies defined (this is normal for blueprints)"
-fi
-
-if [[ -f requirements.local.txt ]]; then
-    log_header "Installing local extra dependencies (requirements.local.txt)"
-    uv pip install --requirement requirements.local.txt
-fi
-
 if [[ -n "${HA_VERSION:-}" ]]; then
     # Explicit HA_VERSION from environment — use exactly as specified
     resolve_ha_version HA_VERSION "$HA_VERSION"
@@ -215,6 +197,10 @@ HA_CORE_BASE_URL="https://raw.githubusercontent.com/home-assistant/core/${HA_VER
 # This handles the cached-volume case: the venv persists across rebuilds, so without
 # this check an HA version bump would silently run on the old installation.
 # The marker file ($VENV_PATH/.ha-version) is written after a successful install below.
+#
+# This has to run *before* any dependency is installed: the rebuild empties the
+# venv, so anything installed earlier in the same run is thrown away and never
+# reinstalled.
 HA_VERSION_MARKER="$VENV_PATH/.ha-version"
 if [[ -f "$HA_VERSION_MARKER" ]]; then
     CACHED_HA_VERSION=$(cat "$HA_VERSION_MARKER")
@@ -240,6 +226,24 @@ if [[ -f "$HA_VERSION_MARKER" ]]; then
         # shellcheck source=/dev/null
         source "$VENV_PATH/bin/activate"
     fi
+fi
+
+log_header "Installing development dependencies"
+uv pip install --requirement requirements_dev.txt
+
+log_header "Installing test dependencies"
+uv pip install --requirement requirements_test.txt
+
+log_header "Installing runtime dependencies"
+if [[ -s requirements.txt ]] && grep -qv '^#' requirements.txt | grep -q '[^[:space:]]'; then
+    uv pip install --requirement requirements.txt
+else
+    log_info "No runtime dependencies defined (this is normal for blueprints)"
+fi
+
+if [[ -f requirements.local.txt ]]; then
+    log_header "Installing local extra dependencies (requirements.local.txt)"
+    uv pip install --requirement requirements.local.txt
 fi
 
 log_header "Installing Home Assistant ${HA_VERSION} runtime dependencies"
