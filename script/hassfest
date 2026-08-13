@@ -152,7 +152,6 @@ else
     fi
 fi
 
-# Activate virtual environment
 activate_venv
 
 # Check if we have required dependencies

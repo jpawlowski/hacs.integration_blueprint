@@ -3,7 +3,6 @@
 # Source this file in your scripts with: source "$(dirname "$0")/../.lib/output.sh"
 # shellcheck disable=SC2034  # All variables in this library are used by sourcing scripts
 
-# Color codes
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
 readonly YELLOW='\033[1;33m'
@@ -14,7 +13,6 @@ readonly BOLD='\033[1m'
 readonly DIM='\033[2m'
 readonly NC='\033[0m' # No Color
 
-# Unicode symbols (work in most modern terminals)
 readonly CHECK='✓'
 readonly CROSS='✗'
 readonly ARROW='→'
@@ -28,7 +26,6 @@ readonly SPARKLES='✨'
 readonly BUG='🐛'
 readonly BOOKS='📚'
 
-# Formatted output functions
 log_header() {
     printf "\n%b==> %b%b\n" "$BOLD$BLUE" "$1" "$NC"
 }
@@ -63,18 +60,15 @@ log_result() {
     fi
 }
 
-# Separator lines
 log_separator() {
     printf "%b%s%b\n" "$DIM" "────────────────────────────────────────────────────────────" "$NC"
 }
 
-# Exit with error message
 die() {
     log_error "$1"
     exit "${2:-1}"
 }
 
-# Check command availability
 require_command() {
     local cmd=$1
     local install_hint=${2:-""}
@@ -88,8 +82,6 @@ require_command() {
     fi
 }
 
-# Activate the Home Assistant virtual environment if not already active.
-# Silently skips when VIRTUAL_ENV is already set (e.g. in CI or nested calls).
 # Print the path of the virtual environment this environment should use.
 # Returns 1 and prints nothing when none exists.
 #
@@ -128,6 +120,8 @@ resolve_venv_path() {
     return 1
 }
 
+# Activate the Home Assistant virtual environment if not already active.
+# Silently skips when VIRTUAL_ENV is already set (e.g. in CI or nested calls).
 activate_venv() {
     if [[ -n ${VIRTUAL_ENV:-} ]]; then
         return 0
