@@ -65,16 +65,14 @@ else
 fi
 unset _claude_managed_settings_source
 
-# Install Codex CLI config from the repository when present.
-# This keeps blueprint defaults versioned while allowing easy project-level
-# customization without modifying this script.
+# Install Codex defaults below the user-managed configuration layer.
 _codex_config_source="$(cd "$(dirname "$0")" && pwd)/codex/config.toml"
 if [[ -f "$_codex_config_source" ]]; then
-    print_info "Installing Codex CLI config from .devcontainer/codex/config.toml..."
-    mkdir -p /home/vscode/.codex
-    install -m 0644 "$_codex_config_source" /home/vscode/.codex/config.toml
+    print_info "Installing Codex system defaults from .devcontainer/codex/config.toml..."
+    sudo mkdir -p /etc/codex
+    sudo install -m 0644 "$_codex_config_source" /etc/codex/config.toml
 else
-    print_info "No .devcontainer/codex/config.toml found; skipping Codex CLI config install."
+    print_info "No .devcontainer/codex/config.toml found; skipping Codex system defaults install."
 fi
 unset _codex_config_source
 
