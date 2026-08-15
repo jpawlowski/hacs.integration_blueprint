@@ -59,7 +59,6 @@
       "packages": [
         "autoconf",
         "automake",
-        "bubblewrap",
         "bat",
         "eza",
         "fd-find",

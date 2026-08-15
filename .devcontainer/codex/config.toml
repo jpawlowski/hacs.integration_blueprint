@@ -1,6 +1,4 @@
-sandbox_mode = "workspace-write"
-
-# workspace-write scopes edits to the workspace and protects .git automatically;
-# network access is opted back in since dev workflows here need npm/pip/gh.
-[sandbox_workspace_write]
-network_access = true
+# The devcontainer is the sandbox; nested Linux namespaces are unavailable.
+sandbox_mode = "danger-full-access"
+approval_policy = "on-request"
+approvals_reviewer = "user"
