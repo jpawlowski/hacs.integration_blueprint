@@ -41,6 +41,8 @@ echo ""
 "$SCRIPT_DIR/markdown"
 echo ""
 "$SCRIPT_DIR/skills-check"
+echo ""
+"$SCRIPT_DIR/architecture-check"
 
 run_hook "lint" "post"
 

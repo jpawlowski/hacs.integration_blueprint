@@ -62,8 +62,9 @@ script/develop           # take over Home Assistant on :8123, debugpy on :5678 (
 script/ha                # query and control the running instance (see below)
 script/setup/seed-auth   # mint the token script/ha uses — run by script/develop
 script/hassfest          # official HA validation (first run downloads ~27 MB)
-script/test              # pytest
+script/test              # integration tests plus synchronized tooling tests
 script/skills-check      # validate .agents/skills/ (also part of lint / lint-check)
+script/architecture-check # conservative architecture guardrails (also part of lint / lint-check) — see below
 script/version           # read the canonical version from manifest.json
 script/ha-version-sync   # align the pinned Home Assistant version across config files
 script/clean             # remove caches, logs, build artifacts
@@ -72,6 +73,26 @@ script/help              # list every script with its description
 
 `script/develop` is a **takeover**, not a "start if needed" — the run-loop rules, and why, are in
 [`ha-coordinator-debug`](../ha-coordinator-debug/SKILL.md).
+
+### architecture-check vs. tests/
+
+`script/architecture-check` enforces a handful of AGENTS.md rules that are source-pattern violations rather than
+runtime behaviour: `EntityDescription` hardcoding `name=`/`icon=` instead of `translation_key`, a banned
+`device_trigger.py`/`device_condition.py`/`device_action.py` file, an unscoped `async_get_device()` call. It resolves
+tracked and untracked, non-ignored integration files with `git ls-files`, not a hardcoded domain, so the same script
+runs unmodified in the template repository and in initialized integrations. It follows common import aliases, local
+subclasses, literal dictionary unpacking, and known `DeviceRegistry` receivers. General `**kwargs`, factories, and
+values assembled through arbitrary data flow remain review concerns; this is a conservative guardrail, not a proof.
+
+That is deliberately not where `tests/` lives: `tests/` is fully excluded from template sync (its imports are tied to
+one integration's domain, substituted once by `initialize.sh`), so a regression test shipped there is a one-time
+snapshot after a repository has been initialized. The checker and its own tests instead live under synchronized
+`script/`; `script/test` collects `script/tests/` alongside the integration suite. Template-sync proposes later
+checker fixes in a pull request, which still needs maintainer review and merge.
+
+Runtime-behaviour tests — does a loaded entry actually own one device, does a service call actually raise — belong in
+`tests/`. Not every prose rule in AGENTS.md is a good static check: anything that cannot be identified with a low
+false-positive rate is safer left as a rule an agent and reviewer apply.
 
 ### Talking to the running instance
 

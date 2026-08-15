@@ -2,9 +2,8 @@
 
 # script/test: Run project tests
 #
-# Runs pytest with project configuration. Automatically cleans up package
-# installations after test run to prevent Home Assistant from loading the
-# wrong version.
+# Runs integration tests plus synchronized tooling tests with the project
+# configuration. Automatically cleans up package installations after the run.
 #
 # Usage:
 #   ./script/test [OPTIONS] [PYTEST_OPTIONS]
@@ -70,7 +69,11 @@ echo ""
 
 run_hook "test" "pre"
 echo ""
-pytest "${COVERAGE_ARGS[@]}" "${PYTEST_ARGS[@]}"
+TEST_PATHS="tests"
+if [[ -d script/tests ]]; then
+    TEST_PATHS+=" script/tests"
+fi
+pytest --override-ini "testpaths=$TEST_PATHS" "${COVERAGE_ARGS[@]}" "${PYTEST_ARGS[@]}"
 
 run_hook "test" "post"
 

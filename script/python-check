@@ -3,7 +3,7 @@
 # script/python-check: Check Python formatting and linting without making changes
 #
 # Runs Ruff format in check-only mode and Ruff check without auto-fix.
-# Targets Python files under custom_components/ and tests/ only.
+# Targets the integration, its tests, and synchronized Python tooling tests.
 # Useful for CI/CD and targeted validation after Python changes.
 #
 # Usage:
@@ -24,11 +24,16 @@ activate_venv
 
 run_hook "python-check" "pre"
 
+PYTHON_PATHS=(custom_components/ tests/ script/.lib/architecture_check.py)
+if [[ -d script/tests ]]; then
+    PYTHON_PATHS+=(script/tests/)
+fi
+
 log_header "Checking Python format (Ruff)"
-ruff format custom_components/ tests/ --check
+ruff format "${PYTHON_PATHS[@]}" --check
 
 log_header "Checking Python linting (Ruff)"
-ruff check custom_components/ tests/
+ruff check "${PYTHON_PATHS[@]}"
 
 # Clean up any accidental package installation from uv run
 "$SCRIPT_DIR/clean" --minimal

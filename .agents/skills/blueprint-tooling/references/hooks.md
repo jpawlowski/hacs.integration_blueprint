@@ -63,6 +63,7 @@ Rules:
 
 | Script                            | pre hook                                     | post hook                                     |
 | --------------------------------- | -------------------------------------------- | --------------------------------------------- |
+| `script/architecture-check`       | `script/hooks/architecture-check.pre.sh`     | `script/hooks/architecture-check.post.sh`     |
 | `script/check`                    | `script/hooks/check.pre.sh`                  | `script/hooks/check.post.sh`                  |
 | `script/clean`                    | `script/hooks/clean.pre.sh`                  | `script/hooks/clean.post.sh`                  |
 | `script/develop`                  | `script/hooks/develop.pre.sh`                | — (long-running process)                      |

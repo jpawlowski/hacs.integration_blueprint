@@ -3,7 +3,7 @@
 # script/python: Format and lint Python files
 #
 # Runs Ruff format (auto-format) and Ruff check with auto-fix enabled.
-# Targets Python files under custom_components/ and tests/ only.
+# Targets the integration, its tests, and synchronized Python tooling tests.
 #
 # Usage:
 #   ./script/python
@@ -23,11 +23,16 @@ activate_venv
 
 run_hook "python" "pre"
 
+PYTHON_PATHS=(custom_components/ tests/ script/.lib/architecture_check.py)
+if [[ -d script/tests ]]; then
+    PYTHON_PATHS+=(script/tests/)
+fi
+
 log_header "Running Ruff format"
-ruff format custom_components/ tests/
+ruff format "${PYTHON_PATHS[@]}"
 
 log_header "Running Ruff check"
-ruff check custom_components/ tests/ --fix
+ruff check "${PYTHON_PATHS[@]}" --fix
 
 # Clean up any accidental package installation from uv run
 "$SCRIPT_DIR/clean" --minimal
