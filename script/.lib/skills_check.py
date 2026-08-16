@@ -10,7 +10,7 @@ plus the conventions this repository adds on top of it:
 - SKILL.md body stays within the recommended 500 lines
 - reference files sit exactly one level below SKILL.md
 - relative markdown links resolve, in the skills and in every file that points into them
-- every skill is listed in both hand-maintained catalogues
+- every skill is listed in the catalogues that template sync can update
 - no concrete project identifiers leak in (they must stay template-sync safe)
 - the marker blocks initialize.sh strips or rewrites are intact
 
@@ -41,10 +41,10 @@ FORBIDDEN_IDENTIFIERS = ("ha_integration_domain", "IntegrationBlueprint")
 # Instructions files that are meant to load in every session, so they carry no `paths`.
 UNCONDITIONAL_INSTRUCTIONS = {"blueprint.commit-message.instructions.md"}
 
-# The two hand-maintained catalogues of the shipped skill set. A skill missing from either
-# one is effectively invisible: AGENTS.md is the routing table every agent loads, and the
-# skills README is where a maintainer looks.
-CATALOGUE_FILES = (SKILLS_DIR / "README.md", Path("AGENTS.md"))
+# AGENTS.md is a blueprint catalogue, but initialized repositories own and exclude it from
+# template sync. Their synchronized catalogue is the skills README.
+SKILLS_CATALOGUE = SKILLS_DIR / "README.md"
+AGENTS_CATALOGUE = Path("AGENTS.md")
 
 LINK_PATTERN = re.compile(r"\[[^\]]*\]\((?!https?:|mailto:|#)([^)]+)\)")
 
@@ -304,7 +304,14 @@ def _pointer_files() -> list[Path]:
     without this list a removed skill leaves dangling pointers in exactly the files agents
     rely on to find their way to a skill in the first place.
     """
-    return [*sorted(INSTRUCTIONS_DIR.glob("*.md")), *CATALOGUE_FILES]
+    return [*sorted(INSTRUCTIONS_DIR.glob("*.md")), SKILLS_CATALOGUE, AGENTS_CATALOGUE]
+
+
+def _required_catalogue_files() -> tuple[Path, ...]:
+    """Return catalogues that can receive the same update as synchronized skills."""
+    if Path("initialize.sh").is_file():
+        return (SKILLS_CATALOGUE, AGENTS_CATALOGUE)
+    return (SKILLS_CATALOGUE,)
 
 
 def check_pointer_links() -> list[Report]:
@@ -338,7 +345,7 @@ def linked_skills(path: Path) -> set[str]:
 
 def check_catalogue(skill_dirs: list[Path]) -> list[Report]:
     """
-    Verify that every skill is listed in both catalogues.
+    Verify that every skill is listed in every synchronized catalogue.
 
     There is no generator behind them, so a new skill is only ever added by hand and is
     silently undiscoverable until it is. The reverse direction — a catalogue entry for a
@@ -350,7 +357,7 @@ def check_catalogue(skill_dirs: list[Path]) -> list[Report]:
     """
     expected = {d.name for d in skill_dirs}
     reports: list[Report] = []
-    for path in CATALOGUE_FILES:
+    for path in _required_catalogue_files():
         report = Report(skill=str(path))
         if not path.is_file():
             report.error("catalogue file is missing")
@@ -403,7 +410,10 @@ def main() -> int:
             for error in report.errors:
                 print(f"      {error}")
     else:
-        print(f"  ✓ {len(_pointer_files())} pointer files: every skill link resolves and both catalogues are complete")
+        print(
+            f"  ✓ {len(_pointer_files())} pointer files: every skill link resolves and "
+            f"{len(_required_catalogue_files())} synchronized catalogue(s) are complete"
+        )
 
     broken_markers = [r for r in marker_reports if r.errors]
     for report in broken_markers:

@@ -11,7 +11,8 @@
     // Auto-generated release file
     "CHANGELOG.md",
     // Symlinks into .agents/ — lint the real directories once.
-    ".claude/**",
+    ".claude/rules/**",
+    ".claude/skills/**",
     ".github/instructions/**",
     // Agent scratch space — generated notes and reports, never committed
     ".agents/scratch/**"

@@ -113,8 +113,11 @@ Adding or renaming a skill means touching these:
 | `.agents/skills/README.md` | table with a "Use when" column                           |
 | `AGENTS.md`                | routing table: task → skill → matching instructions file |
 
-There is no generator, but `script/skills-check` verifies both directions: every skill directory is linked from both
-files, and every skill link in them resolves. It cannot check that the "Use when" text is any good.
+There is no generator. In this blueprint, `script/skills-check` verifies both directions: every skill directory is
+linked from both files, and every skill link in them resolves. In an initialized repository, `AGENTS.md` is owned by
+that repository and excluded from template sync, so the checker requires new synchronized skills only in the skills
+README; it still verifies that every existing link in `AGENTS.md` resolves. It cannot check that the "Use when" text
+is any good.
 
 No other file carries a catalogue, and none should. Codex and Copilot read `AGENTS.md` natively, and `CLAUDE.md`
 imports it — all three already have the table. Every extra copy is another place to forget.

@@ -28,9 +28,10 @@ run_hook "markdown-check" "pre"
 
 log_header "Checking Markdown format (Prettier)"
 "$NPM_BIN/prettier" --check "*.md" "docs/**/*.md" ".github/**/*.md" ".agents/**/*.md"
+"$NPM_BIN/prettier" --ignore-path /dev/null --no-error-on-unmatched-pattern --check ".claude/commands/**/*.md"
 
 log_header "Checking Markdown lint (markdownlint-cli2)"
-"$NPM_BIN/markdownlint-cli2" "*.md" "docs/**/*.md" ".github/**/*.md" ".agents/**/*.md"
+"$NPM_BIN/markdownlint-cli2" "*.md" "docs/**/*.md" ".github/**/*.md" ".agents/**/*.md" ".claude/commands/**/*.md"
 
 run_hook "markdown-check" "post"
 log_success "Markdown check completed"

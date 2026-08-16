@@ -1,10 +1,11 @@
 ---
 name: "Shell Scripts"
 description: "Script structure, shfmt formatting, and shellcheck suppression rules"
-applyTo: "script/**, .devcontainer/*.sh"
+applyTo: "script/**, .devcontainer/*.sh, .agents/hooks/*.sh"
 paths:
   - "script/**"
   - ".devcontainer/*.sh"
+  - ".agents/hooks/*.sh"
 ---
 
 # Shell Script Instructions
@@ -13,7 +14,8 @@ paths:
 `script/`. This file is the style rule set; the skill is which script a change belongs in, and when a hook script is
 the answer instead — most files here are template-managed and an edit is reverted by the next sync.
 
-**Applies to:** Shell scripts in `script/` (extensionless by convention) and `**/.devcontainer/*.sh`
+**Applies to:** Shell scripts in `script/` (extensionless by convention), `.devcontainer/*.sh`, and
+`.agents/hooks/*.sh`
 
 ## Formatting Standards
 

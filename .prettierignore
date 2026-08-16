@@ -8,7 +8,8 @@ custom_components/
 CHANGELOG.md
 
 # Symlinks into .agents/ — format the real directories once.
-.claude/
+.claude/rules/
+.claude/skills/
 .github/instructions/
 
 # Agent scratch space — generated notes and reports, never committed

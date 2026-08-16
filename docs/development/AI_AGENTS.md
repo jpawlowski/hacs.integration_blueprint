@@ -58,22 +58,40 @@ For detailed Codespaces usage, troubleshooting, and resource management, see [CO
 Use this matrix to keep security/approval behavior in real, vendor-supported
 configuration files rather than in instruction prose.
 
-| Agent                     | Supported config surface                                | Repo source of truth                                                                                                                                                                                                                                                                                                                               | Runtime target                                              | Notes                                                                                                                                       |
-| ------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Copilot (VS Code agent)   | VS Code settings (`chat.*`, `github.copilot.*`)         | [.vscode/settings.default.jsonc](../../.vscode/settings.default.jsonc), [.devcontainer/devcontainer.json](../../.devcontainer/devcontainer.json)                                                                                                                                                                                                   | VS Code workspace + devcontainer customization settings     | Use `chat.tools.edits.autoApprove` for sensitive-path protection.                                                                           |
-| Copilot CLI (terminal)    | Copilot CLI flags + CLI config home (`~/.copilot`)      | [.devcontainer/copilot/default-flags.txt](../../.devcontainer/copilot/default-flags.txt), [.devcontainer/copilot/copilot-safe](../../.devcontainer/copilot/copilot-safe), [.devcontainer/on-create.sh](../../.devcontainer/on-create.sh), [.devcontainer/.bashrc](../../.devcontainer/.bashrc), [.devcontainer/.zshrc](../../.devcontainer/.zshrc) | `~/.copilot/default-flags.txt`, `~/.local/bin/copilot-safe` | Uses the standard `copilot` command via shell alias to the wrapper. Opt out per call with `COPILOT_CLI_NO_DEFAULT_FLAGS=1`.                 |
-| Claude Code (VS Code/CLI) | Claude managed settings JSON (`permissions`, `sandbox`) | [.devcontainer/claude-code/managed-settings.json](../../.devcontainer/claude-code/managed-settings.json)                                                                                                                                                                                                                                           | `/etc/claude-code/managed-settings.json`                    | Copied during container setup by [.devcontainer/on-create.sh](../../.devcontainer/on-create.sh); authors can adjust the repo file directly. |
-| Codex CLI                 | Codex TOML config (`sandbox_mode`)                      | [.devcontainer/codex/config.toml](../../.devcontainer/codex/config.toml)                                                                                                                                                                                                                                                                           | `~/.codex/config.toml`                                      | Copied during container setup by [.devcontainer/on-create.sh](../../.devcontainer/on-create.sh); authors can adjust the repo file directly. |
-| Gemini                    | Not recommended for this project setup                  | No default VS Code integration configured for this repository                                                                                                                                                                                                                                                                                      | N/A                                                         | Not part of the default devcontainer experience.                                                                                            |
+| Agent                   | Policy and hook configuration                                                                                 | Shared hook implementation             | Notes                                                                                                           |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Copilot / VS Code agent | VS Code approval settings plus [.claude/settings.json](../../.claude/settings.json) for local lifecycle hooks | [.agents/hooks/](../../.agents/hooks/) | VS Code currently ignores hook matchers, so every shared hook must safely ignore unrelated calls.               |
+| Copilot CLI             | CLI defaults plus [.claude/settings.json](../../.claude/settings.json)                                        | [.agents/hooks/](../../.agents/hooks/) | The GitHub-hosted coding agent only reads `.github/hooks/`; this repository does not duplicate its local hooks. |
+| Claude Code             | Managed policy plus project hooks in [.claude/settings.json](../../.claude/settings.json)                     | [.agents/hooks/](../../.agents/hooks/) | Project hooks are version-controlled; managed settings are copied into the container.                           |
+| Codex CLI               | Sandbox defaults plus project hooks in [.codex/hooks.json](../../.codex/hooks.json)                           | [.agents/hooks/](../../.agents/hooks/) | Codex asks the user to trust changed project hooks before executing them.                                       |
+| Gemini                  | Not configured                                                                                                | —                                      | Not part of the default devcontainer experience.                                                                |
 
 ### Practical rule
 
 - Put policy and defaults in vendor config files first.
 - Keep markdown instruction files for workflow guidance only.
 
+Claude Code, Codex, VS Code, and Copilot CLI all support lifecycle hooks. The configuration paths differ, but the
+commands here converge on `.agents/hooks/` so security behavior is implemented and tested once. Claude slash commands
+under `.claude/commands/` remain Claude-specific; the corresponding reusable workflow is the vendor-neutral
+[`ha-issue-triage`](../../.agents/skills/ha-issue-triage/SKILL.md), with `.github/prompts/` providing Copilot dispatch.
+These agent lifecycle hooks are unrelated to `script/hooks/`, which customizes the repository's validation scripts.
+
+### Branch/PR-based work is available, not mandatory
+
+Most of this repository's own history is direct commits to `main` — that stays a perfectly normal way to work here,
+especially for a single request handled live with a developer watching each change. `ha-issue-triage` adds the other
+option as opt-in tooling: working a backlog of issues through a feature branch, a pull request, and green CI before
+merging — useful specifically because nobody is reviewing each individual commit in real time when an agent works
+through several issues in a row. See `RELEASE.md`'s branch-protection section if you want to require PRs on `main`
+at the repository-settings level too; that's independent of whether you use this skill.
+
 ## Resources
 
 - [GitHub Copilot Best Practices](https://docs.github.com/en/copilot/tutorials/coding-agent/get-the-best-results)
+- [GitHub Copilot hooks reference](https://docs.github.com/en/copilot/reference/hooks-reference)
+- [VS Code hooks reference](https://code.visualstudio.com/docs/agents/reference/hooks-reference)
+- [Codex hooks](https://learn.chatgpt.com/docs/hooks)
 - `AGENTS.md` - Read automatically by Copilot; the single always-loaded instruction file for every agent
 - [`.agents/skills/`](../../.agents/skills/README.md) - Task-triggered agent skills. Copilot reads this location
   directly; Claude Code reaches the same files through the `.claude/skills/` symlink

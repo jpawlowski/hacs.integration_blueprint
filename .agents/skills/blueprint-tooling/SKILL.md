@@ -55,6 +55,11 @@ script/type-check   # pyright — never auto-fixes, always a manual loop
 
 Agents should use fix mode. `script/check` is the gate to run before saying a task is complete.
 
+**For `script/test`, redirect its output to a log and judge it by exit code instead of streaming it into context** —
+`script/test > test.log 2>&1`, then read the log, and only the failing part, if the exit code is non-zero. A green
+run costs a handful of tokens instead of the whole suite's output. `script/lint`/`script/type-check` already report
+concisely by design, so this only matters for `script/test`, the one command here with potentially large output.
+
 ### Other scripts
 
 ```bash

@@ -83,6 +83,7 @@ agent that implements it. If yours does not, read the `SKILL.md` before starting
 | a request whose requirements are not settled yet       | [`ha-grill`](.agents/skills/ha-grill/SKILL.md)                         | —                                                      |
 | planning a large change, recording a decision          | [`ha-planning`](.agents/skills/ha-planning/SKILL.md)                   | —                                                      |
 | commit messages, versioning, changelog, release notes  | [`ha-release`](.agents/skills/ha-release/SKILL.md)                     | `blueprint.commit-message`                             |
+| triaging or fixing a backlog of GitHub issues          | [`ha-issue-triage`](.agents/skills/ha-issue-triage/SKILL.md)           | —                                                      |
 | validation scripts, dependencies, hooks, template sync | [`blueprint-tooling`](.agents/skills/blueprint-tooling/SKILL.md)       | `blueprint.shell`                                      |
 | `manifest.json`                                        | —                                                                      | `blueprint.manifest`                                   |
 | diagnostics                                            | —                                                                      | `blueprint.diagnostics`                                |
