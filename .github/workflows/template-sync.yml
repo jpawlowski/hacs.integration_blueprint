@@ -69,7 +69,7 @@ jobs:
           fi
 
       - name: Sync from blueprint template
-        uses: AndreasAugustin/actions-template-sync@8a0f668b83c32a0f673353086d74f12b8853d4f5 # v2.5.3
+        uses: AndreasAugustin/actions-template-sync@6e1d0089686f8940604fc15baae62367bf6ee860 # v2.6.0
         with:
           # Needed only for changes in .github/workflows/*.yml.
           # Falls back to github.token for normal syncs.
