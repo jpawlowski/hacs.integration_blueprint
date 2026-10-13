@@ -889,6 +889,7 @@ replace_in_files() {
         "./script/.lib/skills_check.py"
         "./.agents/README.md"
         "./.devcontainer/post-attach.sh"
+        "./script/tests/test_initialize.py"
         "./.agents/skills/blueprint-import/references/git-strategy.md"
     )
 
@@ -1093,44 +1094,10 @@ remove_post_attach_script() {
 # Remove blueprint-specific files that should not be in user projects
 remove_blueprint_specific_files() {
     if $DRY_RUN; then
-        print_dryrun "Would remove .github/FUNDING.yml"
-        print_dryrun "Would remove docs/blueprint/"
-        print_dryrun "Would remove .agents/skills/blueprint-skill-maintenance/"
-        print_dryrun "Would remove blueprint-only sections from .agents/skills/README.md"
+        ./script/prune-blueprint --allow-uninitialized
     else
         print_color "$BLUE" "Removing blueprint-specific files..."
-
-        # Remove GitHub Sponsors funding file (specific to blueprint maintainer)
-        if [[ -f ".github/FUNDING.yml" ]]; then
-            rm -f .github/FUNDING.yml
-            print_success "Removed .github/FUNDING.yml"
-        fi
-
-        # Note: Users can create their own FUNDING.yml later if they want
-        # after setting up their own GitHub Sponsors account
-
-        # Remove the blueprint's own documentation: decisions about the template, and the
-        # guide for adopting it. Both are written for whoever maintains the blueprint, not
-        # for this integration. docs/ is in .templatesyncignore, so sync never reinstates it.
-        if [[ -d "docs/blueprint" ]]; then
-            rm -rf "docs/blueprint"
-            print_success "Removed docs/blueprint/"
-        fi
-
-        # Remove the agent skill that only applies to maintaining the blueprint itself.
-        # .templatesyncignore keeps template sync from reinstating it.
-        if [[ -d ".agents/skills/blueprint-skill-maintenance" ]]; then
-            rm -rf ".agents/skills/blueprint-skill-maintenance"
-            print_success "Removed .agents/skills/blueprint-skill-maintenance/"
-        fi
-
-        # Strip the matching blueprint-only sections from the skills README, so it does
-        # not reference a skill that no longer exists in this repository.
-        if [[ -f ".agents/skills/README.md" ]] &&
-            grep -q "blueprint-only:start" ".agents/skills/README.md"; then
-            sed -i '/<!-- blueprint-only:start -->/,/<!-- blueprint-only:end -->/d' ".agents/skills/README.md"
-            print_success "Removed blueprint-only sections from .agents/skills/README.md"
-        fi
+        ./script/prune-blueprint --allow-uninitialized --apply
     fi
 }
 

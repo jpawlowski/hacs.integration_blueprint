@@ -1,0 +1,80 @@
+#!/bin/bash
+
+# script/prune-blueprint: Remove leftovers that only make sense in the blueprint itself
+#
+# Lists, or with --apply deletes, the blueprint-only files and sections that initialize.sh
+# removes and that template sync can bring back or never removed. Safe to run repeatedly.
+# Refuses to run while initialize.sh exists, because that is the blueprint or a copy that
+# has not been initialised yet.
+#
+# Usage:
+#   ./script/prune-blueprint [--apply]
+#
+# Examples:
+#   ./script/prune-blueprint           # Show what would be removed
+#   ./script/prune-blueprint --apply   # Remove it
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/.."
+
+# shellcheck source=script/.lib/output.sh
+source "$SCRIPT_DIR/.lib/output.sh"
+
+PRUNE_PATHS=(
+    ".github/FUNDING.yml"
+    "docs/blueprint"
+    ".agents/skills/blueprint-skill-maintenance"
+)
+SECTION_FILE=".agents/skills/README.md"
+SECTION_START="<!-- blueprint-only:start -->"
+SECTION_END="<!-- blueprint-only:end -->"
+
+APPLY=false
+ALLOW_UNINITIALIZED=false
+for arg in "$@"; do
+    case "$arg" in
+    --apply) APPLY=true ;;
+    --allow-uninitialized) ALLOW_UNINITIALIZED=true ;; # initialize.sh only
+    *)
+        log_error "Unknown argument: $arg"
+        exit 2
+        ;;
+    esac
+done
+
+if [[ -e initialize.sh && $ALLOW_UNINITIALIZED == false ]]; then
+    log_error "initialize.sh exists: this is the blueprint or a copy that is not initialised yet. Nothing was changed."
+    exit 1
+fi
+
+found=0
+
+for path in "${PRUNE_PATHS[@]}"; do
+    if [[ -e $path ]]; then
+        found=$((found + 1))
+        if $APPLY; then
+            rm -rf -- "$path"
+            log_success "Removed $path"
+        else
+            log_info "Would remove $path"
+        fi
+    fi
+done
+
+if [[ -f $SECTION_FILE ]] && grep -qF "$SECTION_START" "$SECTION_FILE"; then
+    found=$((found + 1))
+    if $APPLY; then
+        sed -i "\|$SECTION_START|,\|$SECTION_END|d" "$SECTION_FILE"
+        log_success "Removed blueprint-only sections from $SECTION_FILE"
+    else
+        log_info "Would remove blueprint-only sections from $SECTION_FILE"
+    fi
+fi
+
+if ((found == 0)); then
+    log_success "Nothing to prune"
+elif ! $APPLY && ! $ALLOW_UNINITIALIZED; then
+    log_info "Run ./script/prune-blueprint --apply to remove it"
+fi
