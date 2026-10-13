@@ -1,6 +1,7 @@
 ---
-agent: agent
-description: "Triage/fix the GitHub issue backlog via branch + PR, with auto-merge on green CI for this session."
+name: issues
+description: Triage/fix the GitHub issue backlog via branch + PR, with auto-merge on green CI for this session.
+disable-model-invocation: true
 ---
 
 Invoking this prompt is the explicit, session-scoped signal that turns on full autonomy for this run: merge each
