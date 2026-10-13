@@ -884,6 +884,14 @@ replace_in_files() {
         "release-please.yml"      # Must keep pointing to jpawlowski/hacs.integration_blueprint
     )
 
+    # Template-synced files that name the blueprint on purpose - a rewrite would be reverted by the next sync
+    local exclude_paths=(
+        "./script/.lib/skills_check.py"
+        "./.agents/README.md"
+        "./.devcontainer/post-attach.sh"
+        "./.agents/skills/blueprint-import/references/git-strategy.md"
+    )
+
     # Find all files, excluding pruned directories
     # No file type filtering - we trust that gitignore handles unwanted files
     # and there are no binaries in the repo at initialization time
@@ -894,6 +902,13 @@ replace_in_files() {
         local filename=$(basename "$file")
         for pattern in "${exclude_files[@]}"; do
             if [[ "$filename" == $pattern ]]; then
+                skip=true
+                break
+            fi
+        done
+
+        for pattern in "${exclude_paths[@]}"; do
+            if [[ "$file" == "$pattern" ]]; then
                 skip=true
                 break
             fi
