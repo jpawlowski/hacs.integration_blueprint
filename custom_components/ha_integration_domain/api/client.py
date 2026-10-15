@@ -7,6 +7,7 @@ from typing import Any
 import aiohttp
 
 API_URL = "https://jsonplaceholder.typicode.com/posts/1"
+COMMAND_URL = "https://jsonplaceholder.typicode.com/posts"
 REQUEST_TIMEOUT = 10
 
 FAN_SPEEDS = ("low", "medium", "high", "auto")
@@ -102,7 +103,7 @@ class IntegrationBlueprintApiClient:
 
     async def async_reset_filter(self) -> None:
         """Reset the filter timer."""
-        await self._api_wrapper(method="post", url=API_URL, data={"command": "reset_filter"})
+        await self._api_wrapper(method="post", url=COMMAND_URL, data={"command": "reset_filter"})
         self._filter_reset_offset = 0
 
     async def _async_patch(self, **changes: Any) -> None:
