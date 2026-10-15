@@ -124,6 +124,18 @@ Files already excluded by default:
 > [!TIP]
 > If a file keeps causing conflicts in every sync PR, add it to `.templatesyncignore` instead of resolving the conflict every week.
 
+### Staying on an older Home Assistant version
+
+The blueprint tracks the current Home Assistant release, so a sync PR can raise the version your tooling targets. Your integration code and `hacs.json` are never synced, which means your minimum Home Assistant version only changes when you change it.
+
+`requirements_test.txt` is synced, and `pytest-homeassistant-custom-component` in it is tied to one Home Assistant release. If your integration stays on an older release, the pinned plugin no longer matches your `hacs.json`, tests fail, and `script/ha-version-sync` reports a mismatch. To keep control of the pin, add the file to `.templatesyncignore` and set the plugin to the release matching your minimum version:
+
+```text
+requirements_test.txt
+```
+
+Moving up later needs the minimum in `hacs.json` and the plugin pin raised together. Since Home Assistant 2026.10, schemas use `probatio` instead of `voluptuous`. Existing `import voluptuous as vol` code keeps working at runtime because Home Assistant aliases it, and only the type checker complains. Switching to `import probatio` is the supported form.
+
 ### Opting out of template sync entirely
 
 If you don't want automatic update PRs at all, simply delete the two files:
