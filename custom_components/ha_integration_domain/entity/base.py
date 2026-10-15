@@ -2,12 +2,17 @@
 
 from typing import TYPE_CHECKING
 
-from custom_components.ha_integration_domain.const import ATTRIBUTION
+from custom_components.ha_integration_domain.api import IntegrationBlueprintApiClientError
+from custom_components.ha_integration_domain.const import ATTRIBUTION, DOMAIN
 from custom_components.ha_integration_domain.coordinator import IntegrationBlueprintDataUpdateCoordinator
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
+    from custom_components.ha_integration_domain.api import IntegrationBlueprintApiClient
     from homeassistant.helpers.entity import EntityDescription
 
 
@@ -45,3 +50,32 @@ class IntegrationBlueprintEntity(CoordinatorEntity[IntegrationBlueprintDataUpdat
             serial_number=coordinator.data["serial_number"],
             sw_version=coordinator.data["sw_version"],
         )
+
+    async def _async_write(
+        self,
+        call: Callable[[IntegrationBlueprintApiClient], Awaitable[None]],
+        translation_key: str,
+        **placeholders: str,
+    ) -> None:
+        """
+        Run a write against the device, then refresh the coordinator.
+
+        Args:
+            call: Receives the API client and performs the write.
+            translation_key: Key of the exception message used when the write fails.
+            **placeholders: Values for that message's placeholders.
+
+        Raises:
+            HomeAssistantError: If the device cannot be reached or rejects the write.
+
+        """
+        try:
+            await call(self.coordinator.config_entry.runtime_data.client)
+        except IntegrationBlueprintApiClientError as exception:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key=translation_key,
+                translation_placeholders=placeholders or None,
+            ) from exception
+
+        await self.coordinator.async_request_refresh()

@@ -13,7 +13,7 @@ from homeassistant.loader import async_get_loaded_integration
 from homeassistant.util import slugify
 
 from .options_flow import IntegrationBlueprintOptionsFlow
-from .schemas import get_reauth_schema, get_reconfigure_schema, get_user_schema
+from .schemas import get_credentials_schema, get_user_schema
 from .validators import validate_credentials
 
 
@@ -94,7 +94,7 @@ class IntegrationBlueprintConfigFlowHandler(config_entries.ConfigFlow, domain=DO
         return self.async_show_form(
             step_id="reconfigure",
             data_schema=self.add_suggested_values_to_schema(
-                get_reconfigure_schema(entry.data.get(CONF_USERNAME, "")),
+                get_credentials_schema(entry.data.get(CONF_USERNAME, "")),
                 entry.data,
             ),
             errors=errors,
@@ -134,7 +134,7 @@ class IntegrationBlueprintConfigFlowHandler(config_entries.ConfigFlow, domain=DO
 
         return self.async_show_form(
             step_id="reauth_confirm",
-            data_schema=get_reauth_schema(entry.data.get(CONF_USERNAME, "")),
+            data_schema=get_credentials_schema(entry.data.get(CONF_USERNAME, "")),
             errors=errors,
             description_placeholders={
                 "username": entry.data.get(CONF_USERNAME, ""),

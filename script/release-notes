@@ -169,7 +169,7 @@ CURRENT_VERSION=$("$SCRIPT_DIR/version")
 log_info "Current version: $CURRENT_VERSION"
 
 # Integration display name from manifest
-INTEGRATION_TITLE=$(python3 -c "import json; print(json.load(open('$COMPONENT_DIR/manifest.json')).get('name', '$DOMAIN'))" 2>/dev/null || echo "$DOMAIN")
+INTEGRATION_TITLE=$(jq -r --arg d "$DOMAIN" '.name // $d' "$COMPONENT_DIR/manifest.json" 2>/dev/null || echo "$DOMAIN")
 log_info "Integration title: $INTEGRATION_TITLE"
 
 # Find last tag (fallback to initial commit if none exists)

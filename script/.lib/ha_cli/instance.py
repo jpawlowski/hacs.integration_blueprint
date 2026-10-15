@@ -27,7 +27,6 @@ class RunState:
     running: bool
     pid: int | None = None
     started: datetime | None = None
-    ha_version: str | None = None
 
     @property
     def uptime(self) -> str:
@@ -66,4 +65,4 @@ def run_state() -> RunState:
         started = datetime.fromtimestamp(float(info["start_ts"]), tz=UTC)
     except ValueError, KeyError, TypeError:
         return RunState(running=True)
-    return RunState(running=True, pid=info.get("pid"), started=started, ha_version=info.get("ha_version"))
+    return RunState(running=True, pid=info.get("pid"), started=started)

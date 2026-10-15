@@ -2,14 +2,12 @@
 
 from typing import Any
 
-from custom_components.ha_integration_domain.api import IntegrationBlueprintApiClientError
-from custom_components.ha_integration_domain.const import DOMAIN
+from custom_components.ha_integration_domain.api import FAN_SPEEDS
 from custom_components.ha_integration_domain.entity import IntegrationBlueprintEntity
 from homeassistant.components.fan import FanEntity, FanEntityDescription, FanEntityFeature
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util.percentage import percentage_to_ordered_list_item
 
-ORDERED_SPEEDS = ["low", "medium", "high"]
+ORDERED_SPEEDS = [speed for speed in FAN_SPEEDS if speed != "auto"]
 
 # The fan is the device's main feature, so name=None makes its friendly name the
 # device name alone — otherwise the UI reads "Air Purifier Air Purifier".
@@ -44,16 +42,7 @@ class IntegrationBlueprintFan(FanEntity, IntegrationBlueprintEntity):
             return
 
         speed = percentage_to_ordered_list_item(ORDERED_SPEEDS, percentage)
-        client = self.coordinator.config_entry.runtime_data.client
-        try:
-            await client.async_set_fan_speed(speed)
-        except IntegrationBlueprintApiClientError as exception:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="fan_speed_set_failed",
-            ) from exception
-
-        await self.coordinator.async_request_refresh()
+        await self._async_write(lambda client: client.async_set_fan_speed(speed), "fan_speed_set_failed")
 
     async def async_turn_on(
         self,
@@ -74,13 +63,4 @@ class IntegrationBlueprintFan(FanEntity, IntegrationBlueprintEntity):
 
     async def _async_set_state(self, *, is_on: bool) -> None:
         """Write the on/off state to the device and refresh."""
-        client = self.coordinator.config_entry.runtime_data.client
-        try:
-            await client.async_set_fan_state(is_on=is_on)
-        except IntegrationBlueprintApiClientError as exception:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="fan_state_set_failed",
-            ) from exception
-
-        await self.coordinator.async_request_refresh()
+        await self._async_write(lambda client: client.async_set_fan_state(is_on=is_on), "fan_state_set_failed")

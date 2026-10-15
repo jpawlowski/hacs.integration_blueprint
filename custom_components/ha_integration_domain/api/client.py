@@ -86,54 +86,29 @@ class IntegrationBlueprintApiClient:
 
     async def async_set_fan_speed(self, speed: str) -> None:
         """Set the fan speed."""
-        await self._api_wrapper(
-            method="patch",
-            url=API_URL,
-            data={"fan_speed": speed},
-            headers={"Content-type": "application/json; charset=UTF-8"},
-        )
-        self._settings["fan_speed"] = speed
-        self._settings["fan_on"] = True
+        await self._async_patch(fan_speed=speed, fan_on=True)
 
     async def async_set_fan_state(self, *, is_on: bool) -> None:
         """Turn the fan on or off."""
-        await self._api_wrapper(
-            method="patch",
-            url=API_URL,
-            data={"fan_on": is_on},
-            headers={"Content-type": "application/json; charset=UTF-8"},
-        )
-        self._settings["fan_on"] = is_on
+        await self._async_patch(fan_on=is_on)
 
     async def async_set_target_humidity(self, humidity: float) -> None:
         """Set the target humidity."""
-        await self._api_wrapper(
-            method="patch",
-            url=API_URL,
-            data={"target_humidity": humidity},
-            headers={"Content-type": "application/json; charset=UTF-8"},
-        )
-        self._settings["target_humidity"] = humidity
+        await self._async_patch(target_humidity=humidity)
 
     async def async_set_toggle(self, key: str, *, enabled: bool) -> None:
         """Set one of the device's boolean settings."""
-        await self._api_wrapper(
-            method="patch",
-            url=API_URL,
-            data={key: enabled},
-            headers={"Content-type": "application/json; charset=UTF-8"},
-        )
-        self._settings[key] = enabled
+        await self._async_patch(**{key: enabled})
 
     async def async_reset_filter(self) -> None:
         """Reset the filter timer."""
-        await self._api_wrapper(
-            method="post",
-            url=API_URL,
-            data={"command": "reset_filter"},
-            headers={"Content-type": "application/json; charset=UTF-8"},
-        )
+        await self._api_wrapper(method="post", url=API_URL, data={"command": "reset_filter"})
         self._filter_reset_offset = 0
+
+    async def _async_patch(self, **changes: Any) -> None:
+        """Send changed settings to the device and remember them."""
+        await self._api_wrapper(method="patch", url=API_URL, data=changes)
+        self._settings.update(changes)
 
     def _build_payload(self, response: dict[str, Any]) -> dict[str, Any]:
         """Derive a device-shaped payload from the demo endpoint's response."""
@@ -163,7 +138,6 @@ class IntegrationBlueprintApiClient:
         method: str,
         url: str,
         data: dict[str, Any] | None = None,
-        headers: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         """
         Perform a request and translate transport errors into client exceptions.
@@ -182,7 +156,6 @@ class IntegrationBlueprintApiClient:
                 response = await self._session.request(
                     method=method,
                     url=url,
-                    headers=headers,
                     json=data,
                 )
                 _verify_response_or_raise(response)

@@ -45,34 +45,15 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
     )
 
 
-def get_reconfigure_schema(username: str) -> vol.Schema:
+def get_credentials_schema(username: str) -> vol.Schema:
     """
-    Build the schema for the reconfigure step.
+    Build the schema for the reconfigure and reauth steps.
 
     Args:
         username: The entry's current username, used to pre-fill the form.
 
     Returns:
-        The voluptuous schema for the reconfigure form.
-
-    """
-    return vol.Schema(
-        {
-            vol.Required(CONF_USERNAME, default=username): _USERNAME_SELECTOR,
-            vol.Required(CONF_PASSWORD): _PASSWORD_SELECTOR,
-        },
-    )
-
-
-def get_reauth_schema(username: str) -> vol.Schema:
-    """
-    Build the schema for the reauth step.
-
-    Args:
-        username: The entry's current username, used to pre-fill the form.
-
-    Returns:
-        The voluptuous schema for the reauth form.
+        The voluptuous schema for the credentials form.
 
     """
     return vol.Schema(
@@ -84,7 +65,6 @@ def get_reauth_schema(username: str) -> vol.Schema:
 
 
 __all__ = [
-    "get_reauth_schema",
-    "get_reconfigure_schema",
+    "get_credentials_schema",
     "get_user_schema",
 ]
