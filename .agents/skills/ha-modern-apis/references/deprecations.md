@@ -12,6 +12,19 @@ When an entry here disagrees with the installed source, the installed source win
 rg -n "deprecated|breaks_in_ha_version" .venv/lib/python*/site-packages/homeassistant/helpers/<module>.py
 ```
 
+## Schema validation — `voluptuous` replaced by `probatio`
+
+Since Home Assistant 2026.10 the core validates with `probatio`, a drop-in replacement with the same API
+(`Schema`, `Required`, `Optional`, `All`, `Coerce`, `Range`, …). `async_show_form`, `add_suggested_values_to_schema`
+and service registration are typed against `probatio.Schema`, so a `voluptuous` schema fails type checking.
+Write `import probatio` and `probatio.Schema(...)`; `probatio` ships with Home Assistant and needs no
+`manifest.json` requirement.
+
+## Platform enums — import from `.const`
+
+`BinarySensorDeviceClass`, `ButtonDeviceClass` and `FanEntityFeature` are no longer exported by their platform
+package. Import them from `homeassistant.components.<platform>.const`.
+
 ## Device registry — single config entry ownership
 
 Since Home Assistant 2026.8 a device is owned by **exactly one** config entry and at most one config subentry.

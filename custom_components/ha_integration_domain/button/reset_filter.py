@@ -1,7 +1,8 @@
 """Reset filter button for ha_integration_domain."""
 
 from custom_components.ha_integration_domain.entity import IntegrationBlueprintEntity
-from homeassistant.components.button import ButtonDeviceClass, ButtonEntity, ButtonEntityDescription
+from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
+from homeassistant.components.button.const import ButtonDeviceClass
 from homeassistant.const import EntityCategory
 
 ENTITY_DESCRIPTIONS: tuple[ButtonEntityDescription, ...] = (

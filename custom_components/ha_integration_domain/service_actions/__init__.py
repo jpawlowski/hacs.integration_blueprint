@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING
 
-import voluptuous as vol
+import probatio
 
 from custom_components.ha_integration_domain.const import DOMAIN
 from homeassistant.core import SupportsResponse
@@ -15,9 +15,9 @@ if TYPE_CHECKING:
 
 SERVICE_REFRESH_DATA = "refresh_data"
 
-REFRESH_DATA_SCHEMA = vol.Schema(
+REFRESH_DATA_SCHEMA = probatio.Schema(
     {
-        vol.Required(ATTR_CONFIG_ENTRY_ID): cv.string,
+        probatio.Required(ATTR_CONFIG_ENTRY_ID): cv.string,
     },
 )
 

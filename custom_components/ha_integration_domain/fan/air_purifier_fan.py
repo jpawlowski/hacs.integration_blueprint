@@ -4,7 +4,8 @@ from typing import Any
 
 from custom_components.ha_integration_domain.api import FAN_SPEEDS
 from custom_components.ha_integration_domain.entity import IntegrationBlueprintEntity
-from homeassistant.components.fan import FanEntity, FanEntityDescription, FanEntityFeature
+from homeassistant.components.fan import FanEntity, FanEntityDescription
+from homeassistant.components.fan.const import FanEntityFeature
 from homeassistant.util.percentage import percentage_to_ordered_list_item
 
 ORDERED_SPEEDS = [speed for speed in FAN_SPEEDS if speed != "auto"]

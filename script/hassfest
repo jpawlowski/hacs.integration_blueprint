@@ -156,8 +156,8 @@ activate_venv
 
 # Check if we have required dependencies
 log_info "Checking dependencies..."
-if ! python3 -c "import voluptuous, awesomeversion, homeassistant.helpers.config_validation" >/dev/null 2>&1; then
-    log_error "Missing required dependencies (voluptuous, awesomeversion, homeassistant)"
+if ! python3 -c "import probatio, awesomeversion, homeassistant.helpers.config_validation" >/dev/null 2>&1; then
+    log_error "Missing required dependencies (probatio, awesomeversion, homeassistant)"
     log_info "Run: ./script/bootstrap"
     exit 1
 fi

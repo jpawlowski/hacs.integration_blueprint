@@ -3,7 +3,7 @@
 from collections.abc import Mapping
 from typing import Any
 
-import voluptuous as vol
+import probatio
 
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import selector
@@ -22,7 +22,7 @@ _PASSWORD_SELECTOR = selector.TextSelector(
 )
 
 
-def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
+def get_user_schema(defaults: Mapping[str, Any] | None = None) -> probatio.Schema:
     """
     Build the schema for the user step.
 
@@ -34,18 +34,18 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
 
     """
     defaults = defaults or {}
-    return vol.Schema(
+    return probatio.Schema(
         {
-            vol.Required(
+            probatio.Required(
                 CONF_USERNAME,
-                default=defaults.get(CONF_USERNAME, vol.UNDEFINED),
+                default=defaults.get(CONF_USERNAME, probatio.UNDEFINED),
             ): _USERNAME_SELECTOR,
-            vol.Required(CONF_PASSWORD): _PASSWORD_SELECTOR,
+            probatio.Required(CONF_PASSWORD): _PASSWORD_SELECTOR,
         },
     )
 
 
-def get_credentials_schema(username: str) -> vol.Schema:
+def get_credentials_schema(username: str) -> probatio.Schema:
     """
     Build the schema for the reconfigure and reauth steps.
 
@@ -56,10 +56,10 @@ def get_credentials_schema(username: str) -> vol.Schema:
         The voluptuous schema for the credentials form.
 
     """
-    return vol.Schema(
+    return probatio.Schema(
         {
-            vol.Required(CONF_USERNAME, default=username): _USERNAME_SELECTOR,
-            vol.Required(CONF_PASSWORD): _PASSWORD_SELECTOR,
+            probatio.Required(CONF_USERNAME, default=username): _USERNAME_SELECTOR,
+            probatio.Required(CONF_PASSWORD): _PASSWORD_SELECTOR,
         },
     )
 
