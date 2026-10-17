@@ -134,7 +134,7 @@ The blueprint tracks the current Home Assistant release, so a sync PR can raise 
 requirements_test.txt
 ```
 
-Moving up later needs the minimum in `hacs.json` and the plugin pin raised together. Since Home Assistant 2026.10, schemas use `probatio` instead of `voluptuous`. Existing `import voluptuous as vol` code keeps working at runtime because Home Assistant aliases it, and only the type checker complains. Switching to `import probatio` is the supported form.
+Moving up later needs the minimum in `hacs.json` and the plugin pin raised together. Since Home Assistant 2026.9, schemas use `probatio` instead of `voluptuous`. Existing `import voluptuous as vol` code keeps working at runtime because Home Assistant aliases it, and only the type checker complains. Switching to `import probatio` is optional, and it is only needed for probatio-only features such as dataclass schemas.
 
 ### Opting out of template sync entirely
 

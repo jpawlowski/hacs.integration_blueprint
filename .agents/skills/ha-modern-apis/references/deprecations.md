@@ -14,11 +14,12 @@ rg -n "deprecated|breaks_in_ha_version" .venv/lib/python*/site-packages/homeassi
 
 ## Schema validation — `voluptuous` replaced by `probatio`
 
-Since Home Assistant 2026.10 the core validates with `probatio`, a drop-in replacement with the same API
+Since Home Assistant 2026.9 the core validates with `probatio`, a drop-in replacement with the same API
 (`Schema`, `Required`, `Optional`, `All`, `Coerce`, `Range`, …). `async_show_form`, `add_suggested_values_to_schema`
 and service registration are typed against `probatio.Schema`, so a `voluptuous` schema fails type checking.
-Write `import probatio` and `probatio.Schema(...)`; `probatio` ships with Home Assistant and needs no
-`manifest.json` requirement.
+This blueprint writes `import probatio` and `probatio.Schema(...)`; `probatio` ships with Home Assistant and needs no
+`manifest.json` requirement. An existing `import voluptuous as vol` still works at runtime, because Home Assistant aliases
+the name to `probatio`, and only the type checker complains.
 
 ## Platform enums — import from `.const`
 
