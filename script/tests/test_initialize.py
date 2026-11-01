@@ -1,7 +1,8 @@
-"""Guard the files that initialize.sh must not rewrite.
+"""Guard the files that initialize.sh must not rewrite, and the files that must not name the domain at all.
 
 initialize.sh replaces the blueprint's names in every file. A file that template sync keeps shipping and that names
-the blueprint on purpose would be rewritten, then reverted by the next sync pull request.
+the blueprint on purpose would be rewritten, then reverted by the next sync pull request. A synced file that names the
+domain only survives by leaving the sync, and then never receives an upstream change again.
 """
 
 from pathlib import Path
@@ -12,20 +13,61 @@ import pytest
 
 REPO_ROOT = Path(__file__).parents[2]
 INITIALIZE = REPO_ROOT / "initialize.sh"
+PRUNE_BLUEPRINT = REPO_ROOT / "script" / "prune-blueprint"
+SUBSTITUTED_IDENTIFIERS = re.compile(r"ha_integration_domain|IntegrationBlueprint")
 BLUEPRINT_NAMES = re.compile(
-    r"ha_integration_domain|IntegrationBlueprint|Integration [Bb]lueprint|hacs\.integration_blueprint"
-    r"|jpawlowski|Julian Pawlowski"
+    SUBSTITUTED_IDENTIFIERS.pattern
+    + r"|Integration [Bb]lueprint|hacs\.integration_blueprint|jpawlowski|Julian Pawlowski"
+)
+
+# Owned by the integration after initialization, so they may carry its domain; each must stay out of template sync.
+DOMAIN_OWNED = (
+    "AGENTS.md",
+    "DEPENDENCIES.md",
+    "README.md",
+    "README.template.md",
+    "config/",
+    "custom_components/",
+    "docs/",
+    "pyproject.toml",
+    "requirements.txt",
+    "tests/",
+)
+
+# Synced files that name the placeholder itself, to detect or explain it. Kept apart from exclude_paths on purpose:
+# exempting a file from rewriting must not also exempt it from this guard.
+PLACEHOLDER_REFERENCES = (
+    ".agents/README.md",
+    ".devcontainer/post-attach.sh",
+    ".templatesyncignore",
+    "script/.lib/skills_check.py",
 )
 
 # Initialised repositories have no initialize.sh; skip rather than fail if template sync reinstates this file.
 pytestmark = pytest.mark.skipif(not INITIALIZE.exists(), reason="initialize.sh only exists before initialization")
 
 
-def _array(name: str) -> list[str]:
-    """Return the quoted entries of a bash array declared as `local <name>=( ... )`."""
-    body = re.search(rf"local {name}=\((.*?)\n\s*\)", INITIALIZE.read_text(encoding="utf-8"), re.DOTALL)
-    assert body, f"{name} not found in initialize.sh"
+def _array(name: str, script: Path = INITIALIZE) -> list[str]:
+    """Return the quoted entries of a bash array declared as `[local ]<name>=( ... )`."""
+    body = re.search(
+        rf"^\s*(?:local )?{name}=\((.*?)\n\s*\)", script.read_text(encoding="utf-8"), re.DOTALL | re.MULTILINE
+    )
+    assert body, f"{name} not found in {script.name}"
     return re.findall(r'^\s*"([^"]+)"', body.group(1), re.MULTILINE)
+
+
+def _under(path: str, prefixes: tuple[str, ...] | list[str]) -> bool:
+    """Whether path is one of prefixes or lies beneath one of them."""
+    return any(path == prefix.rstrip("/") or path.startswith(prefix.rstrip("/") + "/") for prefix in prefixes)
+
+
+def _files_naming(pattern: re.Pattern[str]) -> list[str]:
+    """Tracked files whose content matches pattern."""
+    return [
+        path
+        for path in _tracked_files()
+        if (REPO_ROOT / path).is_file() and pattern.search((REPO_ROOT / path).read_text("utf-8", "ignore"))
+    ]
 
 
 def _tracked_files() -> list[str]:
@@ -72,11 +114,7 @@ def test_synced_files_naming_the_blueprint_are_excluded_from_rewriting(tmp_path:
     """Every synced file that contains a blueprint name needs an exclusion in initialize.sh."""
     excluded_names = set(_array("exclude_files"))
     excluded_paths = {path.removeprefix("./") for path in _array("exclude_paths")}
-    candidates = [
-        path
-        for path in _tracked_files()
-        if (REPO_ROOT / path).is_file() and BLUEPRINT_NAMES.search((REPO_ROOT / path).read_text("utf-8", "ignore"))
-    ]
+    candidates = _files_naming(BLUEPRINT_NAMES)
     ignored = _template_sync_ignored(tmp_path, candidates)
 
     unprotected = sorted(
@@ -88,6 +126,22 @@ def test_synced_files_naming_the_blueprint_are_excluded_from_rewriting(tmp_path:
     assert not unprotected, (
         "Template sync ships these files, they name the blueprint, and initialize.sh would rewrite them. "
         f"Add them to exclude_paths in initialize.sh or to .templatesyncignore: {unprotected}"
+    )
+
+
+@pytest.mark.unit
+def test_only_domain_owned_files_name_the_domain() -> None:
+    """A file template sync ships must find the domain at runtime instead of naming it."""
+    blueprint_only = [INITIALIZE.name, *_array("PRUNE_PATHS", PRUNE_BLUEPRINT)]
+    offenders = sorted(
+        path
+        for path in _files_naming(SUBSTITUTED_IDENTIFIERS)
+        if not _under(path, DOMAIN_OWNED) and path not in PLACEHOLDER_REFERENCES and not _under(path, blueprint_only)
+    )
+
+    assert not offenders, (
+        "Make these domain-agnostic (glob custom_components/*, or source script/.lib/integration.sh); only a file the "
+        f"integration owns outright belongs in DOMAIN_OWNED: {offenders}"
     )
 
 
