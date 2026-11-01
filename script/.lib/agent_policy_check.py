@@ -1,13 +1,15 @@
 """
 Keep the protected-path lists of every agent configuration in step.
 
-The Claude Code managed settings are the canonical list. The OpenCode managed configuration must deny exactly the
+The Claude Code managed settings are the canonical list. The committed project settings of Claude Code and OpenCode,
+which carry the protection outside the dev container, and the OpenCode managed configuration must deny exactly the
 same reads and edits, and both copies of the VS Code ``chat.tools.edits.autoApprove`` setting must be identical and
 require approval for every protected edit. VS Code may list broader patterns of its own, such as ``**/.env``.
 
 Invoked by script/skills-check; not intended to be run directly.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
 import glob
 import json
@@ -17,7 +19,9 @@ import sys
 from typing import Any
 
 CLAUDE_SETTINGS = Path(".devcontainer/claude-code/managed-settings.json")
+CLAUDE_PROJECT_SETTINGS = Path(".claude/settings.json")
 OPENCODE_CONFIG = Path(".devcontainer/opencode/opencode.json")
+OPENCODE_PROJECT_CONFIG = Path("opencode.json")
 DEVCONTAINER_JSON = Path(".devcontainer/devcontainer.json")
 VSCODE_DEFAULT_SETTINGS = Path(".vscode/settings.default.jsonc")
 AUTO_APPROVE_KEY = "chat.tools.edits.autoApprove"
@@ -96,12 +100,17 @@ def render(rule: Rule, tool: str) -> str:
     return f"{prefix}{rule.path}{suffix}"
 
 
+def claude_entry(rule: Rule) -> str:
+    """Write a rule as a Claude Code ``permissions.deny`` entry."""
+    return json.dumps(f"{rule.action.capitalize()}({render(rule, 'claude')})")
+
+
 def opencode_entry(rule: Rule) -> str:
     """Write a rule as an OpenCode ``permissions`` entry."""
     return json.dumps({"action": rule.action, "resource": render(rule, "opencode"), "effect": "deny"})
 
 
-def claude_rules(settings: dict[str, Any], errors: list[str]) -> set[Rule]:
+def claude_rules(settings: dict[str, Any], errors: list[str], path: Path = CLAUDE_SETTINGS) -> set[Rule]:
     """Return the rules of the Claude Code ``permissions.deny`` list."""
     rules = set()
     for entry in settings.get("permissions", {}).get("deny", []):
@@ -110,23 +119,23 @@ def claude_rules(settings: dict[str, Any], errors: list[str]) -> set[Rule]:
         if match and parsed:
             rules.add(Rule(match.group(1).lower(), *parsed))
         else:
-            errors.append(f"{CLAUDE_SETTINGS}: {entry!r} must be Read(**/…), Edit(**/…) or Edit(./…)")
+            errors.append(f"{path}: {entry!r} must be Read(**/…), Edit(**/…) or Edit(./…)")
     return rules
 
 
-def opencode_rules(config: dict[str, Any], errors: list[str]) -> set[Rule]:
+def opencode_rules(config: dict[str, Any], errors: list[str], path: Path = OPENCODE_CONFIG) -> set[Rule]:
     """Return the deny rules of the OpenCode ``permissions`` list."""
     rules = set()
     for entry in config.get("permissions", []):
         if entry.get("effect") != "deny":
-            errors.append(f"{OPENCODE_CONFIG}: {json.dumps(entry)} can lift a protection; the last matching rule wins")
+            errors.append(f"{path}: {json.dumps(entry)} can lift a protection; the last matching rule wins")
             continue
         action = entry.get("action", "")
         parsed = parse(entry.get("resource", ""), "opencode")
         if action in {"read", "edit"} and parsed:
             rules.add(Rule(action, *parsed))
         else:
-            errors.append(f"{OPENCODE_CONFIG}: unsupported deny rule {json.dumps(entry)}")
+            errors.append(f"{path}: unsupported deny rule {json.dumps(entry)}")
     return rules
 
 
@@ -137,14 +146,12 @@ def covered(rule: Rule, expressions: list[re.Pattern[str]]) -> bool:
     return all(any(expression.fullmatch(sample) for expression in expressions) for sample in samples)
 
 
-def compare(expected: set[Rule], actual: set[Rule]) -> list[str]:
-    """Report every rule that the OpenCode list lacks or has on its own."""
-    return [
-        f"{OPENCODE_CONFIG}: missing {opencode_entry(rule)} (from {CLAUDE_SETTINGS})"
-        for rule in sorted(expected - actual)
-    ] + [
-        f"{OPENCODE_CONFIG}: {opencode_entry(rule)} has no counterpart in {CLAUDE_SETTINGS}"
-        for rule in sorted(actual - expected)
+def compare(
+    expected: set[Rule], actual: set[Rule], path: Path = OPENCODE_CONFIG, entry: Callable[[Rule], str] = opencode_entry
+) -> list[str]:
+    """Report every rule that a mirrored list lacks or has on its own."""
+    return [f"{path}: missing {entry(rule)} (from {CLAUDE_SETTINGS})" for rule in sorted(expected - actual)] + [
+        f"{path}: {entry(rule)} has no counterpart in {CLAUDE_SETTINGS}" for rule in sorted(actual - expected)
     ]
 
 
@@ -166,8 +173,12 @@ def check() -> list[str]:
     errors: list[str] = []
     canonical = claude_rules(load(CLAUDE_SETTINGS), errors)
 
-    if OPENCODE_CONFIG.is_file():
-        errors += compare(canonical, opencode_rules(load(OPENCODE_CONFIG), errors))
+    if CLAUDE_PROJECT_SETTINGS.is_file():
+        project = claude_rules(load(CLAUDE_PROJECT_SETTINGS), errors, CLAUDE_PROJECT_SETTINGS)
+        errors += compare(canonical, project, CLAUDE_PROJECT_SETTINGS, claude_entry)
+    for path in (OPENCODE_CONFIG, OPENCODE_PROJECT_CONFIG):
+        if path.is_file():
+            errors += compare(canonical, opencode_rules(load(path), errors, path), path)
 
     lists = vscode_lists()
     if len(lists) == 2:

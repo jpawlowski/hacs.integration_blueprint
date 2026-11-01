@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Home Assistant",
+      "runtimeExecutable": "script/develop",
+      "port": 8123,
+      "autoPort": false
+    }
+  ]
+}
