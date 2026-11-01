@@ -83,3 +83,40 @@ jobs:
           # Reuse/update existing template-sync PRs instead of closing and recreating them.
           is_force_push_pr: true
           is_pr_cleanup: false
+
+      # -X theirs lets the template win where both sides changed a pin, which lowers a version this repository's
+      # dependency bots already raised. script/template-sync-guard puts the higher one back on the sync branch.
+      - name: Keep this repository's newer versions
+        env:
+          GH_TOKEN: ${{ env.TEMPLATE_SYNC_TARGET_PAT || github.token }}
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          pr=$(gh pr list --repo "${GITHUB_REPOSITORY}" --label template-sync --state open \
+            --json number,headRefName --jq '.[0] // empty')
+          if [[ -z "${pr}" ]]; then
+            echo "No open template sync pull request — nothing to guard"
+            exit 0
+          fi
+          number=$(jq -r .number <<<"${pr}")
+          head=$(jq -r .headRefName <<<"${pr}")
+
+          gh auth setup-git
+          git fetch --quiet origin "${BASE_BRANCH}" "${head}"
+          git checkout --quiet -B "${head}" "origin/${head}"
+          if [[ ! -x script/template-sync-guard ]]; then
+            echo "The sync branch has no script/template-sync-guard — nothing to guard"
+            exit 0
+          fi
+
+          script/template-sync-guard "origin/${BASE_BRANCH}" > "${RUNNER_TEMP}/kept.md"
+          if [[ ! -s "${RUNNER_TEMP}/kept.md" ]]; then
+            echo "The sync lowers no version" >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+          cat "${RUNNER_TEMP}/kept.md" >> "${GITHUB_STEP_SUMMARY}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --quiet --all -m "chore(template): keep this repository's newer versions"
+          git push --quiet origin "HEAD:${head}"
+          gh pr comment "${number}" --repo "${GITHUB_REPOSITORY}" --body-file "${RUNNER_TEMP}/kept.md"
