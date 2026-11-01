@@ -45,6 +45,7 @@ for _volume_mount in \
     /home/vscode/uv-cache \
     /home/vscode/.claude \
     /home/vscode/.codex \
+    /home/vscode/.opencode \
     /home/vscode/.cache; do
     if [[ -e "$_volume_mount" ]]; then
         sudo chown -R vscode:vscode "$_volume_mount"
@@ -75,6 +76,33 @@ else
     print_info "No .devcontainer/codex/config.toml found; skipping Codex system defaults install."
 fi
 unset _codex_config_source
+
+# Install OpenCode managed settings from the repository when present.
+_opencode_managed_settings_source="$(cd "$(dirname "$0")" && pwd)/opencode/opencode.json"
+if [[ -f "$_opencode_managed_settings_source" ]]; then
+    print_info "Installing OpenCode managed settings from .devcontainer/opencode/opencode.json..."
+    sudo mkdir -p /etc/opencode
+    sudo install -m 0644 "$_opencode_managed_settings_source" /etc/opencode/opencode.json
+else
+    print_info "No .devcontainer/opencode/opencode.json found; skipping OpenCode managed settings install."
+fi
+unset _opencode_managed_settings_source
+
+# Link OpenCode config and data to the locations expected by OpenCode. Cannot mount there directly as Docker would create
+# ~/.config and ~/.local as root, resulting in a race with writes by VS Code server before this script fixes permissions.
+print_info "Setting up symlinks for OpenCode config and data..."
+if [[ -e /home/vscode/.config/opencode ]]; then
+    print_info "/home/vscode/.config/opencode already exists; leaving it untouched."
+else
+    mkdir -p /home/vscode/.opencode/config /home/vscode/.config
+    ln -s /home/vscode/.opencode/config /home/vscode/.config/opencode
+fi
+if [[ -e /home/vscode/.local/share/opencode ]]; then
+    print_info "/home/vscode/.local/share/opencode already exists; leaving it untouched."
+else
+    mkdir -p /home/vscode/.opencode/data /home/vscode/.local/share
+    ln -s /home/vscode/.opencode/data /home/vscode/.local/share/opencode
+fi
 
 # Bootstrap Copilot CLI wrapper/defaults from the repository when present.
 # GitHub CLI (and its Copilot CLI command) is provided by devcontainer features;
