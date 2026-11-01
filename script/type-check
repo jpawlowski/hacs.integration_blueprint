@@ -33,9 +33,7 @@ if ! command -v pyright >/dev/null 2>&1; then
 fi
 
 PYRIGHT_PATHS=("$INTEGRATION_PATH")
-if [[ -f script/.lib/architecture_check.py ]]; then
-    PYRIGHT_PATHS+=(script/.lib/architecture_check.py)
-fi
+PYRIGHT_PATHS+=(script/.lib/)
 if [[ -d script/tests ]]; then
     PYRIGHT_PATHS+=(script/tests/)
 fi

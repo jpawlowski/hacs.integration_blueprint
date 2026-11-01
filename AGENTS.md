@@ -60,8 +60,8 @@ contributor's fork of the template is not a copy awaiting initialisation.
 
 Instruction files load automatically for the file you are touching in **GitHub Copilot and VS Code** (via `applyTo`)
 and in **Claude Code** (via `paths`, through the `.claude/rules/instructions` symlink) — one copy serves both.
-**Codex has no file-triggered mechanism: open the matching instructions file yourself** before editing a file of that
-type.
+**Codex and OpenCode have no file-triggered mechanism: open the matching instructions file yourself** before editing a
+file of that type.
 
 Skills follow the [Agent Skills standard](https://agentskills.io/specification) and are loaded automatically by every
 agent that implements it. If yours does not, read the `SKILL.md` before starting that kind of task.

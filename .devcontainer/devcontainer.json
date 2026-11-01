@@ -52,6 +52,7 @@
     "ghcr.io/dirien/devcontainer-feature-codex/codex:0": {
       "version": "latest"
     },
+    "ghcr.io/devcontainers-extra/features/opencode:1": {},
     "ghcr.io/devcontainer-community/devcontainer-features/yq:1": {
       "version": "latest"
     },
@@ -87,7 +88,8 @@
         "tree",
         "yamllint"
       ]
-    }
+    },
+    "./project-feature": {}
   },
   "forwardPorts": [8123],
   "portsAttributes": {
@@ -103,12 +105,10 @@
         "davidanson.vscode-markdownlint",
         "EditorConfig.EditorConfig",
         "esbenp.prettier-vscode",
-        "GitHub.copilot",
         "github.vscode-pull-request-github",
         "ms-python.python",
         "ms-python.vscode-pylance",
         "ms-vscode-remote.remote-containers",
-        "ms-vscode.vscode-chat-customizations-evaluations",
         "redhat.vscode-yaml",
         "tamasfe.even-better-toml"
       ],
@@ -161,10 +161,19 @@
         "chat.tools.edits.autoApprove": {
           "**/.env": false,
           "**/.env.*": false,
+          "**/config/.storage/auth": false,
+          "**/config/.storage/auth_provider.*": false,
+          "**/config/.storage/dev_access_token": false,
           "**/.git/**": false,
           ".agents/hooks/**": false,
           ".claude/settings.json": false,
           ".codex/hooks.json": false,
+          ".opencode/**": false,
+          "opencode.json": false,
+          "opencode.jsonc": false,
+          ".devcontainer/claude-code/**": false,
+          ".devcontainer/codex/**": false,
+          ".devcontainer/opencode/**": false,
           ".github/workflows/**": false,
           ".github/actions/**": false,
           "release-please-config.json": false,
@@ -206,6 +215,10 @@
         "github.copilot.chat.commitMessageGeneration.instructions": [
           { "file": ".agents/instructions/blueprint.commit-message.instructions.md" }
         ],
+        "json.schemaDownload.trustedDomains": {
+          "https://opencode.ai/": true,
+          "https://models.dev/": true
+        },
         "json.schemas": [
           {
             "fileMatch": ["custom_components/*/manifest.json"],
@@ -250,6 +263,8 @@
     // Persist Codex CLI data (sessions/history/config) across container rebuilds.
     // Config bootstrap in on-create continues to work because this directory stays writable.
     "source=${localWorkspaceFolderBasename}_codex_home,target=/home/vscode/.codex,type=volume",
+    // Persist OpenCode CLI data (sessions/history/auth); on-create.sh links it into ~/.config and ~/.local/share.
+    "source=${localWorkspaceFolderBasename}_opencode_home,target=/home/vscode/.opencode,type=volume",
     // Mount host gitconfig for local development (ignored in Codespaces)
     // In Codespaces, GitHub automatically configures Git with your account
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/home/vscode/.gitconfig.host,type=bind,consistency=cached,readonly"

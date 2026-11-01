@@ -5,7 +5,8 @@
 # Checks every skill against the Agent Skills open standard
 # (https://agentskills.io/specification) and this repository's own conventions:
 # frontmatter fields, name/description limits, body length, reference depth,
-# resolvable links, placeholder usage.
+# resolvable links, placeholder usage. Also checks that every agent configuration
+# protects the same paths (script/.lib/agent_policy_check.py).
 #
 # When the optional `skills-ref` reference validator is installed, it runs in
 # addition to the built-in checks. It is not required.
@@ -27,6 +28,9 @@ source "$SCRIPT_DIR/.lib/output.sh"
 activate_venv
 
 run_hook "skills-check" "pre"
+
+log_header "Checking agent protected-path lists"
+python3 "$SCRIPT_DIR/.lib/agent_policy_check.py"
 
 if [[ ! -d .agents/skills ]]; then
     log_warning "No .agents/skills/ directory — skipping"

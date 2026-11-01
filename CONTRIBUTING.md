@@ -63,8 +63,8 @@ Run `script/check` to lint and type-check your code before submitting, or `scrip
 
 This project ships [agent skills](./.agents/skills/README.md) — task-triggered playbooks written against the open
 [`SKILL.md`](https://agentskills.io/specification) standard. They work with GitHub Copilot, Claude Code, OpenAI Codex
-CLI, Cursor, Gemini CLI, and any other tool that implements the standard. Codex, Copilot and VS Code read
-`.agents/skills/` directly; Claude Code reaches the same files through the `.claude/skills/` symlink.
+CLI, OpenCode, Cursor, Gemini CLI, and any other tool that implements the standard. Codex, Copilot, OpenCode and
+VS Code read `.agents/skills/` directly; Claude Code reaches the same files through the `.claude/skills/` symlink.
 
 Skills cover adding entity platforms and service actions, config flow work, debugging the coordinator, translations,
 testing, quality-scale review, deprecated APIs, breaking changes, planning, releases, and repository tooling. A

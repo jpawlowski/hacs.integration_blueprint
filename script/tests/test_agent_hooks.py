@@ -7,17 +7,26 @@ import subprocess
 import pytest
 
 HOOK = Path(__file__).parents[2] / ".agents" / "hooks" / "pre-push-check.sh"
+CONFIG = "default_install_hook_types: [pre-commit, commit-msg, pre-push]\n"
+BYPASS = "BLOCK skipping git hooks would skip script/push-gate; push without --no-verify or core.hooksPath"
 
 
-def _initialize_repository(path: Path) -> None:
-    """Create a clean main branch with the project marker required by the hook."""
+def _initialize_repository(path: Path, *, config: str | None = CONFIG, hook_installed: bool = True) -> None:
+    """Create a repository that installs git's pre-push hook unless told otherwise."""
     path.mkdir(parents=True)
     subprocess.run(["git", "init", "--quiet", "--initial-branch=main"], cwd=path, check=True)
-    subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=path, check=True)
-    subprocess.run(["git", "config", "user.name", "Hook Test"], cwd=path, check=True)
-    (path / "AGENTS.md").write_text("# Test project\n", encoding="utf-8")
-    subprocess.run(["git", "add", "AGENTS.md"], cwd=path, check=True)
-    subprocess.run(["git", "commit", "--quiet", "-m", "test: initialize"], cwd=path, check=True)
+    if config is not None:
+        (path / ".pre-commit-config.yaml").write_text(config, encoding="utf-8")
+    if hook_installed:
+        (path / ".git" / "hooks" / "pre-push").write_text("#!/bin/sh\n", encoding="utf-8")
+
+
+@pytest.fixture
+def repository(tmp_path: Path) -> Path:
+    """Return a repository with git's pre-push hook configured and installed."""
+    path = tmp_path / "repository"
+    _initialize_repository(path)
+    return path
 
 
 def _explain(command: str, cwd: Path) -> str:
@@ -34,69 +43,151 @@ def _explain(command: str, cwd: Path) -> str:
     return result.stdout.strip()
 
 
+def _other_refs(what: str) -> str:
+    return f"BLOCK {what} sends refs script/push-gate cannot see; push the checked-out branch alone"
+
+
 @pytest.mark.unit
 @pytest.mark.parametrize(
     "command",
     [
         'printf "git status\\n"',
-        'grep "git push" README.md',
-        'git commit -m "docs: explain how git push triggers deploy"',
-        'printf "%s\\n" "git push"',
-        "echo done # git push is documented here",
-        "bash -c 'grep \"git push\" README.md'",
+        "ls --all",
+        "git fetch --tags",
+        'grep -rn "git push --all" docs/',
+        "git commit -m 'docs: explain why git push --no-verify skips the gate'",
+        "git commit -F - <<'EOF'\nchore: block git push --tags\n\nwithout core.hooksPath\nEOF",
+        "echo done # git push --mirror is documented here",
+        "git config --get core.hooksPath",
+        "bash -c 'grep \"git push --all\" README.md'",
     ],
 )
-def test_allows_non_push_command(tmp_path: Path, command: str) -> None:
-    """Quoted text, comments, and non-push git commands do not trigger the gate."""
+def test_allows_text_that_only_mentions_a_push(tmp_path: Path, command: str) -> None:
+    """Commit messages, here-documents, comments and searches that mention a push run no push."""
     assert _explain(command, tmp_path) == "ALLOW"
 
 
 @pytest.mark.unit
-def test_detects_git_c_push_with_quoted_space(tmp_path: Path) -> None:
-    """A quoted git -C path containing spaces still resolves to the worktree."""
-    repository = tmp_path / "work tree"
-    _initialize_repository(repository)
-
-    assert _explain(f'git -C "{repository}" push origin main', tmp_path) == f"PUSH {repository}"
-
-
-@pytest.mark.unit
-def test_blocks_dirty_worktree(tmp_path: Path) -> None:
-    """Uncommitted files cannot make checks pass for a different pushed commit."""
-    repository = tmp_path / "repository"
-    _initialize_repository(repository)
-    (repository / "dirty.txt").write_text("not committed\n", encoding="utf-8")
-
-    assert _explain("git push origin main", repository).startswith("BLOCK the worktree is dirty")
+@pytest.mark.parametrize(
+    "command",
+    [
+        "git push",
+        "git push origin main",
+        "git push origin HEAD 2>&1 | tail -3",
+        "git push --force-with-lease -u origin HEAD:main",
+        "git push -o ci.skip origin main",
+        "git -C . push origin main",
+    ],
+)
+def test_allows_a_push_the_git_hook_checks(repository: Path, command: str) -> None:
+    """A push of one branch is left to script/push-gate, which runs as git's pre-push hook."""
+    assert _explain(command, repository) == "ALLOW"
 
 
 @pytest.mark.unit
-def test_blocks_refspec_from_other_branch(tmp_path: Path) -> None:
-    """The gate refuses to validate a source ref other than the checked-out HEAD."""
-    repository = tmp_path / "repository"
-    _initialize_repository(repository)
+@pytest.mark.parametrize(
+    "command",
+    [
+        "git push --no-verify",
+        "git push --no-ver''ify origin main",
+        'git push "--no-verify"',
+        "git -c core.hooksPath=/dev/null push",
+        "GIT_CONFIG_PARAMETERS=\"'core.hooksPath=/dev/null'\" git push",
+        "bash -c 'git push --no-verify'",
+        'echo "$(git push --no-verify)"',
+        "eval git push --no-verify",
+    ],
+)
+def test_blocks_skipping_git_hooks(repository: Path, command: str) -> None:
+    """Skipping git hooks would skip the push gate, however the push is spelled or wrapped."""
+    assert _explain(command, repository) == BYPASS
 
-    assert _explain("git push origin other", repository) == (
-        "BLOCK refspec 'other' does not push the checked-out HEAD (main)"
+
+@pytest.mark.unit
+def test_blocks_setting_hooks_path(tmp_path: Path) -> None:
+    """Pointing git at another hooks directory would silently disable the gate for later pushes."""
+    assert _explain("git config core.hooksPath /dev/null", tmp_path) == (
+        "BLOCK setting core.hooksPath would skip script/push-gate"
     )
 
 
 @pytest.mark.unit
-def test_blocks_repo_option_with_unverifiable_refspec(tmp_path: Path) -> None:
-    """The alternative --repo syntax cannot hide a source ref from validation."""
-    repository = tmp_path / "repository"
-    _initialize_repository(repository)
+@pytest.mark.parametrize(
+    ("command", "what"),
+    [
+        ("git push --all", "--all"),
+        ("git push --mirror", "--mirror"),
+        ("git push origin --tags", "--tags"),
+        ("git push --follow-tags", "--follow-tags"),
+        ("git -c push.followTags=true push", "push.followTags"),
+        ("git push origin --delete old", "--delete"),
+        ("git push -fd origin old", "-fd"),
+        ("git push origin :old", ":old"),
+        ("git push origin main other", "a push of several refspecs"),
+    ],
+)
+def test_blocks_refs_the_git_hook_cannot_see(repository: Path, command: str, what: str) -> None:
+    """Git's pre-push hook only sees the first ref, so several refs, tags and deletions are blocked."""
+    assert _explain(command, repository) == _other_refs(what)
 
-    assert _explain("git push --repo origin other", repository) == (
-        "BLOCK --repo makes the refspec position ambiguous to this gate"
+
+@pytest.mark.unit
+@pytest.mark.parametrize("config", [None, "default_install_hook_types: [pre-commit, commit-msg]\n"])
+def test_blocks_repository_without_pre_push_stage(tmp_path: Path, config: str | None) -> None:
+    """A repository whose config does not install the pre-push hook gets a fix hint instead of an unchecked push."""
+    repository = tmp_path / "repository"
+    _initialize_repository(repository, config=config)
+
+    assert _explain("git push", repository).startswith("BLOCK this repository does not install git's pre-push hook")
+
+
+@pytest.mark.unit
+def test_blocks_uninstalled_pre_push_hook(tmp_path: Path) -> None:
+    """A configured but uninstalled hook would never run, so the push waits for prek install."""
+    repository = tmp_path / "repository"
+    _initialize_repository(repository, hook_installed=False)
+
+    assert _explain("git push", repository) == (
+        "BLOCK git's pre-push hook is not installed; run prek install (script/setup/bootstrap does it)"
     )
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("shell", ["bash -c", "bash -lc", "sh -c", "zsh -c"])
-def test_detects_wrapped_push(tmp_path: Path, shell: str) -> None:
-    """A push inside a known shell command wrapper is inspected normally."""
-    repository = tmp_path / "repository"
-    _initialize_repository(repository)
+def test_checks_the_repository_a_cd_moves_into(tmp_path: Path) -> None:
+    """The installation check follows `cd` to the repository that actually pushes."""
+    _initialize_repository(tmp_path / "repository", hook_installed=False)
 
-    assert _explain(f"{shell} 'git push origin main'", repository) == f"PUSH {repository}"
+    assert _explain("cd repository && git push", tmp_path).startswith("BLOCK git's pre-push hook is not installed")
+
+
+@pytest.mark.unit
+def test_blocks_invalid_payload(tmp_path: Path) -> None:
+    """A payload the hook cannot read is blocked rather than waved through."""
+    result = subprocess.run(
+        ["bash", str(HOOK)], cwd=tmp_path, input="not json", capture_output=True, text=True, check=False
+    )
+
+    assert result.returncode == 2
+    assert "not valid JSON" in result.stderr
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "command",
+    [
+        "echo ok\ngit push --all",
+        "echo ok # it's a comment\ngit push --all",
+        "(git push --all)",
+        "{ git push --all; }",
+        "if true; then git push --all; fi",
+        "time env -i git push --all",
+        "diff <(git push --all) x",
+        "echo `git push --all`",
+        "cat <<'EOF'\nit's data\nEOF\ngit push --all",
+        "git pu''sh --all",
+        "git pu\\\nsh --all",
+    ],
+)
+def test_finds_a_push_behind_shell_syntax(repository: Path, command: str) -> None:
+    """A push hidden behind newlines, subshells, keywords, substitutions or quoting is still inspected."""
+    assert _explain(command, repository) == _other_refs("--all")

@@ -24,7 +24,7 @@ activate_venv
 
 run_hook "python-check" "pre"
 
-PYTHON_PATHS=(custom_components/ tests/ script/.lib/architecture_check.py)
+PYTHON_PATHS=(custom_components/ tests/ script/.lib/)
 if [[ -d script/tests ]]; then
     PYTHON_PATHS+=(script/tests/)
 fi

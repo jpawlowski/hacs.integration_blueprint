@@ -116,6 +116,7 @@ Files already excluded by default:
 | `config/`                                                                      | Local HA instance (credentials, test data)                               |
 | `docs/`                                                                        | Your project documentation                                               |
 | `script/hooks/`, `.devcontainer/hooks/`                                        | Your hook scripts                                                        |
+| `.devcontainer/project-feature/`                                               | Your project's dev container additions, such as required extensions      |
 | `.devcontainer/.env`                                                           | Your HA_VERSION pin and DevContainer settings                            |
 | `release-please-config.json`, `.release-please-manifest.json`                  | Release management                                                       |
 | `.github/workflows/template-sync.yml`                                          | Sync workflow itself                                                     |
@@ -286,6 +287,27 @@ You do **not** need to add `.vscode/settings.json` to `.templatesyncignore`:
 - Your local `settings.json` remains an untracked personal file and will not be deleted by template sync.
 
 If you intentionally want to share a tracked workspace settings file with collaborators, use `settings.default.jsonc` for that purpose.
+
+### Recommended and required extensions
+
+When your project settles on one AI agent ([`AI_AGENTS.md`](AI_AGENTS.md#editor-extensions)), there are two places
+for its extension:
+
+- **Recommend only it** by removing the other agents from `.vscode/extensions.json`. VS Code offers it when the
+  repository is opened, and contributors can decline. The file is template-managed, so add it to
+  `.templatesyncignore` at the same time (see [Modifying synced files locally](#modifying-synced-files-locally)).
+- **Require it** in `.devcontainer/project-feature/devcontainer-feature.json`, under
+  `customizations.vscode.extensions`. The dev container installs it for everyone on the next rebuild, alongside the
+  extensions from `devcontainer.json`. The directory is listed in `.templatesyncignore`, so your entries stay yours;
+  a repository created before it existed adds the entry with `./script/prune-blueprint --apply`.
+
+```json
+"customizations": {
+  "vscode": {
+    "extensions": ["anthropic.claude-code"]
+  }
+}
+```
 
 ---
 

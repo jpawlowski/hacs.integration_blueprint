@@ -21,13 +21,37 @@ print_info() {
     echo -e "${CYAN}ℹ $1${NC}" >&2
 }
 
+_devcontainer_dir="$(cd "$(dirname "$0")" && pwd)"
+
+install_agent_config() {
+    local label=$1 relative_source=$2 destination=$3
+    if [[ -f "$_devcontainer_dir/$relative_source" ]]; then
+        print_info "Installing ${label} from .devcontainer/${relative_source}..."
+        sudo mkdir -p "$(dirname "$destination")"
+        sudo install -m 0644 "$_devcontainer_dir/$relative_source" "$destination"
+    else
+        print_info "No .devcontainer/${relative_source} found; skipping ${label} install."
+    fi
+}
+
+link_into_volume() {
+    local target=$1 link=$2
+    mkdir -p "$target"
+    if [[ -e "$link" || -L "$link" ]]; then
+        print_info "${link} already exists; leaving it untouched."
+    else
+        mkdir -p "$(dirname "$link")"
+        ln -s "$target" "$link"
+    fi
+}
+
 # Load DevContainer environment overrides (.env → .env.local, later wins).
 # Makes HA_VERSION and other vars available in this script and user hooks.
 # shellcheck source=.devcontainer/_load_env.sh
-source "$(cd "$(dirname "$0")" && pwd)/_load_env.sh"
+source "$_devcontainer_dir/_load_env.sh"
 
 # Run pre-hook if present
-_hook_file="$(cd "$(dirname "$0")" && pwd)/hooks/on-create.pre.sh"
+_hook_file="$_devcontainer_dir/hooks/on-create.pre.sh"
 if [[ -f "$_hook_file" ]]; then
     print_info "Running hook: .devcontainer/hooks/on-create.pre.sh"
     # shellcheck source=/dev/null
@@ -35,46 +59,33 @@ if [[ -f "$_hook_file" ]]; then
 fi
 unset _hook_file
 
-# Fix ownership of named volume mount points.
-# Docker creates each volume mount point as root:root when the container starts.
-# Volumes are now mounted directly under $HOME (ha-venv and uv-cache) so Docker
-# does NOT create ~/.local or ~/.cache as root — VS Code server can write there freely.
+# Docker creates each volume mount point as root:root. Volumes sit directly under $HOME so that Docker never
+# creates ~/.config, ~/.local or ~/.cache as root, which VS Code server writes to before this script runs.
 print_info "Fixing ownership of Docker volume mount points..."
 for _volume_mount in \
     /home/vscode/ha-venv \
     /home/vscode/uv-cache \
     /home/vscode/.claude \
     /home/vscode/.codex \
+    /home/vscode/.opencode \
     /home/vscode/.cache; do
     if [[ -e "$_volume_mount" ]]; then
-        sudo chown -R vscode:vscode "$_volume_mount"
+        sudo find "$_volume_mount" \( ! -user vscode -o ! -group vscode \) -exec chown -h vscode:vscode {} +
     fi
 done
 unset _volume_mount
 
-# Install Claude Code managed settings from the repository when present.
-# This keeps blueprint defaults versioned while allowing easy project-level
-# customization without modifying this script.
-_claude_managed_settings_source="$(cd "$(dirname "$0")" && pwd)/claude-code/managed-settings.json"
-if [[ -f "$_claude_managed_settings_source" ]]; then
-    print_info "Installing Claude Code managed settings from .devcontainer/claude-code/managed-settings.json..."
-    sudo mkdir -p /etc/claude-code
-    sudo install -m 0644 "$_claude_managed_settings_source" /etc/claude-code/managed-settings.json
-else
-    print_info "No .devcontainer/claude-code/managed-settings.json found; skipping Claude Code managed settings install."
-fi
-unset _claude_managed_settings_source
+# Install agent defaults from the repository. Keeping them versioned here allows project-level customization
+# without modifying this script.
+install_agent_config "Claude Code managed settings" claude-code/managed-settings.json \
+    /etc/claude-code/managed-settings.json
+install_agent_config "Codex system defaults" codex/config.toml /etc/codex/config.toml
+install_agent_config "OpenCode managed settings" opencode/opencode.json /etc/opencode/opencode.json
 
-# Install Codex defaults below the user-managed configuration layer.
-_codex_config_source="$(cd "$(dirname "$0")" && pwd)/codex/config.toml"
-if [[ -f "$_codex_config_source" ]]; then
-    print_info "Installing Codex system defaults from .devcontainer/codex/config.toml..."
-    sudo mkdir -p /etc/codex
-    sudo install -m 0644 "$_codex_config_source" /etc/codex/config.toml
-else
-    print_info "No .devcontainer/codex/config.toml found; skipping Codex system defaults install."
-fi
-unset _codex_config_source
+# OpenCode reads ~/.config/opencode and ~/.local/share/opencode, so its volume is linked there.
+print_info "Setting up symlinks for OpenCode config and data..."
+link_into_volume /home/vscode/.opencode/config /home/vscode/.config/opencode
+link_into_volume /home/vscode/.opencode/data /home/vscode/.local/share/opencode
 
 # Bootstrap Copilot CLI wrapper/defaults from the repository when present.
 # GitHub CLI (and its Copilot CLI command) is provided by devcontainer features;
@@ -126,7 +137,7 @@ unset _copilot_wrapper_source
 unset _copilot_cli_install
 
 # Run post-hook if present
-_hook_file="$(cd "$(dirname "$0")" && pwd)/hooks/on-create.post.sh"
+_hook_file="$_devcontainer_dir/hooks/on-create.post.sh"
 if [[ -f "$_hook_file" ]]; then
     print_info "Running hook: .devcontainer/hooks/on-create.post.sh"
     # shellcheck source=/dev/null

@@ -4,7 +4,8 @@
 #
 # Lists, or with --apply deletes, the blueprint-only files and sections that initialize.sh
 # removes and that template sync can bring back or never removed, and adds the
-# .templatesyncignore entries that stop the sync from bringing them back. Safe to run repeatedly.
+# .templatesyncignore entries that stop the sync from bringing them back or from overwriting
+# the files a project owns. Safe to run repeatedly.
 # Refuses to run while initialize.sh exists, because that is the blueprint or a copy that
 # has not been initialised yet.
 #
@@ -28,6 +29,9 @@ PRUNE_PATHS=(
     "docs/blueprint"
     ".agents/skills/blueprint-skill-maintenance"
     "script/tests/test_initialize.py"
+)
+PROJECT_OWNED_PATHS=(
+    ".devcontainer/project-feature"
 )
 SECTION_FILE=".agents/skills/README.md"
 SECTION_START="<!-- blueprint-only:start -->"
@@ -78,7 +82,7 @@ fi
 
 if [[ -f $SYNC_IGNORE ]]; then
     missing=()
-    for path in "${PRUNE_PATHS[@]}"; do
+    for path in "${PRUNE_PATHS[@]}" "${PROJECT_OWNED_PATHS[@]}"; do
         if ! grep -qxF -e "$path" -e "$path/" "$SYNC_IGNORE"; then
             missing+=("$path")
             $APPLY || log_info "Would add $path to $SYNC_IGNORE"

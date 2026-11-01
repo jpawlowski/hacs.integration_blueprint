@@ -5,11 +5,13 @@
     "davidanson.vscode-markdownlint",
     "EditorConfig.EditorConfig",
     "esbenp.prettier-vscode",
+    "GitHub.copilot-chat",
     "ms-python.python",
     "ms-python.vscode-pylance",
     "ms-vscode-remote.remote-containers",
     "openai.chatgpt",
     "redhat.vscode-yaml",
+    "sst-dev.opencode",
     "tamasfe.even-better-toml"
   ],
   "unwantedRecommendations": ["ms-python.pylint"]
