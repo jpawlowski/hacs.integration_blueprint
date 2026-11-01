@@ -1,8 +1,8 @@
 # Agent configuration
 
 This directory is the vendor-neutral home for shared agent instructions, skills, lifecycle-hook implementations, and
-scratch work. Vendor discovery files under `.github/`, `.claude/`, and `.codex/` either link here or call the shared
-implementation.
+scratch work. Vendor discovery files under `.github/`, `.claude/`, `.codex/`, and `.opencode/` either link here or call the
+shared implementation.
 
 ```text
 .agents/
@@ -23,6 +23,7 @@ symlinks fill the rest:
 | GitHub Copilot | `AGENTS.md` (native)                    | `.github/instructions/` via `applyTo` | `.agents/skills/` |
 | VS Code        | `AGENTS.md` (native)                    | `.github/instructions/` via `applyTo` | `.agents/skills/` |
 | Claude Code    | `CLAUDE.md`, which imports `@AGENTS.md` | `.claude/rules/` via `paths`          | `.claude/skills/` |
+| OpenCode (v2)  | `AGENTS.md` (native; never `CLAUDE.md`) | — none; open the file yourself        | `.agents/skills/` |
 
 ```text
 .agents/instructions/         real directory — edit here
@@ -36,9 +37,9 @@ symlinks fill the rest:
 Editing through a symlink edits the same file. Do it in `.agents/` anyway, so your diff shows the path other
 maintainers see. Never turn a symlink back into a real directory — that is how vendor copies drift apart.
 
-Lifecycle hooks are configured in `.claude/settings.json` for Claude Code, VS Code, and local Copilot, and in
-`.codex/hooks.json` for Codex. Both call the same scripts under `.agents/hooks/`; edit the shared script rather than
-forking behavior into a client directory.
+Lifecycle hooks are configured in `.claude/settings.json` for Claude Code, VS Code, and local Copilot, in
+`.codex/hooks.json` for Codex, and in `.opencode/plugins/blueprint-hooks.js` for OpenCode. All of them call the same
+scripts under `.agents/hooks/`; edit the shared script rather than forking behavior into a client directory.
 
 Each instructions file carries the same glob list twice: `applyTo` for Copilot and VS Code, `paths` for Claude Code.
 `script/skills-check` fails the build if the two disagree, or if `paths` is missing — a rule without it loads into
@@ -56,8 +57,8 @@ every Claude Code session instead of the files it was scoped to.
 Rule of thumb: _style rules_ belong in `instructions/`, _procedures_ belong in a skill, _explanations_ belong in
 `docs/`. If you find yourself repeating a procedure in `AGENTS.md`, it is a skill.
 
-Codex is the exception on layer two — its nested `AGENTS.md` support keys off the working directory rather than the
-file being edited, so nothing loads automatically. Every skill therefore names the instructions file it depends on.
+Codex and OpenCode are the exception on layer two — their nested `AGENTS.md` support keys off the working directory
+or the files read, not on file-type patterns, so no instructions file loads automatically. Every skill therefore names the instructions file it depends on.
 
 ## Placeholders
 

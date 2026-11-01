@@ -18,6 +18,7 @@
       "Edit(./.agents/hooks/**)",
       "Edit(./.claude/settings.json)",
       "Edit(./.codex/hooks.json)",
+      "Edit(./.opencode/plugins/**)",
       "Edit(./.github/workflows/**)",
       "Edit(./.github/actions/**)",
       "Edit(./release-please-config.json)",

@@ -13,78 +13,76 @@
  * they get from Claude Code, so the two agents stay in sync on policy.
  */
 
-import { spawn } from "node:child_process"
+import { spawn } from "node:child_process";
 
-const EDIT_TOOLS = new Set(["edit", "write", "patch"])
+const EDIT_TOOLS = new Set(["edit", "write", "patch"]);
 
 const runHook = (root, script, payload) =>
   new Promise((resolve) => {
     const child = spawn("bash", [`${root}/${script}`], {
       cwd: root,
       stdio: ["pipe", "pipe", "pipe"],
-    })
-    let stdout = ""
-    let stderr = ""
-    child.stdout.setEncoding("utf8")
-    child.stderr.setEncoding("utf8")
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.setEncoding("utf8");
+    child.stderr.setEncoding("utf8");
     child.stdout.on("data", (chunk) => {
-      stdout += chunk
-    })
+      stdout += chunk;
+    });
     child.stderr.on("data", (chunk) => {
-      stderr += chunk
-    })
+      stderr += chunk;
+    });
     child.on("error", (error) => {
-      resolve({ stdout: "", stderr: error.message, exitCode: 1 })
-    })
+      resolve({ stdout: "", stderr: error.message, exitCode: 1 });
+    });
     child.on("close", (code) => {
-      resolve({ stdout, stderr, exitCode: code ?? 0 })
-    })
-    child.stdin.on("error", () => {})
-    child.stdin.end(JSON.stringify(payload))
-  })
+      resolve({ stdout, stderr, exitCode: code ?? 0 });
+    });
+    child.stdin.on("error", () => {});
+    child.stdin.end(JSON.stringify(payload));
+  });
 
 export default {
   id: "hacs.integration_blueprint-hooks",
   async setup(ctx) {
-    const root = ctx.location.directory
+    const root = ctx.location.project.directory;
 
     await ctx.tool.hook("execute.before", async (event) => {
-      if (event.tool !== "shell") return
-      const command = event.input?.command
+      if (event.tool !== "shell") return;
+      const command = event.input?.command;
       // Cheap pre-filter; the hook script does the real parsing and passes every non-push
       // command through.
-      if (typeof command !== "string" || !command.includes("push")) return
+      if (typeof command !== "string" || !command.includes("push")) return;
       const { stderr, exitCode } = await runHook(root, ".agents/hooks/pre-push-check.sh", {
         tool_input: { command },
         cwd: root,
-      })
+      });
       if (exitCode !== 0) {
-        throw new Error(
-          stderr.trim() || "the push command was blocked by .agents/hooks/pre-push-check.sh",
-        )
+        throw new Error(stderr.trim() || "the push command was blocked by .agents/hooks/pre-push-check.sh");
       }
-    })
+    });
 
     await ctx.tool.hook("execute.after", async (event) => {
-      if (event.status !== "completed" || !EDIT_TOOLS.has(event.tool)) return
+      if (event.status !== "completed" || !EDIT_TOOLS.has(event.tool)) return;
       const { stdout } = await runHook(root, ".agents/hooks/remind-dependency-sync.sh", {
         tool_input: event.input ?? {},
-      })
-      if (!stdout.trim()) return
+      });
+      if (!stdout.trim()) return;
       try {
-        const additionalContext = JSON.parse(stdout)?.hookSpecificOutput?.additionalContext
-        if (!additionalContext) return
-        const content = event.result.content
+        const additionalContext = JSON.parse(stdout)?.hookSpecificOutput?.additionalContext;
+        if (!additionalContext) return;
+        const content = event.result.content;
         event.result = {
           ...event.result,
           content:
             typeof content === "string"
               ? `${content}\n\n${additionalContext}`
               : [...(content ?? []), { type: "text", text: additionalContext }],
-        }
+        };
       } catch {
         // Malformed hook output is not worth failing the tool over.
       }
-    })
+    });
   },
-}
+};

@@ -1,7 +1,7 @@
 # Agent Skills
 
 Task-triggered playbooks written against the open [Agent Skills standard](https://agentskills.io/specification), which
-Claude Code, GitHub Copilot, VS Code, OpenAI Codex CLI, Cursor, Gemini CLI and others implement.
+Claude Code, GitHub Copilot, VS Code, OpenAI Codex CLI, OpenCode, Cursor, Gemini CLI and others implement.
 
 For how this directory is discovered, which client reads which path, the placeholder convention, and how to customize
 any of it in your own repository, see [`../README.md`](../README.md). This file is about the skills themselves.

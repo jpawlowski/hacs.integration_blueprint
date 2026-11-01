@@ -744,8 +744,8 @@ This blueprint is optimized for development with AI coding assistants like **Git
 - **`.agents/instructions/*.instructions.md`** - 18 path-specific instruction files for different file types (Python, YAML, JSON, config flows, entities, repairs, etc.)
 - **`docs/development/AI_AGENTS.md`** - Working with AI coding agents: review workflow and per-agent configuration
 
-**One skill directory, every agent:** `.agents/skills/` is the vendor-neutral location Codex CLI, GitHub Copilot and
-VS Code read directly. Claude Code only looks in `.claude/skills/`, which is a symlink to it — so a skill is written
+**One skill directory, every agent:** `.agents/skills/` is the vendor-neutral location Codex CLI, OpenCode, GitHub
+Copilot and VS Code read directly. Claude Code only looks in `.claude/skills/`, which is a symlink to it — so a skill is written
 once and works everywhere.
 
 **Benefits:**

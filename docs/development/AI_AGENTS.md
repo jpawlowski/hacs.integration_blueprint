@@ -1,7 +1,7 @@
 # Working with AI coding agents
 
-This repository is set up for several coding agents at once — GitHub Copilot (VS Code and CLI), Claude Code, and
-Codex CLI. Their shared instructions live in `AGENTS.md`; what follows is the workflow around them and where each
+This repository is set up for several coding agents at once — GitHub Copilot (VS Code and CLI), Claude Code, Codex
+CLI, and OpenCode. Their shared instructions live in `AGENTS.md`; what follows is the workflow around them and where each
 agent's own configuration is kept.
 
 ## Human Review and Transparency
@@ -64,6 +64,7 @@ configuration files rather than in instruction prose.
 | Copilot CLI             | CLI defaults plus [.claude/settings.json](../../.claude/settings.json)                                        | [.agents/hooks/](../../.agents/hooks/) | The GitHub-hosted coding agent only reads `.github/hooks/`; this repository does not duplicate its local hooks. |
 | Claude Code             | Managed policy plus project hooks in [.claude/settings.json](../../.claude/settings.json)                     | [.agents/hooks/](../../.agents/hooks/) | Project hooks are version-controlled; managed settings are copied into the container.                           |
 | Codex CLI               | Sandbox defaults plus project hooks in [.codex/hooks.json](../../.codex/hooks.json)                           | [.agents/hooks/](../../.agents/hooks/) | Codex asks the user to trust changed project hooks before executing them.                                       |
+| OpenCode                | Managed policy plus a project plugin in [.opencode/plugins/](../../.opencode/plugins/)                        | [.agents/hooks/](../../.agents/hooks/) | Requires OpenCode 2; version 1 silently ignores both the plugin and the managed `permissions` list.             |
 | Gemini                  | Not configured                                                                                                | —                                      | Not part of the default devcontainer experience.                                                                |
 
 ### Practical rule
@@ -71,7 +72,7 @@ configuration files rather than in instruction prose.
 - Put policy and defaults in vendor config files first.
 - Keep markdown instruction files for workflow guidance only.
 
-Claude Code, Codex, VS Code, and Copilot CLI all support lifecycle hooks. The configuration paths differ, but the
+Claude Code, Codex, OpenCode, VS Code, and Copilot CLI all support lifecycle hooks. The configuration paths differ, but the
 commands here converge on `.agents/hooks/` so security behavior is implemented and tested once. Claude slash commands
 under `.claude/commands/` remain Claude-specific; the corresponding reusable workflow is the vendor-neutral
 [`ha-issue-triage`](../../.agents/skills/ha-issue-triage/SKILL.md), with `.github/prompts/` providing Copilot dispatch.
@@ -92,6 +93,8 @@ at the repository-settings level too; that's independent of whether you use this
 - [GitHub Copilot hooks reference](https://docs.github.com/en/copilot/reference/hooks-reference)
 - [VS Code hooks reference](https://code.visualstudio.com/docs/agents/reference/hooks-reference)
 - [Codex hooks](https://learn.chatgpt.com/docs/hooks)
+- [OpenCode plugins](https://opencode.ai/v2/docs/build/plugins/server) and
+  [permissions](https://opencode.ai/v2/docs/permissions/)
 - `AGENTS.md` - Read automatically by Copilot; the single always-loaded instruction file for every agent
 - [`.agents/skills/`](../../.agents/skills/README.md) - Task-triggered agent skills. Copilot reads this location
   directly; Claude Code reaches the same files through the `.claude/skills/` symlink
