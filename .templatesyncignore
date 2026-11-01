@@ -49,10 +49,17 @@ requirements.txt
 README.md
 README.template.md
 LICENSE
-initialize.sh
 hacs.json
 CONTRIBUTING.md
 DEPENDENCIES.md
+
+# ── Blueprint-specific files ─────────────────────────────────
+# Only meaningful in the blueprint; initialization deletes them (see PRUNE_PATHS in
+# script/prune-blueprint) and these entries stop the sync from reinstating them.
+initialize.sh
+script/tests/test_initialize.py
+docs/blueprint/
+.agents/skills/blueprint-skill-maintenance/
 
 # ── AI agent instruction files ───────────────────────────────
 # Project-identity files are customized during initialization and must not be
@@ -65,10 +72,6 @@ CLAUDE.md
 # ── Agent skills ─────────────────────────────────────────────
 # Skills under .agents/skills/ use generic placeholders and ARE safely synced,
 # so you keep receiving blueprint improvements.
-#
-# This one is only meaningful inside the blueprint repository itself.
-# initialize.sh deletes it; this entry stops the sync from reinstating it.
-.agents/skills/blueprint-skill-maintenance/
 #
 # Skills YOU add are never touched — template sync only overwrites files that
 # changed upstream, and a directory the blueprint does not have is not one of

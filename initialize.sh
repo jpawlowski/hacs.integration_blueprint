@@ -889,7 +889,6 @@ replace_in_files() {
         "./script/.lib/skills_check.py"
         "./.agents/README.md"
         "./.devcontainer/post-attach.sh"
-        "./script/tests/test_initialize.py"
         "./.agents/skills/blueprint-import/references/git-strategy.md"
     )
 

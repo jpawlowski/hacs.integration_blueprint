@@ -17,6 +17,9 @@ BLUEPRINT_NAMES = re.compile(
     r"|jpawlowski|Julian Pawlowski"
 )
 
+# Initialised repositories have no initialize.sh; skip rather than fail if template sync reinstates this file.
+pytestmark = pytest.mark.skipif(not INITIALIZE.exists(), reason="initialize.sh only exists before initialization")
+
 
 def _array(name: str) -> list[str]:
     """Return the quoted entries of a bash array declared as `local <name>=( ... )`."""
