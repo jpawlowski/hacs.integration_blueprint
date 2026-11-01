@@ -104,12 +104,10 @@
         "davidanson.vscode-markdownlint",
         "EditorConfig.EditorConfig",
         "esbenp.prettier-vscode",
-        "GitHub.copilot",
         "github.vscode-pull-request-github",
         "ms-python.python",
         "ms-python.vscode-pylance",
         "ms-vscode-remote.remote-containers",
-        "ms-vscode.vscode-chat-customizations-evaluations",
         "redhat.vscode-yaml",
         "tamasfe.even-better-toml"
       ],

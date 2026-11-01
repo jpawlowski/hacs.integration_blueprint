@@ -1,8 +1,8 @@
 # Working with AI coding agents
 
 This repository is set up for several coding agents at once — GitHub Copilot (VS Code and CLI), Claude Code, Codex
-CLI, and OpenCode. Their shared instructions live in `AGENTS.md`; what follows is the workflow around them and where each
-agent's own configuration is kept.
+CLI, and OpenCode. Their shared instructions live in `AGENTS.md`; what follows is the workflow around them and where
+each agent's own configuration is kept.
 
 ## Human Review and Transparency
 
@@ -66,6 +66,18 @@ configuration files rather than in instruction prose.
 | Codex CLI               | Sandbox defaults plus project hooks in [.codex/hooks.json](../../.codex/hooks.json)                           | [.agents/hooks/](../../.agents/hooks/) | Codex asks the user to trust changed project hooks before executing them.                                       |
 | OpenCode                | Managed policy plus a project plugin in [.opencode/plugins/](../../.opencode/plugins/)                        | [.agents/hooks/](../../.agents/hooks/) | Requires OpenCode 2; version 1 silently ignores both the plugin and the managed `permissions` list.             |
 | Gemini                  | Not configured                                                                                                | —                                      | Not part of the default devcontainer experience.                                                                |
+
+### Editor extensions
+
+The dev container installs every agent's command-line tool but none of their VS Code extensions.
+[`.vscode/extensions.json`](../../.vscode/extensions.json) recommends all of them — `anthropic.claude-code`,
+`GitHub.copilot-chat`, `openai.chatgpt` and `sst-dev.opencode`, which also installs itself when `opencode` runs in the
+integrated terminal — so VS Code offers them when the repository is opened. Pick yours under _Workspace
+Recommendations_ in the Extensions view rather than installing all at once. A project that settles on one agent
+narrows the list as described in [`CUSTOMIZATION.md`](CUSTOMIZATION.md#recommended-and-required-extensions).
+
+If you edit the instructions and skills under `.agents/` with VS Code's chat,
+`ms-vscode.vscode-chat-customizations-evaluations` checks them the way VS Code loads them.
 
 ### Practical rule
 
