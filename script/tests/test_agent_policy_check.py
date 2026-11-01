@@ -105,3 +105,42 @@ def test_reports_unparsable_file(tmp_path: Path) -> None:
 
     assert result.returncode == 1
     assert ".devcontainer/devcontainer.json: cannot parse (unclosed block comment)" in result.stdout
+
+
+@pytest.mark.unit
+def test_accepts_matching_project_configs(tmp_path: Path) -> None:
+    """The committed Claude Code and OpenCode configurations may mirror the managed list."""
+    _write(tmp_path, ".claude/settings.json", json.dumps({**CLAUDE, "env": {"GIT_TERMINAL_PROMPT": "0"}}))
+    _write(tmp_path, "opencode.json", json.dumps(OPENCODE))
+
+    result = _run_checker(tmp_path)
+
+    assert result.returncode == 0, result.stdout
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("relative", "content", "expected"),
+    [
+        pytest.param(
+            ".claude/settings.json",
+            {"permissions": {"deny": CLAUDE["permissions"]["deny"][:-1]}},
+            '.claude/settings.json: missing "Edit(./x.json)"',
+            id="claude-project-missing",
+        ),
+        pytest.param(
+            "opencode.json",
+            {"permissions": [*OPENCODE["permissions"], EXTRA_OPENCODE_RULE]},
+            "opencode.json: {",
+            id="opencode-project-extra",
+        ),
+    ],
+)
+def test_reports_diverging_project_config(tmp_path: Path, relative: str, content: dict, expected: str) -> None:
+    """A committed configuration that protects less or more than the managed one fails the check."""
+    _write(tmp_path, relative, json.dumps(content))
+
+    result = _run_checker(tmp_path)
+
+    assert result.returncode == 1
+    assert expected in result.stdout

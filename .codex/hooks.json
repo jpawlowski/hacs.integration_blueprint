@@ -1,5 +1,17 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"$(git rev-parse --show-toplevel)/.agents/hooks/session-start.sh\"; [ -f \"$f\" ] || exit 0; bash \"$f\"",
+            "timeout": 180,
+            "statusMessage": "Preparing the development environment…"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash|shell|exec_command",
