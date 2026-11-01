@@ -1,0 +1,39 @@
+---
+# A pull request is squashed into one commit on main whose message is the pull request's title, so the title has to be
+# a Conventional Commit: release-please reads it for the version and the changelog. The rules come from the base
+# branch, so a pull request cannot loosen them for itself.
+
+name: PR Title
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize, ready_for_review]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pr-title:
+    name: PR title
+    # A body edit leaves the title as it was; only a title edit needs the check again.
+    if: ${{ !github.event.pull_request.draft && (github.event.action != 'edited' || github.event.changes.title != null) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read # read the commitlint configuration from the base branch
+    steps:
+      - name: Checkout the base branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+
+      - name: Check the title against the commit message rules
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund >/dev/null
+          printf '%s\n' "${TITLE}" | npx --no-install commitlint --verbose
