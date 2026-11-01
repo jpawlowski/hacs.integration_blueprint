@@ -43,10 +43,8 @@ def repository(tmp_path: Path) -> Path:
 
 
 def _environment(home: Path, **env: str) -> dict[str, str]:
-    base = {key: value for key, value in os.environ.items() if key not in {"REMOTE_CONTAINERS", "CODESPACES"}}
-    base.pop("CLAUDE_CODE_REMOTE", None)
-    base.update({"HOME": str(home), "PATH": "/usr/bin:/bin", "MISE_DATA_DIR": str(home / "mise")}, **env)
-    return base
+    """A clean environment: the caller's, a CI runner's or a dev container's markers would change what the hook sees."""
+    return {"HOME": str(home), "PATH": "/usr/bin:/bin", "MISE_DATA_DIR": str(home / "mise"), "LANG": "C.UTF-8", **env}
 
 
 def _run(cwd: Path | None, home: Path, **env: str) -> subprocess.CompletedProcess[str]:
