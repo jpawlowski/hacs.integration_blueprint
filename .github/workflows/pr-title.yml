@@ -1,7 +1,7 @@
 ---
-# A pull request is squashed into one commit on main whose message is the pull request's title, so the title has to be
-# a Conventional Commit: release-please reads it for the version and the changelog. The rules come from the base
-# branch, so a pull request cannot loosen them for itself.
+# A squash merge turns the pull request's title into the commit on main, a rebase merge keeps each of its commits, and
+# release-please reads either for the version and the changelog. The rules come from the base branch, so a pull request
+# cannot loosen them for itself.
 
 name: PR Title
 
@@ -30,6 +30,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
+          fetch-depth: 0
 
       - name: Check the title against the commit message rules
         env:
@@ -37,3 +38,16 @@ jobs:
         run: |
           npm ci --ignore-scripts --no-audit --no-fund >/dev/null
           printf '%s\n' "${TITLE}" | npx --no-install commitlint --verbose
+
+      # Not required: a pull request meant for squashing may carry working commits. Rebase-merge only when this passes.
+      - name: Check each commit, for a rebase merge
+        continue-on-error: true
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          git fetch --quiet --no-tags origin "pull/${NUMBER}/head"
+          if ! npx --no-install commitlint --from "$(git merge-base "${BASE}" FETCH_HEAD)" --to FETCH_HEAD --verbose; then
+            echo "::warning::Some commits do not follow the commit message rules — squash this pull request, do not rebase it"
+            exit 1
+          fi

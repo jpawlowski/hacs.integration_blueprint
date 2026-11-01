@@ -78,7 +78,7 @@ def test_public_repository_gets_the_free_security_features(repository: Path) -> 
     patch = next(call for call in calls if call.startswith("api -X PATCH repos/owner/repo "))
     body = json.loads(patch.split("--input - ", 1)[1])
     assert body["security_and_analysis"]["secret_scanning_push_protection"] == {"status": "enabled"}
-    assert (body["allow_squash_merge"], body["allow_merge_commit"], body["allow_rebase_merge"]) == (True, False, False)
+    assert (body["allow_squash_merge"], body["allow_merge_commit"], body["allow_rebase_merge"]) == (True, False, True)
     assert body["squash_merge_commit_title"] == "PR_TITLE"
     assert any("vulnerability-alerts" in call for call in calls)
     assert any("automated-security-fixes" in call for call in calls)
