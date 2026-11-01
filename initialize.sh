@@ -829,7 +829,6 @@ replace_in_files() {
         "./config/blueprints"            # HA blueprints
         "./config/custom_components/hacs" # HACS installation (not our integration)
         # Note: config/configuration.yaml is negated in gitignore, will be added back later
-        # Note: custom_components/ha_integration_domain/ is negated, will be added back later
     )
 
     # Additional file exclusions in config/ directory (runtime files, logs, databases)
@@ -933,7 +932,6 @@ replace_in_files() {
 
     # Add explicitly negated files from gitignore (files that should be included despite wildcards)
     # Example: config/* excludes everything, but !config/configuration.yaml brings it back
-    # Example: custom_components/* excludes all, but !custom_components/ha_integration_domain/ brings it back
     for negate in "${gitignore_negate[@]}"; do
         local negate_path="./${negate#./}"
 

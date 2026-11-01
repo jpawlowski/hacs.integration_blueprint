@@ -4,7 +4,7 @@ config/*
 
 # Custom components (HACS-installed dependencies and dev symlinks)
 custom_components/*
-!custom_components/ha_integration_domain/
+!custom_components/.gitignore
 
 # Development tool caches and dependency locks
 .ruff_cache/

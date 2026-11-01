@@ -1,5 +1,5 @@
 ---
-# yamllint configuration for ha_integration_domain
+# yamllint configuration
 # Documentation: https://yamllint.readthedocs.io/en/stable/rules.html
 
 extends: default

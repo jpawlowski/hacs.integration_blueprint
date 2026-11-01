@@ -45,7 +45,7 @@
       "module": "pytest",
       "console": "integratedTerminal",
       "justMyCode": false,
-      "args": ["tests/", "--cov=custom_components.ha_integration_domain", "--cov-report=term-missing"]
+      "args": ["tests/", "--cov", "--cov-report=term-missing"]
     },
     {
       // Debug by attaching to local Home Assistant server using Remote Python Debugger.

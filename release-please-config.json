@@ -9,7 +9,8 @@
       "extra-files": [
         {
           "type": "json",
-          "path": "custom_components/ha_integration_domain/manifest.json",
+          "path": "custom_components/*/manifest.json",
+          "glob": true,
           "jsonpath": "$.version"
         }
       ],

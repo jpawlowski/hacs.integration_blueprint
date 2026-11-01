@@ -154,7 +154,7 @@
     {
       "label": "Validate Manifest",
       "type": "shell",
-      "command": "${command:python.interpreterPath} -c \"import json; json.load(open('custom_components/ha_integration_domain/manifest.json')); print('✅ manifest.json is valid')\"",
+      "command": "bash -c 'source script/.lib/integration.sh && jq -e objects \"$INTEGRATION_PATH/manifest.json\" >/dev/null && echo \"✅ manifest.json is valid\"'",
       "group": "test",
       "presentation": {
         "reveal": "always",
