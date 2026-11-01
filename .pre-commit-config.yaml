@@ -46,7 +46,7 @@ repos:
         entry: bash -c 'if command -v yamllint &>/dev/null; then yamllint -c .yamllint.yml "$@"; exit $?; fi; for venv in "$HOME/.local/ha-venv" ".local/ha-venv"; do if [[ -f "$venv/bin/yamllint" ]]; then source "$venv/bin/activate" 2>/dev/null || true; yamllint -c .yamllint.yml "$@"; exit $?; fi; done; echo "⚠️  Skipping yamllint (venv not ready)"; exit 0' --
         language: system
         types: [yaml]
-        files: ^(custom_components/ha_integration_domain/|schemas/yaml/|\.github/|\.pre-commit-config\.yaml|\.prettierrc\.yml)
+        files: ^(custom_components/|schemas/yaml/|\.github/|\.pre-commit-config\.yaml|\.prettierrc\.yml)
         pass_filenames: true
 
       # GitHub Actions security auditing

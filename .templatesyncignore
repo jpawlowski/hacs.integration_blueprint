@@ -18,19 +18,15 @@ custom_components/
 tests/
 
 # ── Project configuration ─────────────────────────────────────
-# These files are customized for your integration during initialization
-# (initialize.sh replaces ha_integration_domain and related strings).
-# Syncing them back would revert those substitutions.
+# pyproject.toml holds your package metadata (set by initialize.sh) and
+# your own tool settings.
 pyproject.toml
-.yamllint.yml
-.pre-commit-config.yaml
 
 # ── Ignore pattern files ───────────────────────────────────────
-# .gitignore and .prettierignore contain a domain-specific negation pattern
-# (!custom_components/<your_domain>/) set by initialize.sh that cannot be
-# expressed as a generic placeholder. Syncing would revert that line.
+# .gitignore contains a domain-specific negation pattern
+# (!custom_components/<your_domain>/) set by initialize.sh.
+# Syncing would revert that line.
 .gitignore
-.prettierignore
 
 # ── Runtime dependencies ──────────────────────────────────────
 # requirements.txt lists your integration's PyPI dependencies (synced with
@@ -39,8 +35,7 @@ pyproject.toml
 requirements.txt
 
 # ── VS Code workspace settings ───────────────────────────────
-# launch.json and tasks.json reference your integration domain
-# in debugger arguments and task commands.
+# Where you add your own debug configurations and tasks.
 .vscode/launch.json
 .vscode/tasks.json
 

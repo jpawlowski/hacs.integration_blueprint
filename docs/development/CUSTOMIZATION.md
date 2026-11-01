@@ -104,11 +104,9 @@ Files already excluded by default:
 | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
 | `custom_components/`                                                           | Your integration code                                                    |
 | `tests/`                                                                       | Test files reference your domain (set by `initialize.sh`)                |
-| `pyproject.toml`                                                               | Contains your domain in package metadata                                 |
-| `.yamllint.yml`                                                                | Contains your domain in configuration comment                            |
-| `.pre-commit-config.yaml`                                                      | Contains your domain in file-match patterns                              |
+| `pyproject.toml`                                                               | Your package metadata and tool settings                                  |
 | `requirements.txt`                                                             | Your integration's PyPI dependencies (managed alongside `manifest.json`) |
-| `.vscode/launch.json`, `.vscode/tasks.json`                                    | Contain your domain in debugger/task arguments                           |
+| `.vscode/launch.json`, `.vscode/tasks.json`                                    | Your own debug configurations and tasks                                  |
 | `README.md`, `LICENSE`, etc.                                                   | Replaced by `initialize.sh`                                              |
 | `AGENTS.md`, `CLAUDE.md`                                                       | Contain domain-specific references                                       |
 | `AI_POLICY.md`, `.github/pull_request_template.md`                             | Project-specific governance and contribution process                     |

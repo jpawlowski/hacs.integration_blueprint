@@ -2,7 +2,6 @@
 config/
 !config/configuration.yaml
 custom_components/
-!custom_components/ha_integration_domain/
 
 # Auto-generated release files
 CHANGELOG.md
