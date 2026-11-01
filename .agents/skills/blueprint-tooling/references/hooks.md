@@ -73,6 +73,7 @@ Rules:
 | `script/lint`                     | `script/hooks/lint.pre.sh`                   | `script/hooks/lint.post.sh`                   |
 | `script/lint-check`               | `script/hooks/lint-check.pre.sh`             | `script/hooks/lint-check.post.sh`             |
 | `script/markdown`                 | `script/hooks/markdown.pre.sh`               | `script/hooks/markdown.post.sh`               |
+| `script/push-gate`                | `script/hooks/push-gate.pre.sh`              | `script/hooks/push-gate.post.sh`              |
 | `script/markdown-check`           | `script/hooks/markdown-check.pre.sh`         | `script/hooks/markdown-check.post.sh`         |
 | `script/python`                   | `script/hooks/python.pre.sh`                 | `script/hooks/python.post.sh`                 |
 | `script/python-check`             | `script/hooks/python-check.pre.sh`           | `script/hooks/python-check.post.sh`           |

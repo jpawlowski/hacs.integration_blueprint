@@ -8,6 +8,7 @@
 set -euo pipefail
 
 payload=$(cat)
+[[ $payload == *manifest.json* || $payload == *requirements.txt* ]] || exit 0
 if ! kind=$(
     HOOK_PAYLOAD="$payload" python3 <<'PY'
 import json

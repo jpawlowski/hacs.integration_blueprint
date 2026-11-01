@@ -78,6 +78,17 @@ under `.claude/commands/` remain Claude-specific; the corresponding reusable wor
 [`ha-issue-triage`](../../.agents/skills/ha-issue-triage/SKILL.md), with `.github/prompts/` providing Copilot dispatch.
 These agent lifecycle hooks are unrelated to `script/hooks/`, which customizes the repository's validation scripts.
 
+### Push gate
+
+Every push, by a person or an agent, goes through [`script/push-gate`](../../script/push-gate), which prek installs
+as git's pre-push hook. It accepts only the checked-out HEAD of a clean worktree and runs `script/lint-check` and
+`script/type-check` on it. Git hands the hook only the first ref of a push, so the shared agent hook adds what the
+gate cannot see. It reads the git commands a shell call actually runs, including those inside `bash -c`, `$(…)` and
+subshells, and blocks `--no-verify` and `core.hooksPath`, pushes of several refs, tags or deletions, and pushes from a
+repository whose `.pre-commit-config.yaml` does not install the hook. Commit messages, here-documents and searches
+that merely mention such a push pass. A person who needs any of that pushes with `--no-verify` deliberately. After pulling this change, run `prek install` once (`script/setup/bootstrap` does
+it) so the hook exists in your clone.
+
 ### Branch/PR-based work is available, not mandatory
 
 Most of this repository's own history is direct commits to `main` — that stays a perfectly normal way to work here,
