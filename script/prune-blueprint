@@ -26,6 +26,8 @@ PRUNE_PATHS=(
     ".github/FUNDING.yml"
     "docs/blueprint"
     ".agents/skills/blueprint-skill-maintenance"
+    "script/tests/test_initialize.py"
+    "script/tests/test_prune_blueprint.py"
 )
 SECTION_FILE=".agents/skills/README.md"
 SECTION_START="<!-- blueprint-only:start -->"

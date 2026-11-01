@@ -1098,6 +1098,8 @@ remove_blueprint_specific_files() {
     else
         print_color "$BLUE" "Removing blueprint-specific files..."
         ./script/prune-blueprint --allow-uninitialized --apply
+        rm script/prune-blueprint
+        print_success "Removed script/prune-blueprint"
     fi
 }
 

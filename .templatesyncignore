@@ -49,10 +49,15 @@ requirements.txt
 README.md
 README.template.md
 LICENSE
-initialize.sh
 hacs.json
 CONTRIBUTING.md
 DEPENDENCIES.md
+
+# ── Blueprint-specific files ─────────────────────────────────
+# These files are deleted by initialize.sh, do not restore them.
+initialize.sh
+script/tests/test_initialize.py
+script/tests/test_prune_blueprint.py
 
 # ── AI agent instruction files ───────────────────────────────
 # Project-identity files are customized during initialization and must not be
