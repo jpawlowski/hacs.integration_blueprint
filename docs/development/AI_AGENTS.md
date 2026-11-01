@@ -70,6 +70,9 @@ configuration files rather than in instruction prose.
 ### Practical rule
 
 - Put policy and defaults in vendor config files first.
+- Protect a path in [managed-settings.json](../../.devcontainer/claude-code/managed-settings.json), the
+  [OpenCode config](../../.devcontainer/opencode/opencode.json) and both copies of `chat.tools.edits.autoApprove`
+  together. `script/skills-check` fails when they disagree and prints the missing entry in each tool's syntax.
 - Keep markdown instruction files for workflow guidance only.
 
 Claude Code, Codex, OpenCode, VS Code, and Copilot CLI all support lifecycle hooks. The configuration paths differ, but the

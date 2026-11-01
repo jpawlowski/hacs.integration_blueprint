@@ -125,7 +125,7 @@ rather than fixing it again each week.
 ## Validation
 
 ```bash
-script/skills-check   # skills and instruction files — part of script/lint-check, so CI enforces it
+script/skills-check   # skills, instruction files and agent protected paths — part of script/lint-check, so CI enforces it
 ```
 
 Writing and maintaining skills is documented in [`skills/README.md`](skills/README.md).

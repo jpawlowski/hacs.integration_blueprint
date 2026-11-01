@@ -68,7 +68,7 @@ script/ha                # query and control the running instance (see below)
 script/setup/seed-auth   # mint the token script/ha uses — run by script/develop
 script/hassfest          # official HA validation (first run downloads ~27 MB)
 script/test              # integration tests plus synchronized tooling tests
-script/skills-check      # validate .agents/skills/ (also part of lint / lint-check)
+script/skills-check      # validate .agents/skills/ and agent protected paths (also part of lint / lint-check)
 script/architecture-check # conservative architecture guardrails (also part of lint / lint-check) — see below
 script/push-gate         # git's pre-push hook: clean HEAD only, then lint-check + type-check in parallel
 script/version           # read the canonical version from manifest.json
