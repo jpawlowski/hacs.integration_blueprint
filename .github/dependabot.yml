@@ -8,6 +8,16 @@ updates:
       day: "monday"
     commit-message:
       prefix: "chore(deps)"
+    cooldown:
+      semver-patch-days: 3
+      semver-minor-days: 7
+    groups:
+      # Bundle all minor/patch feature updates into a single PR; major updates stay separate
+      devcontainer-features:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -29,6 +39,10 @@ updates:
 
   - package-ecosystem: "pip"
     directory: "/"
+    # The integration's runtime requirements live in manifest.json as well, which Dependabot cannot read.
+    # Renovate (.github/renovate.json) raises both files together; without it they are bumped by hand.
+    exclude-paths:
+      - "requirements.txt"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -57,3 +71,21 @@ updates:
           - patch
         exclude-patterns:
           - "pytest-homeassistant-custom-component"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    commit-message:
+      prefix: "chore(deps)"
+    cooldown:
+      semver-patch-days: 3
+      semver-minor-days: 7
+    groups:
+      # Bundle all minor/patch tooling updates into a single PR; major updates stay separate
+      npm-dependencies:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch

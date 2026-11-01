@@ -1,8 +1,8 @@
-name: Dependabot HA Stability Check
+name: Dependency Bot HA Stability Check
 
-# Automatically closes Dependabot PRs that bump pytest-homeassistant-custom-component
+# Automatically closes Dependabot and Renovate PRs that bump pytest-homeassistant-custom-component
 # to a version that depends on a Home Assistant pre-release (alpha, beta, or RC).
-# Dependabot will open a new PR once a stable HA release becomes available.
+# The bot opens a new PR once a stable HA release becomes available.
 
 on:
   pull_request:
@@ -19,8 +19,8 @@ concurrency:
 jobs:
   check-ha-stability:
     name: Skip if HA dependency is pre-release
-    # Only run for Dependabot PRs — human PRs are never auto-closed
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    # Only run for dependency bot PRs — human PRs are never auto-closed
+    if: contains(fromJSON('["dependabot[bot]", "renovate[bot]"]'), github.event.pull_request.user.login)
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write # comment on and close the Dependabot pull request
@@ -97,7 +97,7 @@ jobs:
               "${PKG_VERSION}" "${HA_VERSION}"
             printf ' which is a pre-release version.\n\n'
             printf 'This PR is automatically closed to avoid pinning the integration to a beta or\n'
-            printf 'release-candidate build of Home Assistant. Dependabot will open a new PR once\n'
+            printf 'release-candidate build of Home Assistant. A new PR will follow once\n'
             printf 'a stable Home Assistant release is available.\n\n'
             printf '> To test against **%s** intentionally, reopen this PR manually.\n' "${HA_VERSION}"
           } > /tmp/pr-comment.md
