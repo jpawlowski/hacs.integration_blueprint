@@ -15,6 +15,7 @@ PRUNED = (
     ".agents/skills/blueprint-skill-maintenance/SKILL.md",
     "script/tests/test_initialize.py",
 )
+PROJECT_OWNED = ".devcontainer/project-feature/devcontainer-feature.json"
 SYNC_IGNORE = ".templatesyncignore"
 SYNC_IGNORE_BEFORE = "docs/blueprint/\n.github/FUNDING.yml\n.agents/skills/blueprint-skill-maintenance/\n"
 
@@ -25,7 +26,7 @@ def repo(tmp_path: Path) -> Path:
     (tmp_path / "script" / ".lib").mkdir(parents=True)
     shutil.copy(SCRIPT_DIR / "prune-blueprint", tmp_path / "script" / "prune-blueprint")
     shutil.copy(SCRIPT_DIR / ".lib" / "output.sh", tmp_path / "script" / ".lib" / "output.sh")
-    for name in (*PRUNED, "docs/user/GUIDE.md"):
+    for name in (*PRUNED, PROJECT_OWNED, "docs/user/GUIDE.md"):
         (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
         (tmp_path / name).write_text("x\n", encoding="utf-8")
     (tmp_path / SECTION_FILE).write_text(README, encoding="utf-8")
@@ -63,7 +64,10 @@ def test_apply_adds_only_missing_sync_ignore_entries(repo: Path) -> None:
 
     assert result.returncode == 0
     added = (repo / SYNC_IGNORE).read_text(encoding="utf-8").removeprefix(SYNC_IGNORE_BEFORE).splitlines()
-    assert [line for line in added if line and not line.startswith("#")] == ["script/tests/test_initialize.py"]
+    assert [line for line in added if line and not line.startswith("#")] == [
+        "script/tests/test_initialize.py",
+        ".devcontainer/project-feature",
+    ]
 
 
 @pytest.mark.unit
@@ -75,6 +79,7 @@ def test_apply_removes_leftovers_and_keeps_the_rest(repo: Path) -> None:
     assert not any((repo / name).exists() for name in PRUNED)
     assert (repo / SECTION_FILE).read_text(encoding="utf-8") == "keep\nkeep too\n"
     assert (repo / "docs" / "user" / "GUIDE.md").exists()
+    assert (repo / PROJECT_OWNED).exists()
 
 
 @pytest.mark.unit
