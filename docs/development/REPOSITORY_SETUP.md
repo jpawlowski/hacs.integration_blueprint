@@ -10,22 +10,27 @@ script/setup/github             # apply it (needs gh, signed in with admin right
 
 ## What the script sets
 
-| Setting                                                             | Why                                                                                                                                                       |
-| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dependabot alerts                                                   | Known vulnerabilities in your dependencies; Renovate reads them for its security PRs                                                                      |
-| Dependabot security updates (while `.github/dependabot.yml` exists) | A pull request for each fix in the ecosystems Dependabot owns                                                                                             |
-| Secret scanning and push protection (public repositories)           | GitHub blocks a push that contains a known credential format, before anyone can clone it                                                                  |
-| Squash only, the pull request's title and description as the commit | One commit per change on `main`, the shape release-please reads; follows what the rulesets allow                                                          |
-| Auto-merge allowed                                                  | Renovate merges a new secret scanner release once its checks are green; nothing else merges itself                                                        |
-| Delete branch after merge                                           | Merged branches do not pile up                                                                                                                            |
-| Fork pull requests run workflows only after a maintainer approves   | Nobody spends your minutes, or tries a workflow change, by opening a pull request                                                                         |
-| Workflow permissions: read by default, may open pull requests       | Every workflow declares what it needs; release-please and the template sync open PRs                                                                      |
-| Every ruleset in [`.github/rulesets/`](../../.github/rulesets/)     | `main`: no deletion or force push, changes through a squash-merged PR with `PR title`, `Lint and test`, `Hassfest validation` and `HACS validation` green |
-| CodeQL default setup off, once `codeql.yml` is on `main`            | The workflow runs the analysis; the default setup would collide with it                                                                                   |
+| Setting                                                                  | Why                                                                                                                                                                         |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dependabot alerts                                                        | Known vulnerabilities in your dependencies; Renovate reads them for its security PRs                                                                                        |
+| Dependabot security updates (while `.github/dependabot.yml` exists)      | A pull request for each fix in the ecosystems Dependabot owns                                                                                                               |
+| Secret scanning and push protection (public repositories)                | GitHub blocks a push that contains a known credential format, before anyone can clone it                                                                                    |
+| Squash by default and rebase for curated pull requests; no merge commits | One commit per change on `main`, the shape release-please reads; a rebase keeps a pull request's commits when each passes the commit check; follows what the rulesets allow |
+| Auto-merge allowed                                                       | Renovate merges a new secret scanner release once its checks are green; nothing else merges itself                                                                          |
+| Delete branch after merge                                                | Merged branches do not pile up                                                                                                                                              |
+| Fork pull requests run workflows only after a maintainer approves        | Nobody spends your minutes, or tries a workflow change, by opening a pull request                                                                                           |
+| Workflow permissions: read by default, may open pull requests            | Every workflow declares what it needs; release-please and the template sync open PRs                                                                                        |
+| Every ruleset in [`.github/rulesets/`](../../.github/rulesets/)          | `main`: no deletion or force push, changes through a PR (squash or rebase) with `PR title`, `Lint and test`, `Hassfest validation` and `HACS validation` green              |
+| CodeQL default setup off, once `codeql.yml` is on `main`                 | The workflow runs the analysis; the default setup would collide with it                                                                                                     |
 
 Nobody pushes to `main` directly, admins included. Admins can merge a pull request without waiting for its checks,
 which a template sync pull request needs: it is opened with the workflow token, which starts no checks, so they never
 report. Review it, then merge it with the bypass.
+
+**Squash or rebase?** Squash is the default: a branch's working commits never reach `main`. A pull request whose
+commits were written to be read one by one can be rebase-merged instead, so each lands on `main` and in the changelog
+— but only when the _Check each commit_ step of the `PR title` check passed, since every commit must then follow the
+commit message rules.
 
 **Want it less strict?** The ruleset file is the one place to change: `bypass_mode` `always` lets admins push to `main`
 again, and `allowed_merge_methods` decides the merge methods — `script/setup/github` sets the repository to match.

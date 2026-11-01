@@ -6,10 +6,11 @@ once it is done. Run the check from the repository root.
 
 ## `squash-pull-requests` — 2026-11-01
 
-**Check:** `gh api "repos/{owner}/{repo}" --jq '.allow_merge_commit == false and .allow_rebase_merge == false' | grep -q true`
+**Check:** `gh api "repos/{owner}/{repo}" --jq '.allow_merge_commit == false' | grep -q true`
 
-The blueprint's `main` ruleset now takes every change through a squash-merged pull request, admins included, and a
-new workflow `pr-title.yml` checks that the pull request title is a Conventional Commit, since it becomes the commit.
+The blueprint's `main` ruleset now takes every change through a pull request, admins included — squash by default,
+rebase for a pull request whose commits each pass the commit rules — and a new workflow `pr-title.yml` checks the
+title, which becomes the squash commit, and reports whether each commit would survive a rebase.
 Ask the developer whether they want that: if so, copy the workflow (`script/blueprint-update` lists it) and run
 `script/setup/github`; if not, follow _Want it less strict?_ in `docs/development/REPOSITORY_SETUP.md` of the
 blueprint and record the step as skipped.

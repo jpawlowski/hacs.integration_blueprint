@@ -126,8 +126,8 @@ it) so the hook exists in your clone.
 
 ### Work reaches `main` through a pull request
 
-The `main` ruleset takes every change through a squash-merged pull request — what it requires and how to relax it is
-in [REPOSITORY_SETUP.md](REPOSITORY_SETUP.md). That suits agent work: a branch's working commits never reach `main`,
+The `main` ruleset takes every change through a pull request, squash-merged by default — what it requires and how to
+relax it is in [REPOSITORY_SETUP.md](REPOSITORY_SETUP.md). That suits agent work: a branch's working commits never reach `main`,
 each change can be reverted as a whole, and release-please reads exactly one commit per change. Open a pull request as
 a draft while an agent still pushes to it; [`ha-issue-triage`](../../.agents/skills/ha-issue-triage/SKILL.md) walks a
 backlog the same way, one branch and pull request per issue.

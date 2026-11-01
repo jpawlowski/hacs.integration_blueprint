@@ -368,8 +368,9 @@ The Community AI policy's restriction on posting to Open Home Foundation reposit
 - **Never commit automatically** — only on an explicit request. A previous request is not standing permission; each
   commit needs a fresh instruction.
 - **Never ask about pushing** — the developer handles `git push` themselves.
-- **Work reaches `main` through a pull request**, squash-merged, where `script/setup/github` applied the `main`
-  ruleset. The pull request's title becomes the commit, so it follows the same format as a commit subject.
+- **Work reaches `main` through a pull request**, where `script/setup/github` applied the `main` ruleset. Squash is
+  the default, and the pull request's title becomes the commit, so it follows the same format as a commit subject.
+  Rebase only a pull request whose commits each pass the _Check each commit_ step, and only when the developer asks.
 - **A pull request still being worked on is a draft** (`gh pr create --draft`). CI skips drafts, so pushes to it cost
   no Actions minutes; mark it ready (`gh pr ready`) once `script/lint`, `script/type-check` and `script/test` pass
   locally — that is what starts the checks.
