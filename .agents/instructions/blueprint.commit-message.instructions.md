@@ -65,6 +65,8 @@ as if it were user-facing, while the `ci` **type** is `hidden` in
 4. Body: blank line between subject and body; use bullet points, not prose
 5. Breaking changes: add `BREAKING CHANGE:` footer **and** warn the developer before implementing
 6. Multiple unrelated changes → separate commits, not one large commit
+7. **A pull request title is a commit subject.** Pull requests are squash-merged with the title as the commit on
+   `main`, so it follows rules 3 and the types above; the `PR title` check enforces it
 
 ## Example
 

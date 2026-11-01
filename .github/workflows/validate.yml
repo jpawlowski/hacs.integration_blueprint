@@ -3,13 +3,13 @@ name: Validate
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 * * *"
-  push:
-    branches:
-      - main
+    # Weekly is enough to notice a change in hassfest or the HACS action between pull requests.
+    - cron: "0 0 * * 1"
   pull_request:
     branches:
       - main
+    # A draft spends no minutes; marking it ready for review runs everything.
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions: {}
 
@@ -20,6 +20,7 @@ concurrency:
 jobs:
   hassfest: # https://developers.home-assistant.io/blog/2020/04/16/hassfest
     name: Hassfest validation
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ubuntu-latest
     permissions:
       contents: read # check out the repository
@@ -34,6 +35,7 @@ jobs:
 
   hacs: # https://github.com/hacs/action
     name: HACS validation
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ubuntu-latest
     steps:
       - name: Run HACS validation
