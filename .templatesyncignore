@@ -28,6 +28,10 @@ pyproject.toml
 # and requirements_test.txt are blueprint-managed tooling and do get synced.
 requirements.txt
 
+# ── Command-line tools ──────────────────────────────────────
+# Your integration's own tools; mise.toml holds the blueprint's and does get synced.
+.config/mise/conf.d/project.toml
+
 # ── VS Code workspace settings ───────────────────────────────
 # Where you add your own debug configurations and tasks.
 .vscode/launch.json

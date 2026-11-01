@@ -65,6 +65,7 @@ print_info "Fixing ownership of Docker volume mount points..."
 for _volume_mount in \
     /home/vscode/ha-venv \
     /home/vscode/uv-cache \
+    /home/vscode/mise-data \
     /home/vscode/.claude \
     /home/vscode/.codex \
     /home/vscode/.opencode \

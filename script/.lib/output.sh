@@ -128,7 +128,11 @@ activate_venv() {
     fi
     local venv_path
     if ! venv_path="$(resolve_venv_path)"; then
-        log_error "Virtual environment not found. Run: script/setup/bootstrap"
+        if [[ "$(run_state bootstrap)" == "running" ]]; then
+            log_error "The development environment is still being set up — wait for .local/bootstrap.status to change, progress is in .local/bootstrap.log"
+        else
+            log_error "Virtual environment not found. Run: script/setup/bootstrap"
+        fi
         exit 1
     fi
     log_header "Activating virtual environment"
@@ -158,3 +162,75 @@ run_hook() {
         source "$hook_file"
     fi
 }
+
+# Print how the last run of a script that calls track_run went: running, done, failed or nothing. A run whose process
+# is gone without recording an end counts as failed.
+run_state() {
+    local state pid
+    state="$(cat ".local/$1.status" 2>/dev/null || true)"
+    if [[ $state == "running" ]]; then
+        pid="$(cat ".local/$1.pid" 2>/dev/null || true)"
+        if [[ -z $pid ]] || ! kill -0 "$pid" 2>/dev/null; then
+            state="failed"
+        fi
+    fi
+    printf '%s' "$state"
+}
+
+# Record this script's run in .local/<name>.status and .local/<name>.pid, and its outcome when it exits. With
+# --exclusive, a second run while one is alive stops instead of competing for the same environment.
+track_run() {
+    local name=$1
+    if [[ ${2:-} == "--exclusive" && "$(run_state "$name")" == "running" ]]; then
+        die "script/setup/$name is already running (PID $(cat ".local/$name.pid")); wait for it to finish"
+    fi
+    mkdir -p .local
+    echo "$$" >".local/$name.pid"
+    echo "running" >".local/$name.status"
+    # shellcheck disable=SC2064 # $name is fixed now, the exit status when the trap runs
+    trap "_finish_run $name \$?" EXIT
+}
+
+# Wait while another run of a tracked script is alive, up to a limit in seconds (default 900). Returns 1 on timeout.
+wait_for_run() {
+    local name=$1 limit=${2:-900} waited=0
+    while [[ "$(run_state "$name")" == "running" ]]; do
+        if ((waited >= limit)); then
+            return 1
+        fi
+        if ((waited == 0)); then
+            log_info "Waiting for the script/setup/$name run already in progress (PID $(cat ".local/$name.pid" 2>/dev/null))"
+        fi
+        sleep 1
+        waited=$((waited + 1))
+    done
+}
+
+_finish_run() {
+    if [[ $2 -eq 0 ]]; then
+        echo "done" >".local/$1.status"
+    else
+        echo "failed" >".local/$1.status"
+    fi
+    rm -f ".local/$1.pid"
+}
+
+# Apply what mise resolves for this checkout: the pinned tools and the venv mise.toml names, in front of PATH. Every
+# script gets them whether or not the calling shell activated mise — an agent's shell, a cloud session and a git hook
+# usually have not. Without mise, or before the checkout trusts mise.toml, nothing changes.
+use_mise_env() {
+    local mise_bin script
+    mise_bin="$(command -v mise 2>/dev/null || true)"
+    if [[ -z $mise_bin && -x "$HOME/.local/bin/mise" ]]; then
+        mise_bin="$HOME/.local/bin/mise"
+    fi
+    [[ -n $mise_bin && -f mise.toml ]] || return 0
+    script="$(MISE_HIDE_UPDATE_WARNING=1 "$mise_bin" env -s bash 2>/dev/null)" || return 0
+    eval "$script"
+    export _BLUEPRINT_MISE_ENV="$PWD"
+}
+
+# A script started by another one inherits the environment already applied, so only the outermost one asks mise.
+if [[ ${_BLUEPRINT_MISE_ENV:-} != "$PWD" ]]; then
+    use_mise_env
+fi

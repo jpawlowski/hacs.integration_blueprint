@@ -61,12 +61,21 @@ repos:
       #   requirements_test.txt (pytest-homeassistant-custom-component pin)
       #   hacs.json (homeassistant minimum)
       #   .devcontainer/.env (HA_VERSION override, if set)
+      # and the Python version mise.toml pins against HA's requires-python
       - id: ha-version-sync
         name: homeassistant/pytest-homeassistant-custom-component sync
         entry: ./script/ha-version-sync
         language: system
-        files: ^(hacs\.json|requirements_test\.txt|\.devcontainer/\.env)$
+        files: ^(hacs\.json|requirements_test\.txt|\.devcontainer/\.env|mise\.toml|pyproject\.toml)$
         pass_filenames: false
+
+      # Secrets in the staged changes, with the rules in .betterleaks.toml
+      - id: secret-scan
+        name: secret scan (betterleaks)
+        entry: ./script/secret-scan --staged
+        language: system
+        pass_filenames: false
+        always_run: true
 
       # Shell script linting
       - id: shellcheck

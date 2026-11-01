@@ -26,6 +26,9 @@ node_modules/
 # Local DevContainer environment overrides (user-specific, see .devcontainer/.env.local.example)
 .devcontainer/.env.local
 
+# Personal mise tool overrides (see mise.toml)
+mise.local.toml
+
 # Local extra Python dependencies (user-specific, see requirements.txt for project deps)
 requirements.local.txt
 
