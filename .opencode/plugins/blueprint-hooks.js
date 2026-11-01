@@ -44,7 +44,7 @@ const runHook = (root, script, payload) =>
   });
 
 export default {
-  id: "hacs.integration_blueprint-hooks",
+  id: "agent-hooks",
   async setup(ctx) {
     const root = ctx.location.project.directory;
 
