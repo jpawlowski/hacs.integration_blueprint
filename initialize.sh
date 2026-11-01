@@ -355,6 +355,11 @@ ask_yes_no() {
         prompt="$prompt (y/N) "
     fi
 
+    if [[ ! -t 0 ]]; then
+        print_error "This question needs a terminal. Run unattended with the values as options and --force (see --help)."
+        exit 1
+    fi
+
     while true; do
         read -p "$prompt" -r response
         response=${response,,}  # Convert to lowercase
@@ -383,6 +388,11 @@ ask_input() {
     local prompt=$1
     local allow_empty=${2:-false}
     local response
+
+    if [[ ! -t 0 ]]; then
+        print_error "This question needs a terminal. Run unattended with the values as options and --force (see --help)."
+        exit 1
+    fi
 
     while true; do
         read -p "$prompt " -r response
@@ -1098,6 +1108,33 @@ remove_blueprint_specific_files() {
     fi
 }
 
+# Record the names substituted into the template, so script/blueprint-update need not infer them from code the
+# project is free to change later.
+record_identity() {
+    local keys=(domain title prefix owner repository author)
+    local values=("$@")
+    local file=".agents/blueprint-update.json"
+    local i value
+
+    if $DRY_RUN; then
+        print_dryrun "Would record the substituted names in $file"
+        return 0
+    fi
+
+    mkdir -p "$(dirname "$file")"
+    {
+        printf '{\n  "identity": {\n'
+        for i in "${!keys[@]}"; do
+            value="${values[$i]//\\/\\\\}"
+            value="${value//\"/\\\"}"
+            printf '    "%s": "%s"' "${keys[$i]}" "$value"
+            if ((i < ${#keys[@]} - 1)); then printf ','; fi
+            printf '\n'
+        done
+        printf '  }\n}\n'
+    } >"$file"
+}
+
 # Replace the repository-role declaration in AGENTS.md with the initialized-repository text.
 #
 # MUST run after all replace_in_files calls: the replacement text links to the upstream
@@ -1511,6 +1548,7 @@ main() {
 
     # Declare this repository as an initialized integration (must follow the replacements above)
     rewrite_repo_role
+    record_identity "$domain" "$title" "$namespace" "$github_username" "$github_repo_name" "$author_name"
 
     # Show statistics
     local stats_prefix=""

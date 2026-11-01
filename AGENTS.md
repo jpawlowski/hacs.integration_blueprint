@@ -85,6 +85,7 @@ agent that implements it. If yours does not, read the `SKILL.md` before starting
 | commit messages, versioning, changelog, release notes  | [`ha-release`](.agents/skills/ha-release/SKILL.md)                     | `blueprint.commit-message`                             |
 | triaging or fixing a backlog of GitHub issues          | [`ha-issue-triage`](.agents/skills/ha-issue-triage/SKILL.md)           | —                                                      |
 | validation scripts, dependencies, hooks, template sync | [`blueprint-tooling`](.agents/skills/blueprint-tooling/SKILL.md)       | `blueprint.shell`                                      |
+| blueprint changes the template sync cannot deliver     | [`blueprint-update`](.agents/skills/blueprint-update/SKILL.md)         | —                                                      |
 | `manifest.json`                                        | —                                                                      | `blueprint.manifest`                                   |
 | diagnostics                                            | —                                                                      | `blueprint.diagnostics`                                |
 | any Python, YAML, JSON or Markdown file                | —                                                                      | `blueprint.python`, `.yaml`, `.json`, `.markdown`      |
@@ -197,6 +198,30 @@ library — not to silence a real finding.
 tried rather than looping. Report failing terminal commands, network timeouts and failed git operations instead of
 working around them.
 
+**Commands you run yourself never wait for an answer** — nobody is there to give it, and the session hangs:
+
+- Pass the flag that skips the question: `--yes`, `--force`, `-y`. The scripts here that ask for confirmation take
+  one and stop without a terminal instead of waiting; `initialize.sh` runs unattended with its values as options.
+- `git commit -m` or `-F`, never an editor; `sudo -n`, never a password prompt.
+- Start `script/develop` in the background — it runs until stopped.
+- Your shell reads the developer's profile, so a core command may be an alias: `cp` can be `cp -i`, `cat` can be
+  `bat`. Write `command cp`, `command mv`, `command rm` and `command` before any command whose output you parse.
+  Scripts run as files are unaffected, so they need no such prefix.
+
+## Outside the dev container
+
+The dev container is one way in, not a requirement. Every agent runs `.agents/hooks/session-start.sh` when a session
+starts — Claude Code and Copilot through `.claude/settings.json`, Codex through `.codex/hooks.json`, OpenCode through
+its plugin:
+
+- **In a Claude Code cloud session** it installs mise and runs `script/setup/bootstrap` in the background. Before
+  `script/test`, `script/lint`, `script/type-check` or `script/develop`, wait until `.local/bootstrap.status` reads
+  `done`; `.local/bootstrap.log` has the progress and, on `failed`, the reason.
+- **On someone's own machine** it installs the pinned tools when mise is present and only reports a checkout that still
+  needs `script/setup/bootstrap`. Run that yourself when the report comes — never install mise there unasked.
+- **A cloud environment that asks for an install script** — Codex cloud writes one from this repository — uses
+  `script/setup/toolchain --install-mise && script/setup/bootstrap`. Nothing else needs configuring.
+
 ## Home Assistant test instance
 
 ```bash
@@ -232,11 +257,17 @@ Check `script/ha status` first, announce a restart, and announce **beforehand** 
 exclusively. Log reading, failure triage, and the rest of the run-loop rules:
 [`ha-coordinator-debug`](.agents/skills/ha-coordinator-debug/SKILL.md).
 
-**Devcontainer CLI tools:** `fd`, `fzf`, `gron`, `http`, `hyperfine`, `ipython`, `jq`, `jo`, `mlr`, `rg`,
-`shellcheck`, `shfmt`, `sponge`, `sqlite3`, `yq`, `yamllint`. Debian package names differ from the common spellings,
-so `fdfind`, `git-delta`, `httpie`, `miller` and `ripgrep` also resolve. `yq` is the Mike Farah variant (`yq eval`
-syntax). `gron` flattens JSON into greppable assignments — `script/ha diagnostics | gron | rg <key>` gives the value
-and its path without pulling the whole document into context.
+**CLI tools everywhere:** `mise.toml` pins Python, `uv`, `fd`, `gron`, `jq`, `rg`, `shellcheck`, `shfmt` and `yq`
+for the dev container, CI, a local machine and cloud sessions alike, and every `script/*` applies `mise env` itself —
+those tools and the Home Assistant venv, which `mise.toml` names, ahead of everything else on `PATH`. A tool the
+scripts need goes into `mise.toml` — this integration's own into `.config/mise/conf.d/project.toml`, which template
+sync leaves alone — not into the dev container's apt list. `yq` is the Mike Farah variant (`yq eval` syntax). `gron`
+flattens JSON into greppable assignments — `script/ha diagnostics | gron | rg <key>` gives the value and its path
+without pulling the whole document into context.
+
+**Only in the dev container:** `fzf`, `hyperfine` and `mlr` (from `mise.devcontainer.toml`), `http`, `ipython`,
+`jo`, `sponge` and `sqlite3` (from apt). The scripts take `yamllint` from the venv. `git-delta`, `httpie` and `miller`
+also resolve there. Outside the container, check before relying on any of them.
 
 `bat`, `delta`, `eza` and `tree` are installed for the developer's terminal, not for you — they format output rather
 than reduce it, and buy you nothing.
@@ -337,6 +368,11 @@ The Community AI policy's restriction on posting to Open Home Foundation reposit
 - **Never commit automatically** — only on an explicit request. A previous request is not standing permission; each
   commit needs a fresh instruction.
 - **Never ask about pushing** — the developer handles `git push` themselves.
+- **Work reaches `main` through a pull request**, squash-merged, where `script/setup/github` applied the `main`
+  ruleset. The pull request's title becomes the commit, so it follows the same format as a commit subject.
+- **A pull request still being worked on is a draft** (`gh pr create --draft`). CI skips drafts, so pushes to it cost
+  no Actions minutes; mark it ready (`gh pr ready`) once `script/lint`, `script/type-check` and `script/test` pass
+  locally — that is what starts the checks.
 - When a task completes and the developer moves on, offer a commit message based on the work done.
 - Format: [Conventional Commits](https://www.conventionalcommits.org/), enforced by the commitlint hook — see
   `.agents/instructions/blueprint.commit-message.instructions.md`.

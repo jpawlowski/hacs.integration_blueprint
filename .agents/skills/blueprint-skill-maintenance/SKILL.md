@@ -143,6 +143,17 @@ go, remove the directory, all catalogue entries, the `**Procedure:**` pointer in
 cross-links from other skills. `script/skills-check` covers all four — it link-checks the skills, the two catalogues
 and `.agents/instructions/` — so run it and fix what it names rather than hunting by hand.
 
+## A change the template sync cannot deliver
+
+A file listed in `.templatesyncignore` never reaches the repositories made from the blueprint, and neither does a step
+only their maintainer can take. When a change needs either — a new section in `AGENTS.md`, a new step in
+`template-sync.yml`, a new exclusion entry — add an entry at the top of
+[`blueprint-update/references/manual-steps.md`](../blueprint-update/references/manual-steps.md) in the same change:
+an id, the date, a check that passes once it is done, and what to do and why. A watched file's diff alone is not
+enough when the change is easy to miss or needs a decision; the entry is what puts it in front of the developer.
+`script/blueprint-update` watches its files through `WATCHED` in `script/.lib/blueprint_update.py` — extend that list
+when the blueprint starts maintaining another excluded file.
+
 ## After a Home Assistant version bump
 
 `script/ha-version-sync` changes the pinned version; several skills make version-specific claims that may now be

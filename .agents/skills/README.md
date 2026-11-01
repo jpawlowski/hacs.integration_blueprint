@@ -24,6 +24,7 @@ any of it in your own repository, see [`../README.md`](../README.md). This file 
 | [`ha-release`](ha-release/SKILL.md)                     | cutting a release, commit messages, changelog, release notes              |
 | [`ha-issue-triage`](ha-issue-triage/SKILL.md)           | working through the GitHub issue backlog via branch + PR                  |
 | [`blueprint-tooling`](blueprint-tooling/SKILL.md)       | validation scripts, hook scripts, dependencies, template sync             |
+| [`blueprint-update`](blueprint-update/SKILL.md)         | carrying over blueprint changes the template sync cannot deliver          |
 | [`blueprint-scaffold`](blueprint-scaffold/SKILL.md)     | turning the fresh template into an integration for one real device        |
 | [`blueprint-import`](blueprint-import/SKILL.md)         | migrating an existing custom integration into this repository             |
 
