@@ -5,6 +5,8 @@
 # Checks that pytest-homeassistant-custom-component (requirements_test.txt),
 # the homeassistant minimum in hacs.json, and HA_VERSION in .devcontainer/.env
 # (when explicitly set) all target the same Home Assistant release train (YYYY.M).
+# Also checks that the Python version mise.toml pins satisfies the requires-python of
+# pyproject.toml and of the Home Assistant release that pin pulls in.
 # Also ensures CI workflows do not hardcode HA_VERSION pins, which could drift from
 # the canonical sources above.
 #
@@ -130,6 +132,41 @@ sources["hacs.json homeassistant"] = (hacs_ha, hacs_train)
 if env_ha is not None:
     sources[".devcontainer/.env HA_VERSION"] = (env_ha, release_train(env_ha))
 
+# ── Python from mise.toml ────────────────────────────────────────────────────
+def version_tuple(version: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in re.findall(r"\d+", version)[:3])
+
+
+mise_file = Path("mise.toml")
+mise_python = None
+if mise_file.exists():
+    pm = re.search(r'^python\s*=\s*"([^"]+)"', mise_file.read_text(encoding="utf-8"), re.MULTILINE)
+    if pm:
+        mise_python = pm.group(1)
+
+python_minimums: dict[str, str] = {}
+rm = re.search(r'^requires-python\s*=\s*">=\s*([^",]+)', Path("pyproject.toml").read_text(encoding="utf-8"), re.MULTILINE)
+if rm:
+    python_minimums["pyproject.toml requires-python"] = rm.group(1).strip()
+if pytest_ha is not None:
+    try:
+        with urllib.request.urlopen(f"https://pypi.org/pypi/homeassistant/{pytest_ha}/json", timeout=15) as resp:
+            ha_requires = (json.loads(resp.read().decode("utf-8")).get("info", {}).get("requires_python") or "")
+    except (OSError, ValueError) as err:
+        warn(f"Could not reach PyPI for homeassistant=={pytest_ha} ({err}) - skipping its Python requirement")
+    else:
+        hm = re.search(r">=\s*([0-9.]+)", ha_requires)
+        if hm:
+            python_minimums[f"homeassistant=={pytest_ha} requires-python"] = hm.group(1)
+
+if mise_python is not None:
+    pinned = version_tuple(mise_python)
+    if not pinned:
+        fail(f"mise.toml pins python {mise_python!r}, which names no version to check against requires-python")
+    for name, minimum in python_minimums.items():
+        if pinned < version_tuple(minimum)[: len(pinned)]:
+            fail(f"mise.toml pins python {mise_python}, but {name} needs >={minimum}")
+
 # ── Workflow guards ───────────────────────────────────────────────────────────
 # Keep workflows aligned by disallowing hardcoded HA_VERSION values there.
 for workflow_file in sorted(Path(".github/workflows").glob("*.yml")):
@@ -149,4 +186,6 @@ if len(unique_trains) > 1:
 print("HA version sync OK:")
 for name, (ver, t) in sources.items():
     print(f"  {name}: {ver} (train {t})")
+if mise_python is not None:
+    print(f"  mise.toml python: {mise_python} (needs {', '.join(f'>={m}' for m in python_minimums.values()) or 'nothing'})")
 PY

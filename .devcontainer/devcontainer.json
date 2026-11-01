@@ -38,13 +38,25 @@
     "PYTHONDONTWRITEBYTECODE": "1",
     // Point uv to the named volume cache mount (avoids Docker creating ~/.cache as root).
     // Must be set here so it reaches every process (extensions, uv, hass) from container start.
-    "UV_CACHE_DIR": "/home/vscode/uv-cache"
+    "UV_CACHE_DIR": "/home/vscode/uv-cache",
+    // mise keeps its tools in a named volume, mounted under $HOME for the same reason as the venv below.
+    "MISE_DATA_DIR": "/home/vscode/mise-data",
+    // Opening the repository in the container is the consent mise's trust prompt would ask for.
+    "MISE_TRUSTED_CONFIG_PATHS": "${containerWorkspaceFolder}",
+    // Adds mise.devcontainer.toml: the terminal tools only a person in the container uses.
+    "MISE_ENV": "devcontainer"
+  },
+  // mise's shims first, so every terminal and every editor extension finds the versions mise.toml pins.
+  "remoteEnv": {
+    "PATH": "/home/vscode/mise-data/shims:${containerEnv:PATH}"
   },
   "features": {
-    "ghcr.io/devcontainers/features/python:1": {
-      "version": "3.14"
+    // Python and the CLI tools come from mise.toml; apt keeps system libraries and tools without a mise binary.
+    // Node stays a feature because the agent CLI features below need it at image build time.
+    "ghcr.io/devcontainers-extra/features/mise:1": {
+      "version": "2026.10.22"
     },
-    "ghcr.io/devcontainers/features/node:": {
+    "ghcr.io/devcontainers/features/node:2": {
       "version": "lts"
     },
     "ghcr.io/devcontainers/features/github-cli:1": {},
@@ -53,40 +65,22 @@
       "version": "latest"
     },
     "ghcr.io/devcontainers-extra/features/opencode:1": {},
-    "ghcr.io/devcontainer-community/devcontainer-features/yq:1": {
-      "version": "latest"
-    },
     "ghcr.io/devcontainers-extra/features/apt-packages:1": {
       "packages": [
         "autoconf",
         "automake",
-        "bat",
-        "eza",
-        "fd-find",
         "ffmpeg",
-        "fzf",
-        "git-delta",
-        "gron",
         "httpie",
-        "hyperfine",
         "ipython3",
         "jo",
-        "jq",
-        "just",
         "libpcap-dev",
         "libssl-dev",
         "libtool",
         "libturbojpeg0",
-        "miller",
         "moreutils",
-        "pipx",
-        "ripgrep",
-        "shellcheck",
-        "shfmt",
         "socat",
         "sqlite3",
-        "tree",
-        "yamllint"
+        "tree"
       ]
     },
     "./project-feature": {}
@@ -254,6 +248,9 @@
     // which would cause EACCES when VS Code server tries to mkdir ~/.cache/Microsoft at startup.
     // Ownership is fixed by onCreateCommand (Docker initializes volume mount points as root).
     "source=${localWorkspaceFolderBasename}_uv_cache,target=/home/vscode/uv-cache,type=volume",
+    // Named volume for the tools mise installs: a rebuild does not download Python and the CLI tools again.
+    // Ownership is fixed by onCreateCommand (Docker initializes volume mount points as root).
+    "source=${localWorkspaceFolderBasename}_mise_data,target=/home/vscode/mise-data,type=volume",
     // Named volume for node_modules: keeps it on Container FS (not bind mount) for performance.
     // Docker manages this volume separately from the workspace — npm ci runs fast on overlay FS.
     "source=${localWorkspaceFolderBasename}_node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",

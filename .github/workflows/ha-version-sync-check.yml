@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - hacs.json
+      - mise.toml
+      - pyproject.toml
       - requirements_test.txt
       - .devcontainer/.env
       - .github/workflows/*.yml
@@ -14,6 +16,8 @@ on:
       - main
     paths:
       - hacs.json
+      - mise.toml
+      - pyproject.toml
       - requirements_test.txt
       - .devcontainer/.env
       - .github/workflows/*.yml

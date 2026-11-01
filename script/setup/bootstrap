@@ -44,18 +44,20 @@ fi
 unset _env_local
 
 run_hook "setup/bootstrap" "pre"
+track_run bootstrap --exclusive
 
 if [[ ${APT_UPDATE:-"0"} == "1" ]]; then
     log_header "Updating system packages"
-    sudo apt-get update
-    sudo apt-get upgrade -y
+    sudo -n env DEBIAN_FRONTEND=noninteractive apt-get update
+    sudo -n env DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 fi
 
+"$SCRIPT_DIR/toolchain"
+use_mise_env
+
+UV_HINT="mise (https://mise.jdx.dev/getting-started.html), then script/setup/toolchain — or uv itself"
 log_header "Checking for uv"
-if ! command -v uv >/dev/null 2>&1; then
-    log_info "UV not found, installing..."
-    pipx install uv
-fi
+require_command uv "$UV_HINT"
 
 log_header "Checking for Python virtual environment"
 
@@ -215,13 +217,7 @@ if [[ -f "$HA_VERSION_MARKER" ]]; then
         # which cannot be removed itself — only its contents can be deleted.
         find "$VENV_PATH" -mindepth 1 -delete
         hash -r
-        # uv may previously have existed only inside the removed venv (for
-        # example when bootstrap was started from an activated local venv).
-        if ! command -v uv >/dev/null 2>&1; then
-            log_info "UV not found outside the removed venv, installing..."
-            pipx install uv
-            hash -r
-        fi
+        require_command uv "$UV_HINT"
         uv venv "$VENV_PATH"
         # shellcheck source=/dev/null
         source "$VENV_PATH/bin/activate"
@@ -274,7 +270,7 @@ if command -v npm >/dev/null 2>&1; then
     # Docker creates named volumes owned by root — fix ownership before npm ci writes into it.
     if [[ -d node_modules && "$(stat -c %U node_modules 2>/dev/null)" == "root" ]]; then
         log_step "Fixing node_modules ownership (Docker volume created as root)"
-        sudo chown "$(id -un):$(id -gn)" node_modules
+        sudo -n chown "$(id -un):$(id -gn)" node_modules
     fi
     npm ci --silent
 else
@@ -284,7 +280,7 @@ fi
 
 # Only install git hooks in local development, not in CI
 # GITHUB_ACTIONS is always set to "true" in GitHub Actions environments
-if [[ -d ".git" && -z "${GITHUB_ACTIONS:-}" ]]; then
+if git rev-parse --git-dir >/dev/null 2>&1 && [[ -z "${GITHUB_ACTIONS:-}" ]]; then
     log_header "Installing git hooks"
     # Do not downgrade a failure here to a warning that scrolls past unnoticed:
     # a silent failure leaves the repo with no hooks at all, so Ruff, yamllint
