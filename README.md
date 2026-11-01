@@ -171,6 +171,23 @@ You'll need these installed locally:
 > [!NOTE]
 > Both Codespaces and local DevContainer provide the exact same experience. After the container is ready, run `./initialize.sh` to customize your integration. The only difference is where the container runs (GitHub's cloud vs. your machine).
 
+### Option 3: Without a Dev Container 🧑‍💻
+
+Claude Code, Codex, OpenCode or GitHub Copilot can work on the repository directly — on your machine or in their
+cloud environments. When a session starts, the agent's hook prepares the checkout: in a Claude Code cloud session it
+installs everything by itself, and Codex cloud picks up the install command from `AGENTS.md`. Nothing has to be
+configured in the cloud environment.
+
+On your own machine, install [mise](https://mise.jdx.dev/getting-started.html) for the pinned tool versions (optional,
+the scripts fall back to what is on your `PATH`) and run:
+
+```bash
+script/setup/bootstrap  # Python, the tools from mise.toml, Home Assistant and the test dependencies
+script/develop          # Home Assistant runs at http://localhost:8123
+```
+
+More in [Working without the dev container](docs/development/LOCAL_SETUP.md).
+
 Then customize the API client in [`api/client.py`](custom_components/ha_integration_domain/api/client.py) to connect to your actual device or service.
 
 ---
@@ -186,11 +203,16 @@ Creating a custom integration from scratch means figuring out config flows, coor
 - ✅ **Core-aligned development**: Follows Home Assistant Core patterns and tooling conventions
 - ✅ **Future-proof**: Compatible with Home Assistant 2026.10+ (including latest breaking changes)
 - ✅ **Modern Python**: Built for Python 3.14+ with `asyncio.timeout` (no deprecated `async_timeout`)
-- ✅ **Fast tooling**: Uses [uv](https://github.com/astral-sh/uv) for lightning-fast dependency management
+- ✅ **Fast tooling**: Uses [uv](https://github.com/astral-sh/uv) for lightning-fast dependency management, and [mise](https://mise.jdx.dev) pins Python and every command-line tool to one version for the dev container, CI and your own machine
+- ✅ **Works anywhere**: The dev container, a local machine, or the cloud sessions of Claude Code and Codex — an agent's session sets itself up, nothing to configure in the cloud — see [Working without the dev container](docs/development/LOCAL_SETUP.md)
+- ✅ **Agent-ready**: Shared instructions, skills, hooks and protected paths for GitHub Copilot, Claude Code, Codex and OpenCode — see [Working with AI agents](docs/development/AI_AGENTS.md)
+- ✅ **Security checks built in**: Secrets are caught before a commit (betterleaks), on push (GitHub push protection) and in a weekly history scan (TruffleHog); CodeQL and zizmor check the code and the workflows; actions are pinned to commit SHAs and workflows run with read-only tokens — see [Repository setup](docs/development/REPOSITORY_SETUP.md)
+- ✅ **Careful with dependencies**: Dependabot and Renovate share the updates, new releases wait a few days before they are proposed, and a template sync never lowers a version your bots already raised — see [Dependency updates](docs/development/DEPENDENCY_UPDATES.md)
 - ✅ **Fast rebuilds**: Named Docker volumes keep the Python venv _and_ uv's package cache alive across container rebuilds — no re-downloading on every `Rebuild Container`
 - ✅ **Complete test setup**: Includes `pytest-homeassistant-custom-component` for proper testing
 - ✅ **Developer-friendly**: Comprehensive scripts for development, testing, and maintenance
-- ✅ **Stays current**: Weekly automated PRs keep your project in sync with blueprint improvements — see [Customization Guide](docs/development/CUSTOMIZATION.md)
+- ✅ **Stays current**: Weekly automated PRs keep your project in sync with blueprint improvements, and `script/blueprint-update` walks you through the changes a sync cannot deliver — see [Customization Guide](docs/development/CUSTOMIZATION.md)
+- ✅ **Sparing with CI minutes**: Draft pull requests run nothing, fork pull requests wait for your approval, and a merge does not repeat checks the pull request already passed
 - ✅ **Release ready**: Automated release workflow (Release Please) + AI-assisted release notes via `script/release-notes` — see [Release Guide](docs/development/RELEASE.md)
 
 By having a common structure, it's easier for developers to help each other and for users to understand integrations. This blueprint stays close to how Home Assistant Core itself is developed, making it easier to contribute to Core later or migrate your integration.
@@ -215,8 +237,9 @@ This blueprint demonstrates all the essential integration features:
 **Development & Quality Tools:**
 
 - Modern development tooling (Ruff for linting/formatting, Pyright for type checking)
-- Pre-commit hooks for automatic code quality checks
-- VS Code dev container with Python 3.14, Node.js LTS, and all extensions pre-configured
+- Pre-commit hooks for automatic code quality checks, including a secret scan
+- CI that lints, type-checks and runs the tests on every pull request, with a `main` ruleset that takes changes through squash-merged pull requests
+- VS Code dev container with the toolchain from `mise.toml` and all extensions pre-configured
 - Comprehensive development scripts (based on "Scripts to Rule Them All" pattern)
 - Test infrastructure with pytest and Home Assistant test utilities
 - HACS integration support out of the box
@@ -288,6 +311,9 @@ This repository uses the [Scripts to Rule Them All](https://github.com/github/sc
 - **`script/setup/setup`** - Complete project setup (runs bootstrap + additional configuration)
 - **`script/setup/reset`** - Reset development environment to fresh state
 - **`script/setup/sync-hacs`** - Sync HACS-installed integrations to `custom_components/` for development
+- **`script/setup/toolchain`** - Install the tools `mise.toml` pins (run by bootstrap)
+- **`script/setup/github`** - Apply the repository's GitHub settings and rulesets (`--dry-run` first) — see [Repository setup](docs/development/REPOSITORY_SETUP.md)
+- **`script/blueprint-update`** - Show what the blueprint changed in the files the template sync never touches
 
 #### Development
 
@@ -301,6 +327,7 @@ This repository uses the [Scripts to Rule Them All](https://github.com/github/sc
 - **`script/spell`** - Run spell checking and fix spelling issues
 - **`script/spell-check`** - Check spelling without making changes (for CI)
 - **`script/check`** - Run type checking, linting, and spell checking (useful before commits)
+- **`script/secret-scan`** - Scan the staged changes, a commit range or the whole history for secrets
 - **`script/clean`** - Clean up development artifacts and caches
 - **`script/help`** - Display all available scripts with descriptions
 

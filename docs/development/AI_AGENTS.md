@@ -58,14 +58,14 @@ For detailed Codespaces usage, troubleshooting, and resource management, see [CO
 Use this matrix to keep security/approval behavior in real, vendor-supported
 configuration files rather than in instruction prose.
 
-| Agent                   | Policy and hook configuration                                                                                 | Shared hook implementation             | Notes                                                                                                           |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Copilot / VS Code agent | VS Code approval settings plus [.claude/settings.json](../../.claude/settings.json) for local lifecycle hooks | [.agents/hooks/](../../.agents/hooks/) | VS Code currently ignores hook matchers, so every shared hook must safely ignore unrelated calls.               |
-| Copilot CLI             | CLI defaults plus [.claude/settings.json](../../.claude/settings.json)                                        | [.agents/hooks/](../../.agents/hooks/) | The GitHub-hosted coding agent only reads `.github/hooks/`; this repository does not duplicate its local hooks. |
-| Claude Code             | Managed policy plus project hooks in [.claude/settings.json](../../.claude/settings.json)                     | [.agents/hooks/](../../.agents/hooks/) | Project hooks are version-controlled; managed settings are copied into the container.                           |
-| Codex CLI               | Sandbox defaults plus project hooks in [.codex/hooks.json](../../.codex/hooks.json)                           | [.agents/hooks/](../../.agents/hooks/) | Codex asks the user to trust changed project hooks before executing them.                                       |
-| OpenCode                | Managed policy plus a project plugin in [.opencode/plugins/](../../.opencode/plugins/)                        | [.agents/hooks/](../../.agents/hooks/) | Requires OpenCode 2; version 1 silently ignores both the plugin and the managed `permissions` list.             |
-| Gemini                  | Not configured                                                                                                | —                                      | Not part of the default devcontainer experience.                                                                |
+| Agent                   | Policy and hook configuration                                                                                       | Shared hook implementation             | Notes                                                                                                           |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Copilot / VS Code agent | VS Code approval settings plus [.claude/settings.json](../../.claude/settings.json) for local lifecycle hooks       | [.agents/hooks/](../../.agents/hooks/) | VS Code currently ignores hook matchers, so every shared hook must safely ignore unrelated calls.               |
+| Copilot CLI             | CLI defaults plus [.claude/settings.json](../../.claude/settings.json)                                              | [.agents/hooks/](../../.agents/hooks/) | The GitHub-hosted coding agent only reads `.github/hooks/`; this repository does not duplicate its local hooks. |
+| Claude Code             | Managed policy plus project hooks in [.claude/settings.json](../../.claude/settings.json)                           | [.agents/hooks/](../../.agents/hooks/) | The project settings repeat the managed protections, so they hold outside the container too.                    |
+| Codex CLI               | Sandbox defaults plus project hooks in [.codex/hooks.json](../../.codex/hooks.json)                                 | [.agents/hooks/](../../.agents/hooks/) | Codex asks the user to trust changed project hooks before executing them.                                       |
+| OpenCode                | Managed policy, [opencode.json](../../opencode.json) and a plugin in [.opencode/plugins/](../../.opencode/plugins/) | [.agents/hooks/](../../.agents/hooks/) | Requires OpenCode 2; version 1 silently ignores both the plugin and the managed `permissions` list.             |
+| Gemini                  | Not configured                                                                                                      | —                                      | Not part of the default devcontainer experience.                                                                |
 
 ### Editor extensions
 
@@ -82,9 +82,10 @@ If you edit the instructions and skills under `.agents/` with VS Code's chat,
 ### Practical rule
 
 - Put policy and defaults in vendor config files first.
-- Protect a path in [managed-settings.json](../../.devcontainer/claude-code/managed-settings.json), the
-  [OpenCode config](../../.devcontainer/opencode/opencode.json) and both copies of `chat.tools.edits.autoApprove`
-  together. `script/skills-check` fails when they disagree and prints the missing entry in each tool's syntax.
+- Protect a path in [managed-settings.json](../../.devcontainer/claude-code/managed-settings.json), the project
+  [.claude/settings.json](../../.claude/settings.json), both OpenCode configs ([managed](../../.devcontainer/opencode/opencode.json)
+  and [project](../../opencode.json)) and both copies of `chat.tools.edits.autoApprove` together. The managed files
+  apply only inside the dev container; the project files carry the same protection to a local or cloud session. `script/skills-check` fails when they disagree and prints the missing entry in each tool's syntax.
 - Keep markdown instruction files for workflow guidance only.
 
 Claude Code, Codex, OpenCode, VS Code, and Copilot CLI all support lifecycle hooks. The configuration paths differ, but the
@@ -92,6 +93,25 @@ commands here converge on `.agents/hooks/` so security behavior is implemented a
 under `.claude/commands/` remain Claude-specific; the corresponding reusable workflow is the vendor-neutral
 [`ha-issue-triage`](../../.agents/skills/ha-issue-triage/SKILL.md), with `.github/prompts/` providing Copilot dispatch.
 These agent lifecycle hooks are unrelated to `script/hooks/`, which customizes the repository's validation scripts.
+
+### Session start
+
+Every agent runs [`session-start.sh`](../../.agents/hooks/session-start.sh) when a session begins, so a checkout works
+without the dev container. Nothing slow happens in front of the session: in a Claude Code cloud session, which starts
+on a fresh machine each time, it runs `script/setup/bootstrap` in the background, which installs mise from its GitHub
+release (checksum-verified); everywhere else it checks the tools [`mise.toml`](../../mise.toml) pins in the background
+and reports a checkout that still needs `script/setup/bootstrap`. Both scripts record their state, with the PID, in
+`.local/<script>.status`, so a run in progress is waited for and a dead one is not mistaken for it. Every later command
+of the session applies `mise env` — the pinned tools and the Home Assistant venv; OpenCode has no session-start event,
+so its plugin runs the script when it loads and applies `mise env` to every shell. Codex cloud builds its environment from the repository; `AGENTS.md` names the install command it should
+record. After pulling this change, Codex asks once to trust the changed `.codex/hooks.json`.
+
+### Previewing Home Assistant
+
+[`.claude/launch.json`](../../.claude/launch.json) tells the Claude desktop app how to start Home Assistant
+(`script/develop`, port 8123) for its browser pane, so Claude can look at the UI it is changing. That is a desktop
+feature: a Claude Code cloud session documents no preview of a server running in its machine, and Codex, OpenCode
+and Copilot have no counterpart. There, `script/ha` is how an agent inspects the running instance.
 
 ### Push gate
 
@@ -104,14 +124,13 @@ repository whose `.pre-commit-config.yaml` does not install the hook. Commit mes
 that merely mention such a push pass. A person who needs any of that pushes with `--no-verify` deliberately. After pulling this change, run `prek install` once (`script/setup/bootstrap` does
 it) so the hook exists in your clone.
 
-### Branch/PR-based work is available, not mandatory
+### Work reaches `main` through a pull request
 
-Most of this repository's own history is direct commits to `main` — that stays a perfectly normal way to work here,
-especially for a single request handled live with a developer watching each change. `ha-issue-triage` adds the other
-option as opt-in tooling: working a backlog of issues through a feature branch, a pull request, and green CI before
-merging — useful specifically because nobody is reviewing each individual commit in real time when an agent works
-through several issues in a row. See `RELEASE.md`'s branch-protection section if you want to require PRs on `main`
-at the repository-settings level too; that's independent of whether you use this skill.
+The `main` ruleset takes every change through a squash-merged pull request — what it requires and how to relax it is
+in [REPOSITORY_SETUP.md](REPOSITORY_SETUP.md). That suits agent work: a branch's working commits never reach `main`,
+each change can be reverted as a whole, and release-please reads exactly one commit per change. Open a pull request as
+a draft while an agent still pushes to it; [`ha-issue-triage`](../../.agents/skills/ha-issue-triage/SKILL.md) walks a
+backlog the same way, one branch and pull request per issue.
 
 ## Resources
 

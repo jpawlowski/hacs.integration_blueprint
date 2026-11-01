@@ -139,7 +139,9 @@ each one: does this integration have a real equivalent — a value it reads, com
 
 Then update `PLATFORMS` in `custom_components/<domain>/__init__.py` to exactly the surviving list, and delete the
 matching `entity.<platform>.*` blocks from `translations/en.json` and `icons.json`. A platform left in `PLATFORMS`
-without a directory fails at setup; an orphaned translation key fails `script/hassfest`.
+without a directory fails at setup; an orphaned translation key fails `script/hassfest`. The example tests under
+`tests/` go in the same step as the code they cover: CI runs `script/test` on every pull request, so a test left
+behind for a deleted platform turns it red.
 
 Same treatment for `service_actions/` and `services.yaml` — the example actions go unless the device has a real
 equivalent ([`ha-service-action`](../ha-service-action/SKILL.md)).

@@ -135,6 +135,8 @@ For a feature request, "Fix" means "implement," and scope is more often unsettle
    **No manual version bump** — release-please derives it from the commit type once this lands on `main`
    ([`ha-release`](../ha-release/SKILL.md)).
 7. **Push and open the PR** (`gh pr create`, following `.github/pull_request_template.md` if the repo has one).
+   Open it ready for review, not as a draft: the gate above already passed, and CI skips drafts, so a draft would
+   leave the next step waiting for checks that never start.
 8. **Wait for CI:** `gh pr checks --watch --fail-fast`.
    - Red → do not merge. Fix it and push again, watch again — or stop and report if it isn't yours to fix.
    - Green → continue.

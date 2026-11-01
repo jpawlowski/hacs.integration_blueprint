@@ -376,6 +376,21 @@ You'll need these installed locally:
 > [!NOTE]
 > Both Codespaces and local DevContainer provide the exact same experience. The only difference is where the container runs (GitHub's cloud vs. your machine).
 
+### Option 3: Without a Dev Container 🧑‍💻
+
+Claude Code, Codex, OpenCode or GitHub Copilot can work on the repository directly — on your machine or in their
+cloud environments. When a session starts, the agent's hook prepares the checkout: in a Claude Code cloud session it
+installs everything by itself, and Codex cloud picks up the install command from `AGENTS.md`. Nothing has to be
+configured in the cloud environment.
+
+On your own machine, install [mise](https://mise.jdx.dev/getting-started.html) for the pinned tool versions (optional,
+the scripts fall back to what is on your `PATH`) and run:
+
+```bash
+script/setup/bootstrap  # Python, the tools from mise.toml, Home Assistant and the test dependencies
+script/develop          # Home Assistant runs at http://localhost:8123
+```
+
 </details>
 
 ---
