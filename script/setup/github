@@ -112,6 +112,16 @@ run_hook "setup/github" "post"
 
 echo ""
 log_success "GitHub settings applied$([[ $dry_run -eq 1 ]] && echo " (dry run — nothing changed)")"
+# No token here can query the app installation. Renovate rewrites its dashboard issue on every run, so recent activity
+# is the sign it is live — the same rule toolchain-update-check.yml applies.
+since="$(date -u -d '45 days ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-45d +%Y-%m-%dT%H:%M:%SZ)"
+renovate_active="$(gh api "repos/$repo/issues?creator=renovate%5Bbot%5D&state=all&since=$since&per_page=1" --jq length)"
+if [[ ${renovate_active:-0} -gt 0 ]]; then
+    log_success "Renovate is active on this repository"
+fi
 log_info "Still yours to do on github.com:"
-log_step "Install the Renovate app for this repository: https://github.com/apps/renovate"
+if [[ ${renovate_active:-0} -eq 0 ]]; then
+    log_step "Install the Renovate app for this repository: https://github.com/apps/renovate"
+    log_step "Installed already but nothing from Renovate here yet? Check that the app's repository access includes it"
+fi
 log_step "For workflow updates through the template sync, add a TEMPLATE_SYNC_TARGET_PAT secret (docs/development/CUSTOMIZATION.md)"
