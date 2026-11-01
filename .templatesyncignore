@@ -22,12 +22,6 @@ tests/
 # your own tool settings.
 pyproject.toml
 
-# ── Ignore pattern files ───────────────────────────────────────
-# .gitignore contains a domain-specific negation pattern
-# (!custom_components/<your_domain>/) set by initialize.sh.
-# Syncing would revert that line.
-.gitignore
-
 # ── Runtime dependencies ──────────────────────────────────────
 # requirements.txt lists your integration's PyPI dependencies (synced with
 # manifest.json → requirements). This is user-owned content; requirements_dev.txt
