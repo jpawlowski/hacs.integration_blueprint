@@ -27,8 +27,7 @@ By default, this blueprint handles that gracefully:
 
 Make sure the target repository has:
 
-- **Settings → Actions → General → Workflow permissions** set to **Read and write permissions**
-- **Allow GitHub Actions to create and approve pull requests** enabled
+- **Allow GitHub Actions to create and approve pull requests** enabled — [`script/setup/github`](REPOSITORY_SETUP.md) sets it, with the default workflow permissions left at read, since every workflow declares its own
 - A repository secret named `TEMPLATE_SYNC_TARGET_PAT` with a PAT that has at least: `contents: write`, `pull requests: write`, `workflows: write`, `metadata: read`
 
 The template sync workflow in this blueprint is already configured to use that secret when present and to fall back to `github.token` otherwise.
@@ -61,6 +60,10 @@ In practice:
 - If you changed a synced file that upstream did not touch, the PR contains nothing for that file — your local changes are unaffected.
 
 Review the PR diff before merging. If it would overwrite something you want to keep, close the PR and manually apply the changes you actually want.
+
+**Versions are the exception.** Where your Dependabot or Renovate raised a pin further than the blueprint has, `-X theirs` would lower it again. After the sync, the workflow runs [`script/template-sync-guard`](../../script/template-sync-guard): it compares every pin the dependency bots raise — the managers and patterns in [`.github/renovate.json`](../../.github/renovate.json), so `mise.toml`, the requirements files, `package.json` (regenerating `package-lock.json` to match), the workflows and the mise version pins — with your default branch, restores each occurrence the sync lowered (a release still replaces its own pre-release), commits the higher version back to the sync branch, and comments the list on the PR. A repository made from the blueprint before this step existed does not get it through the sync, since `template-sync.yml` is excluded; copy the _Keep this repository's newer versions_ step from the blueprint's workflow.
+
+**What the sync cannot bring.** Files in `.templatesyncignore` — `AGENTS.md`, `template-sync.yml`, this documentation — never change through the sync, and some blueprint changes need a step only you can take. Ask your agent to run the `blueprint-update` skill (`/blueprint-update` in Claude Code), or run `script/blueprint-update` yourself: it shows what the blueprint changed in those files since you last went through them, already spelled with your integration's names, and the skill walks through the manual steps one at a time.
 
 ### Modifying synced files locally
 
