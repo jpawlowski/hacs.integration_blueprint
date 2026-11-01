@@ -9,7 +9,14 @@ import pytest
 SCRIPT_DIR = Path(__file__).parents[1]
 SECTION_FILE = ".agents/skills/README.md"
 README = "keep\n<!-- blueprint-only:start -->\ndrop\n<!-- blueprint-only:end -->\nkeep too\n"
-PRUNED = (".github/FUNDING.yml", "docs/blueprint/MIGRATION.md", ".agents/skills/blueprint-skill-maintenance/SKILL.md")
+PRUNED = (
+    ".github/FUNDING.yml",
+    "docs/blueprint/MIGRATION.md",
+    ".agents/skills/blueprint-skill-maintenance/SKILL.md",
+    "script/tests/test_initialize.py",
+)
+SYNC_IGNORE = ".templatesyncignore"
+SYNC_IGNORE_BEFORE = "docs/blueprint/\n.github/FUNDING.yml\n.agents/skills/blueprint-skill-maintenance/\n"
 
 
 @pytest.fixture
@@ -22,6 +29,7 @@ def repo(tmp_path: Path) -> Path:
         (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
         (tmp_path / name).write_text("x\n", encoding="utf-8")
     (tmp_path / SECTION_FILE).write_text(README, encoding="utf-8")
+    (tmp_path / SYNC_IGNORE).write_text(SYNC_IGNORE_BEFORE, encoding="utf-8")
     return tmp_path
 
 
@@ -45,6 +53,17 @@ def test_dry_run_lists_without_deleting(repo: Path) -> None:
     assert "FUNDING.yml" in result.stdout
     assert all((repo / name).exists() for name in PRUNED)
     assert (repo / SECTION_FILE).read_text(encoding="utf-8") == README
+    assert (repo / SYNC_IGNORE).read_text(encoding="utf-8") == SYNC_IGNORE_BEFORE
+
+
+@pytest.mark.unit
+def test_apply_adds_only_missing_sync_ignore_entries(repo: Path) -> None:
+    """Paths already listed, with or without a trailing slash, gain no second entry."""
+    result = _run(repo, "--apply")
+
+    assert result.returncode == 0
+    added = (repo / SYNC_IGNORE).read_text(encoding="utf-8").removeprefix(SYNC_IGNORE_BEFORE).splitlines()
+    assert [line for line in added if line and not line.startswith("#")] == ["script/tests/test_initialize.py"]
 
 
 @pytest.mark.unit
