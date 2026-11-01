@@ -53,6 +53,10 @@ source "$SCRIPT_DIR/.lib/output.sh"
 - Quote all variable references: `"$var"` not `$var`
 - Use `[[ ]]` for conditionals, not `[ ]`
 - Use `$()` for command substitution, not backticks
+- **Never wait for an answer an agent cannot give.** A confirmation sits behind a `--yes` flag and stops with a
+  message when stdin is not a terminal (`[[ -t 0 ]]`); call `sudo -n`, `apt-get -y` with
+  `DEBIAN_FRONTEND=noninteractive`, and each tool's own non-interactive flag (`mise install --yes`, `npm ci`)
+- No `command` prefix in a script: aliases do not expand in a script run as a file
 
 ## ShellCheck Suppressions
 

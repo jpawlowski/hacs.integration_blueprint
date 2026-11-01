@@ -4,14 +4,16 @@
 #
 # Removes all HA-generated files in config/ directory (keeps configuration.yaml by default)
 # and re-runs complete setup (dependencies, HACS, symlinks).
-# Use --full to also reset configuration.yaml from git.
+# Use --full to also reset configuration.yaml from git. Asks for confirmation; --yes skips the question, and without a
+# terminal to ask in the script stops instead of waiting.
 #
 # Usage:
-#   ./script/setup/reset [--full]
+#   ./script/setup/reset [--full] [--yes]
 #
 # Examples:
-#   ./script/setup/reset        # Keep configuration.yaml (your local settings)
-#   ./script/setup/reset --full # Also reset configuration.yaml from git
+#   ./script/setup/reset             # Keep configuration.yaml (your local settings)
+#   ./script/setup/reset --full      # Also reset configuration.yaml from git
+#   ./script/setup/reset --full --yes # Same, without the question
 
 set -euo pipefail
 
@@ -22,10 +24,15 @@ cd "$SCRIPT_DIR/../.."
 source "$SCRIPT_DIR/../.lib/output.sh"
 
 FULL_RESET=false
+ASSUME_YES=false
 
-if [[ ${1:-} == --full ]]; then
-    FULL_RESET=true
-fi
+for arg in "$@"; do
+    case "$arg" in
+    --full) FULL_RESET=true ;;
+    --yes) ASSUME_YES=true ;;
+    *) die "Unknown option: $arg (expected --full or --yes)" ;;
+    esac
+done
 
 run_hook "setup/reset" "pre"
 
@@ -51,12 +58,17 @@ else
 fi
 log_step "Then re-run: Complete setup (bootstrap + HACS + symlinks)"
 echo ""
-read -p "Continue? [y/N] " -n 1 -r
-echo ""
-
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    log_info "Reset cancelled"
-    exit 0
+if [[ $ASSUME_YES == true ]]; then
+    log_info "Continuing without asking (--yes)"
+elif [[ ! -t 0 ]]; then
+    die "No terminal to confirm in; run again with --yes to reset anyway"
+else
+    read -p "Continue? [y/N] " -n 1 -r
+    echo ""
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        log_info "Reset cancelled"
+        exit 0
+    fi
 fi
 
 # Remove config directory contents
