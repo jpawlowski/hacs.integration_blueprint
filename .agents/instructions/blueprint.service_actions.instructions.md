@@ -14,7 +14,7 @@ covers the `services.yaml` half of the change too.
 
 **Applies to:** Service action implementation files
 
-**Reference:** [Home Assistant Service Actions Documentation](https://developers.home-assistant.io/docs/dev_101_services/)
+**Reference:** [Home Assistant Service Actions Documentation](https://contributors.home-assistant.io/core/integrations/actions/)
 
 ## Critical Rules
 

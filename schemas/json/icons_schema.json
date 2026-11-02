@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Home Assistant Integration Icons (icons.json)",
-  "description": "JSON schema for the icons.json file in a Home Assistant integration. Mirrors the schema hassfest enforces in script/hassfest/icons.py: entity icons by domain and translation_key, service action icons, and icons for the config, options, issue, trigger and condition flows. See: https://developers.home-assistant.io/docs/core/integration-quality-scale/rules/icon-translations",
+  "description": "JSON schema for the icons.json file in a Home Assistant integration. Mirrors the schema hassfest enforces in script/hassfest/icons.py: entity icons by domain and translation_key, service action icons, and icons for the config, options, issue, trigger and condition flows. See: https://contributors.home-assistant.io/core/quality-scale/icon-translations/",
   "type": "object",
   "properties": {
     "services": {

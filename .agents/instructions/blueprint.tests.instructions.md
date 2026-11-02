@@ -14,7 +14,7 @@ and how to diagnose a failure rather than silence it.
 
 **Applies to:** `tests/` directory
 
-**Official documentation:** [Home Assistant Testing](https://developers.home-assistant.io/docs/development_testing)
+**Official documentation:** [Home Assistant Testing](https://contributors.home-assistant.io/core/development/testing/)
 
 ## Test Structure
 

@@ -89,7 +89,7 @@ Please read [`AI_POLICY.md`](./AI_POLICY.md) before submitting AI-assisted contr
 
 ## Code Quality
 
-This blueprint follows Home Assistant's [integration quality standards](https://developers.home-assistant.io/docs/core/integration-quality-scale/) as best practices. The code includes:
+This blueprint follows Home Assistant's [integration quality standards](https://contributors.home-assistant.io/core/quality-scale/) as best practices. The code includes:
 
 - ✅ Comprehensive docstrings with links to official documentation
 - ✅ Full type hints for better IDE support
