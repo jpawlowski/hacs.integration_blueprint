@@ -69,7 +69,7 @@ Replace:
 Verify: custom_components/<domain>/ exists, manifest.json correct, README.md updated. Create PR if successful. The script deletes itself after completion.
 ```
 
-**Example:** `--domain my_device --title "My Device" --repo user/hacs-my-device --author "John Doe" --force`
+**Example:** `--domain my_device --title "My Device" --repo user/ha-my-device --author "John Doe" --force`
 
 The agent reads `AGENTS.md` for guidance and runs `./script/check` for validation.
 Its pull request is a draft: review the diff and accurately document automated and real-device testing before merging.
@@ -285,7 +285,7 @@ The `initialize.sh` script supports both interactive and unattended modes:
 ./initialize.sh \
   --domain my_awesome_device \
   --title "My Awesome Device" \
-  --repo myusername/my-hacs-integration \
+  --repo myusername/ha-my-integration \
   --author "Your Name" \
   --force
 ```

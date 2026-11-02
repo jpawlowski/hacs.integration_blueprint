@@ -5,7 +5,7 @@
 config/*
 !config/configuration.yaml
 
-# Custom components (HACS-installed dependencies and dev symlinks)
+# Custom components (Marketplace- or HACS-installed dependencies and dev symlinks)
 custom_components/*
 !custom_components/.gitignore
 

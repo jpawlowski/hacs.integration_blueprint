@@ -2,7 +2,7 @@
 # https://github.com/home-assistant/core/blob/dev/pyproject.toml
 #
 # Sections not included (HA Core specific):
-# - [build-system] - Not published to PyPI (installed via HACS)
+# - [build-system] - Not published to PyPI (installed through the Marketplace or HACS)
 # - [tool.pylint.*] - Optional additional linting (Ruff is sufficient)
 
 [project]

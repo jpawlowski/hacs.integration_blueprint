@@ -242,7 +242,7 @@ build_prompt() {
 You are writing a GitHub release announcement for a Home Assistant custom integration.
 
 ## YOUR AUDIENCE
-Home Assistant users — people who install custom integrations via HACS, build automations,
+Home Assistant users — people who install custom integrations from the Marketplace, build automations,
 and configure dashboards. They are NOT developers. They do not understand terms like:
 coordinator, entity, async, refactor, TypedDict, module, class, dataclass, config entry,
 state machine, MRO, or any Python/software engineering jargon.

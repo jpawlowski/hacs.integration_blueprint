@@ -276,7 +276,7 @@ than reduce it, and buy you nothing.
 when the walk begins there, so a search returns the handful of top-level modules and nothing from `api/`,
 `coordinator/`, `entity/` or any platform. Search from the repository root, or point straight at
 `custom_components/<domain>/`; both are complete. The cause is the deliberate `custom_components/*` rule in
-`.gitignore` that keeps HACS-installed third-party integrations out of the repository, and it cannot be fixed there
+`.gitignore` that keeps Marketplace- and HACS-installed third-party integrations out of the repository, and it cannot be fixed there
 without weakening that protection. `git`, `ruff` and the `script/*` gates resolve the same rule correctly, so nothing
 in the validation output reveals the gap — an empty result is not evidence of absence.
 
