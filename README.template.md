@@ -16,7 +16,7 @@ Uncomment and customize these badges if you want to use them:
 
 **✨ Develop in the cloud:** Want to contribute or customize this integration? Open it directly in GitHub Codespaces - no local setup required!
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/jpawlowski/hacs.integration_blueprint?quickstart=1)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/jpawlowski/ha-integration-blueprint?quickstart=1)
 
 ## ✨ Features
 
@@ -55,7 +55,7 @@ Uncomment and customize these badges if you want to use them:
 
 Click the button below to open the integration directly in HACS:
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jpawlowski&repository=hacs.integration_blueprint&category=integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jpawlowski&repository=ha-integration-blueprint&category=integration)
 
 Then:
 
@@ -427,14 +427,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-[commits-shield]: https://img.shields.io/github/commit-activity/y/jpawlowski/hacs.integration_blueprint.svg?style=for-the-badge
-[commits]: https://github.com/jpawlowski/hacs.integration_blueprint/commits/main
+[commits-shield]: https://img.shields.io/github/commit-activity/y/jpawlowski/ha-integration-blueprint.svg?style=for-the-badge
+[commits]: https://github.com/jpawlowski/ha-integration-blueprint/commits/main
 [hacs]: https://github.com/hacs/integration
 [hacsbadge]: https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge
-[license-shield]: https://img.shields.io/github/license/jpawlowski/hacs.integration_blueprint.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/github/license/jpawlowski/ha-integration-blueprint.svg?style=for-the-badge
 [maintenance-shield]: https://img.shields.io/badge/maintainer-%40jpawlowski-blue.svg?style=for-the-badge
-[releases-shield]: https://img.shields.io/github/release/jpawlowski/hacs.integration_blueprint.svg?style=for-the-badge
-[releases]: https://github.com/jpawlowski/hacs.integration_blueprint/releases
+[releases-shield]: https://img.shields.io/github/release/jpawlowski/ha-integration-blueprint.svg?style=for-the-badge
+[releases]: https://github.com/jpawlowski/ha-integration-blueprint/releases
 [user_profile]: https://github.com/jpawlowski
 
 <!-- Optional badge definitions - uncomment if needed:

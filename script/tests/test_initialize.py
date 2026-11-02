@@ -17,7 +17,7 @@ PRUNE_BLUEPRINT = REPO_ROOT / "script" / "prune-blueprint"
 SUBSTITUTED_IDENTIFIERS = re.compile(r"ha_integration_domain|IntegrationBlueprint")
 BLUEPRINT_NAMES = re.compile(
     SUBSTITUTED_IDENTIFIERS.pattern
-    + r"|Integration [Bb]lueprint|hacs\.integration_blueprint|jpawlowski|Julian Pawlowski"
+    + r"|Integration [Bb]lueprint|ha-integration-blueprint|hacs\.integration_blueprint|jpawlowski|Julian Pawlowski"
 )
 
 # Owned by the integration after initialization, so they may carry its domain; each must stay out of template sync.

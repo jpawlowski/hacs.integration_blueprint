@@ -4,6 +4,14 @@ What an integration repository has to do by hand because template sync cannot do
 for the `skipped` list in `.agents/blueprint-update.json`, the date it entered the blueprint, and a check that passes
 once it is done. Run the check from the repository root.
 
+## `upstream-rename` — 2026-11-02
+
+**Check:** `grep -q 'jpawlowski/ha-integration-blueprint' .github/workflows/template-sync.yml`
+
+The blueprint moved from `jpawlowski/hacs.integration_blueprint` to `jpawlowski/ha-integration-blueprint`. GitHub
+redirects the old name, so the sync keeps working, but only for as long as nobody claims that name again. Replace the
+old name in `source_repo_path` of this repository's `template-sync.yml`; the workflow is excluded from the sync.
+
 ## `root-gitignore` — 2026-11-02
 
 **Check:** `grep -qE '^![^/]+/$' custom_components/.gitignore && ! grep -qxF '.gitignore' .templatesyncignore`

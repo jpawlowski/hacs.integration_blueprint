@@ -15,7 +15,7 @@ Both strategies below work inside the existing repository.
 Least painful when the commit history is not worth preserving.
 
 1. Clone the blueprint locally:
-   `git clone https://github.com/jpawlowski/hacs.integration_blueprint.git`
+   `git clone https://github.com/jpawlowski/ha-integration-blueprint.git`
 2. Point the remote at the existing repository **before** initialising:
    `git remote set-url origin https://github.com/<you>/<your-repo>.git`
    Doing this first also avoids `initialize.sh` refusing to run against the blueprint's own remote.
@@ -34,7 +34,7 @@ Issues and pull requests survive; the commit history starts fresh.
 
 Only worth it when a continuous `git log` genuinely matters.
 
-1. `git remote add blueprint https://github.com/jpawlowski/hacs.integration_blueprint.git`
+1. `git remote add blueprint https://github.com/jpawlowski/ha-integration-blueprint.git`
 2. `git fetch blueprint`
 3. `git merge blueprint/main --allow-unrelated-histories`
 4. Resolve the conflicts — expect nearly every file to conflict, since the blueprint touches the whole tree.

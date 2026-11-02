@@ -39,7 +39,7 @@ contributor's fork of the template is not a copy awaiting initialisation.
 - **Domain:** `ha_integration_domain`
 - **Title:** Integration Blueprint
 - **Class prefix:** `IntegrationBlueprint`
-- **Repository:** jpawlowski/hacs.integration_blueprint
+- **Repository:** jpawlowski/ha-integration-blueprint
 
 **Key directories:**
 
