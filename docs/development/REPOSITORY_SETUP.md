@@ -74,5 +74,8 @@ A **private** repository pays for what goes beyond the free tier, so the workflo
 - After a squash merge, the lint job on `main` stops after its first step when the pull request already passed it on
   the same tree; it still runs in full for a pull request that was behind `main` or never ran CI, such as a template
   sync or release pull request.
+- A change to Markdown files only — skills, instructions, documentation — skips the Home Assistant install, the type
+  check and the tests; the lint job still scans for secrets and runs the Markdown and skill checks. Any other file in
+  the change runs everything.
 - Nothing runs twice: CodeQL runs either as the default setup or as `codeql.yml`, never both, and each dependency is
   raised by Dependabot or by Renovate, never both.
