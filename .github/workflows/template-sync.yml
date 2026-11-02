@@ -31,7 +31,7 @@ jobs:
     name: Sync from template
     # Skip when running inside the template repository itself
     if: github.repository != 'jpawlowski/ha-integration-blueprint'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     env:
       TEMPLATE_SYNC_TARGET_PAT: ${{ secrets.TEMPLATE_SYNC_TARGET_PAT }}
     permissions:

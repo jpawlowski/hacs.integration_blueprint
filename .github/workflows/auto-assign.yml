@@ -15,7 +15,7 @@ concurrency:
 jobs:
   auto-assign:
     name: Assign to owner
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       issues: write # assign the newly opened issue to the repository owner
     steps:

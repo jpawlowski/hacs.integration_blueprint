@@ -21,7 +21,7 @@ jobs:
   hassfest: # https://contributors.home-assistant.io/blog/2020/04/16/hassfest/
     name: Hassfest validation
     if: github.event_name != 'pull_request' || !github.event.pull_request.draft
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read # check out the repository
     steps:
@@ -36,7 +36,7 @@ jobs:
   hacs: # https://github.com/hacs/action
     name: HACS validation
     if: github.event_name != 'pull_request' || !github.event.pull_request.draft
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read # check out the repository
     steps:

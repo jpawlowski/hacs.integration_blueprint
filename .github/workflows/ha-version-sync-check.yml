@@ -33,7 +33,7 @@ concurrency:
 jobs:
   check-ha-version-sync:
     name: Ensure HA version sources are in sync
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read # check out the repository
     steps:

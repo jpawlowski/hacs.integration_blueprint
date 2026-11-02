@@ -21,7 +21,7 @@ jobs:
     # A body edit leaves the title as it was; only a title edit needs the check again. Dependabot names both commit
     # hashes of a digest-pinned action in the title, which no sensible length limit fits.
     if: ${{ !github.event.pull_request.draft && github.event.pull_request.user.login != 'dependabot[bot]' && (github.event.action != 'edited' || github.event.changes.title != null) }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     permissions:
       contents: read # read the commitlint configuration from the base branch

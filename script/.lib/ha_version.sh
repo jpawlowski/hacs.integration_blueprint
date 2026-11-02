@@ -1,8 +1,9 @@
 #!/bin/bash
 # ha_version.sh: Home Assistant version resolution for setup and validation scripts.
 #
-# Provides resolve_ha_version() which resolves flexible version specifiers to
-# concrete version numbers via PyPI.
+# Provides resolve_ha_version(), which resolves flexible version specifiers to
+# concrete version numbers via PyPI, and target_ha_version(), which picks the
+# version the tooling targets.
 #
 # Source this file after output.sh:
 #   # shellcheck source=script/.lib/ha_version.sh
@@ -162,4 +163,31 @@ print(versions[-1] if versions else "")
     # Explicit version (pinned stable or pre-release) → pass through unchanged
     # Examples: "2026.8.3", "2026.8.0b1", "2026.8.0rc2"
     _rha_result="$version"
+}
+
+# target_ha_version RESULT_VAR
+#
+# Resolves the Home Assistant version the tooling targets: HA_VERSION when it is
+# set, otherwise the minimum in hacs.json, where YEAR.MONTH.0 stands for the
+# latest patch of that month.
+#
+# Usage:
+#   target_ha_version HA_VERSION   # hacs.json "2026.8.0" → e.g., "2026.8.3"
+target_ha_version() {
+    # shellcheck disable=SC2178  # intentional nameref assignment
+    local -n _tha_result="$1"
+    local _tha_version="${HA_VERSION:-}" _tha_resolved
+
+    if [[ -z "$_tha_version" ]]; then
+        _tha_version=$(grep '"homeassistant"' hacs.json | head -1 | sed 's/.*"homeassistant"\s*:\s*"\([^"]*\)".*/\1/')
+        if [[ -z "$_tha_version" ]]; then
+            log_error "HA_VERSION not set and could not be determined from hacs.json"
+            return 1
+        fi
+        if [[ "$_tha_version" =~ ^[0-9]{4}\.[0-9]+\.0$ ]]; then
+            _tha_version="${_tha_version%.*}"
+        fi
+    fi
+    resolve_ha_version _tha_resolved "$_tha_version" || return 1
+    _tha_result="$_tha_resolved"
 }
