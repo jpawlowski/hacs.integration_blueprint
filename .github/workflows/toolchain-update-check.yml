@@ -19,7 +19,7 @@ concurrency:
 jobs:
   detect-renovate:
     name: Detect an active Renovate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     permissions:
       issues: read # look for Renovate's dependency dashboard and pull requests
@@ -49,7 +49,7 @@ jobs:
     name: Report outdated tools
     needs: detect-renovate
     if: needs.detect-renovate.outputs.active == 'false'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     permissions:
       contents: read # check out the repository

@@ -176,21 +176,8 @@ EOF
     set -e
 fi
 
-if [[ -n "${HA_VERSION:-}" ]]; then
-    # Explicit HA_VERSION from environment — use exactly as specified
-    resolve_ha_version HA_VERSION "$HA_VERSION"
-else
-    # Read from hacs.json: treat YEAR.MONTH.0 as YEAR.MONTH so the latest
-    # stable patch is installed (hacs.json records minimum version, not pin)
-    HA_VERSION=$(grep '"homeassistant"' hacs.json | head -1 | sed 's/.*"homeassistant"\s*:\s*"\([^"]*\)".*/\1/')
-    if [[ -z "$HA_VERSION" ]]; then
-        log_error "HA_VERSION not set and could not be determined from hacs.json"
-        exit 1
-    fi
-    if [[ "$HA_VERSION" =~ ^[0-9]{4}\.[0-9]+\.0$ ]]; then
-        HA_VERSION="${HA_VERSION%.*}" # "2026.8.0" → "2026.8" → latest patch
-    fi
-    resolve_ha_version HA_VERSION "$HA_VERSION"
+if ! target_ha_version HA_VERSION; then
+    exit 1
 fi
 
 HA_CORE_BASE_URL="https://raw.githubusercontent.com/home-assistant/core/${HA_VERSION}"

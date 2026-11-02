@@ -32,7 +32,7 @@ concurrency:
 jobs:
   copilot-setup-steps:
     name: Prepare the Copilot agent environment
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read # check out the repository
 
