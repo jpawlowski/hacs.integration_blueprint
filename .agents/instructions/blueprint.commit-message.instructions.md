@@ -15,7 +15,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 ## Format
 
 ```text
-type(scope): short summary (max 72 chars)
+type(scope): short summary (max 100 chars)
 
 - Body bullet point: explain WHAT changed and WHY, not HOW
 - One bullet per logical change; include all non-trivial changes
@@ -61,7 +61,7 @@ as if it were user-facing, while the `ci` **type** is `hidden` in
 
 1. **Always include a body** when more than one file changes or the subject alone is ambiguous
 2. **Always include a scope** when the change is clearly scoped to one component or layer
-3. Subject line: ≤ 72 chars, no capital after colon, no trailing period
+3. Subject line: ≤ 100 chars, no capital after colon, no trailing period
 4. Body: blank line between subject and body; use bullet points, not prose
 5. Breaking changes: add `BREAKING CHANGE:` footer **and** warn the developer before implementing
 6. Multiple unrelated changes → separate commits, not one large commit

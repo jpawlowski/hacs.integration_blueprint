@@ -8,7 +8,7 @@ description: >-
   changelog, the pre-1.0 bump rules, script/version and script/release-notes, skipping a commit from the notes,
   and the commit rules this project enforces for agents. SYMPTOMS — load this if you are about to: commit without
   an explicit request; offer to `git push`; label a user-facing fix as `chore` (chore, like every hidden type, never
-  reaches the changelog and never triggers a release); write a commit subject over 72 characters or in sentence case;
+  reaches the changelog and never triggers a release); write a commit subject over 100 characters or in sentence case;
   or edit the version in `manifest.json` by hand.
 ---
 
