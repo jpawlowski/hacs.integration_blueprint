@@ -41,6 +41,7 @@ else
     HA_CORE_DIR=".local/ha-core"
 fi
 HA_CORE_REPO="https://github.com/home-assistant/core.git"
+HA_CORE_SPARSE_PATHS=(script/ homeassistant/ packages/hassfest/)
 
 # Kill a stalled git fetch if it transfers < 1 KB/s for 30 s
 export GIT_HTTP_LOW_SPEED_LIMIT=1024
@@ -119,16 +120,13 @@ if [ ! -d "$HA_CORE_DIR" ] || [ ! -d "$HA_CORE_DIR/.git" ]; then
     rm -rf "$HA_CORE_DIR"
     log_info "Cloning Home Assistant Core (sparse checkout, ~5 MB)..."
 
-    # Initialize sparse checkout to only get script/ directory
     mkdir -p "$HA_CORE_DIR"
     cd "$HA_CORE_DIR"
     git init >/dev/null 2>&1
     git remote add origin "$HA_CORE_REPO"
     git config core.sparseCheckout true
 
-    # Only checkout script/ and homeassistant/ directories (needed for hassfest)
-    echo "script/" >.git/info/sparse-checkout
-    echo "homeassistant/" >>.git/info/sparse-checkout
+    printf '%s\n' "${HA_CORE_SPARSE_PATHS[@]}" >.git/info/sparse-checkout
 
     # Fetch the specific version (shallow clone + blobless for minimal size)
     _git_fetch_tag "$HA_VERSION_TAG"
@@ -152,6 +150,13 @@ else
     fi
 fi
 
+# A clone made before a path joined the list lacks it until the working tree is re-read
+sparse_paths=$(printf '%s\n' "${HA_CORE_SPARSE_PATHS[@]}")
+if [[ "$(cat "$HA_CORE_DIR/.git/info/sparse-checkout")" != "$sparse_paths" ]]; then
+    printf '%s\n' "$sparse_paths" >"$HA_CORE_DIR/.git/info/sparse-checkout"
+    git -C "$HA_CORE_DIR" read-tree -mu HEAD
+fi
+
 activate_venv
 
 # Check if we have required dependencies
@@ -166,7 +171,7 @@ fi
 HA_CORE_ABS="$(cd "$HA_CORE_DIR" && pwd)"
 
 # Export PYTHONPATH to include HA Core
-export PYTHONPATH="$HA_CORE_ABS:${PYTHONPATH:-}"
+export PYTHONPATH="$HA_CORE_ABS:$HA_CORE_ABS/packages/hassfest:${PYTHONPATH:-}"
 
 # Build hassfest command
 HASSFEST_CMD=(
