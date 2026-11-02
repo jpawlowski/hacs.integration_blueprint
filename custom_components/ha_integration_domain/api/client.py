@@ -1,14 +1,18 @@
 """API client for ha_integration_domain."""
 
 import asyncio
+from http import HTTPStatus
+import math
 import socket
 from typing import Any
 
 import aiohttp
+from aiohttp import hdrs
 
 API_URL = "https://jsonplaceholder.typicode.com/posts/1"
 COMMAND_URL = "https://jsonplaceholder.typicode.com/posts"
 REQUEST_TIMEOUT = 10
+DEFAULT_RETRY_AFTER = 60
 
 FAN_SPEEDS = ("low", "medium", "high", "auto")
 SPEED_PERCENTAGES = {"low": 33, "medium": 66, "high": 100, "auto": 66}
@@ -30,18 +34,48 @@ class IntegrationBlueprintApiClientAuthenticationError(
     """Exception to indicate an authentication error with the API."""
 
 
+class IntegrationBlueprintApiClientRateLimitError(
+    IntegrationBlueprintApiClientCommunicationError,
+):
+    """Exception to indicate the API asked for fewer requests."""
+
+    def __init__(self, message: str, retry_after: float) -> None:
+        """Keep the seconds the API asked to wait before the next request."""
+        super().__init__(message)
+        self.retry_after = retry_after
+
+
+def _retry_after(response: aiohttp.ClientResponse) -> float:
+    """
+    Read the wait the API asked for.
+
+    Returns:
+        The Retry-After header in seconds, or DEFAULT_RETRY_AFTER when it is missing or not a number of seconds.
+
+    """
+    try:
+        seconds = float(response.headers.get(hdrs.RETRY_AFTER, ""))
+    except ValueError:
+        return DEFAULT_RETRY_AFTER
+    return seconds if math.isfinite(seconds) and seconds >= 0 else DEFAULT_RETRY_AFTER
+
+
 def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
     """
     Verify that the API response is valid.
 
     Raises:
         IntegrationBlueprintApiClientAuthenticationError: For 401 and 403 responses.
+        IntegrationBlueprintApiClientRateLimitError: For 429 responses.
         aiohttp.ClientResponseError: For every other unsuccessful status.
 
     """
-    if response.status in (401, 403):
+    if response.status in (HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN):
         msg = "Invalid credentials"
         raise IntegrationBlueprintApiClientAuthenticationError(msg)
+    if response.status == HTTPStatus.TOO_MANY_REQUESTS:
+        msg = "Rate limited by the API"
+        raise IntegrationBlueprintApiClientRateLimitError(msg, retry_after=_retry_after(response))
     response.raise_for_status()
 
 
@@ -148,17 +182,16 @@ class IntegrationBlueprintApiClient:
 
         Raises:
             IntegrationBlueprintApiClientAuthenticationError: If the credentials are rejected.
+            IntegrationBlueprintApiClientRateLimitError: If the API asks for fewer requests.
             IntegrationBlueprintApiClientCommunicationError: If the request does not complete.
             IntegrationBlueprintApiClientError: For any other failure.
 
         """
         try:
-            async with asyncio.timeout(REQUEST_TIMEOUT):
-                response = await self._session.request(
-                    method=method,
-                    url=url,
-                    json=data,
-                )
+            async with (
+                asyncio.timeout(REQUEST_TIMEOUT),
+                self._session.request(method=method, url=url, json=data) as response,
+            ):
                 _verify_response_or_raise(response)
                 return await response.json()
 
