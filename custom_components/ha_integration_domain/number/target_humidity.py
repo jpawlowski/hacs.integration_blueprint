@@ -2,14 +2,14 @@
 
 from custom_components.ha_integration_domain.entity import IntegrationBlueprintEntity
 from homeassistant.components.number import NumberDeviceClass, NumberEntity, NumberEntityDescription, NumberMode
-from homeassistant.const import PERCENTAGE
+from homeassistant.const import UnitOfRatio
 
 ENTITY_DESCRIPTIONS: tuple[NumberEntityDescription, ...] = (
     NumberEntityDescription(
         key="target_humidity",
         translation_key="target_humidity",
         device_class=NumberDeviceClass.HUMIDITY,
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         native_min_value=30,
         native_max_value=80,
         native_step=5,

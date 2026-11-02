@@ -1,7 +1,7 @@
 """Diagnostic sensor descriptions for ha_integration_domain."""
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
-from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfTime
+from homeassistant.const import EntityCategory, UnitOfRatio, UnitOfTime
 
 from .entity import IntegrationBlueprintSensorEntityDescription
 
@@ -10,7 +10,7 @@ ENTITY_DESCRIPTIONS: tuple[IntegrationBlueprintSensorEntityDescription, ...] = (
         key="filter_life",
         translation_key="filter_life",
         entity_category=EntityCategory.DIAGNOSTIC,
-        native_unit_of_measurement=PERCENTAGE,
+        native_unit_of_measurement=UnitOfRatio.PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
         value_fn=lambda data: data.get("filter_life"),

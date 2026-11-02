@@ -5,7 +5,10 @@ from typing import Any
 
 import probatio
 
-from custom_components.ha_integration_domain.const import CONF_UPDATE_INTERVAL_HOURS, DEFAULT_UPDATE_INTERVAL_HOURS
+from custom_components.ha_integration_domain.const import (
+    CONF_FILTER_REPLACEMENT_THRESHOLD,
+    DEFAULT_FILTER_REPLACEMENT_THRESHOLD,
+)
 from homeassistant.helpers import selector
 
 
@@ -17,22 +20,22 @@ def get_options_schema(defaults: Mapping[str, Any] | None = None) -> probatio.Sc
         defaults: The entry's current options, used to pre-fill the form.
 
     Returns:
-        The voluptuous schema for the options form.
+        The probatio schema for the options form.
 
     """
     defaults = defaults or {}
     return probatio.Schema(
         {
             probatio.Optional(
-                CONF_UPDATE_INTERVAL_HOURS,
-                default=defaults.get(CONF_UPDATE_INTERVAL_HOURS, DEFAULT_UPDATE_INTERVAL_HOURS),
+                CONF_FILTER_REPLACEMENT_THRESHOLD,
+                default=defaults.get(CONF_FILTER_REPLACEMENT_THRESHOLD, DEFAULT_FILTER_REPLACEMENT_THRESHOLD),
             ): selector.NumberSelector(
                 selector.NumberSelectorConfig(
-                    min=0.25,
-                    max=24,
-                    step=0.25,
-                    unit_of_measurement="h",
-                    mode=selector.NumberSelectorMode.BOX,
+                    min=1,
+                    max=50,
+                    step=1,
+                    unit_of_measurement="%",
+                    mode=selector.NumberSelectorMode.SLIDER,
                 ),
             ),
         },

@@ -8,7 +8,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry, async_
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
 from custom_components.ha_integration_domain.api.client import API_URL, DEFAULT_RETRY_AFTER
-from custom_components.ha_integration_domain.coordinator.base import MIN_RETRY_AFTER
+from custom_components.ha_integration_domain.coordinator.base import MIN_RETRY_AFTER, UPDATE_INTERVAL
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
 
@@ -29,7 +29,7 @@ async def _tick(hass: HomeAssistant, freezer: FrozenDateTimeFactory, delta: time
         ({}, DEFAULT_RETRY_AFTER),
         ({"Retry-After": "Wed, 21 Oct 2026 07:28:00 GMT"}, DEFAULT_RETRY_AFTER),
         ({"Retry-After": "0"}, MIN_RETRY_AFTER),
-        ({"Retry-After": "99999999"}, 3600),
+        ({"Retry-After": "99999999"}, UPDATE_INTERVAL.total_seconds()),
     ],
 )
 async def test_rate_limit_delays_the_next_refresh(
@@ -48,7 +48,7 @@ async def test_rate_limit_delays_the_next_refresh(
 
     aioclient_mock.clear_requests()
     aioclient_mock.get(API_URL, status=429, headers=headers)
-    await _tick(hass, freezer, timedelta(hours=1))
+    await _tick(hass, freezer, UPDATE_INTERVAL)
     assert hass.states.get(ENTITY_ID).state == STATE_UNAVAILABLE
 
     aioclient_mock.clear_requests()

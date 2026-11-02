@@ -6,7 +6,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.ha_integration_domain import async_setup_entry
-from custom_components.ha_integration_domain.const import CONF_UPDATE_INTERVAL_HOURS
+from custom_components.ha_integration_domain.const import CONF_FILTER_REPLACEMENT_THRESHOLD
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
@@ -23,12 +23,12 @@ async def test_options_change_reloads_once(
         result = await hass.config_entries.options.async_init(init_integration.entry_id)
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
-            {CONF_UPDATE_INTERVAL_HOURS: 2.0},
+            {CONF_FILTER_REPLACEMENT_THRESHOLD: 25},
         )
         await hass.async_block_till_done()
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert init_integration.options[CONF_UPDATE_INTERVAL_HOURS] == 2.0
+    assert init_integration.options[CONF_FILTER_REPLACEMENT_THRESHOLD] == 25
     assert setup_entry.call_count == 1
 
 

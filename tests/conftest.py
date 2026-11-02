@@ -1,6 +1,7 @@
 """Shared fixtures for the ha_integration_domain tests."""
 
 from collections.abc import Generator
+import logging
 from typing import Any
 from unittest.mock import AsyncMock, patch
 
@@ -20,6 +21,20 @@ def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
     """Load custom integrations in every test."""
 
 
+@pytest.fixture(autouse=True)
+def fail_on_deprecation_report(caplog: pytest.LogCaptureFixture) -> Generator[None]:
+    """Fail a test when Home Assistant logs a deprecation this integration caused."""
+    yield
+    reports = [
+        message
+        for record in [*caplog.get_records("setup"), *caplog.get_records("call")]
+        if record.levelno >= logging.WARNING
+        and DOMAIN in (message := record.getMessage())
+        and message.startswith(("Detected that custom integration", "The deprecated"))
+    ]
+    assert not reports, "\n".join(reports)
+
+
 @pytest.fixture
 def mock_api() -> Generator[AsyncMock]:
     """Replace the client's HTTP layer, keeping its payload logic under test."""
@@ -32,13 +47,14 @@ def mock_api() -> Generator[AsyncMock]:
 
 
 @pytest.fixture
-def config_entry() -> MockConfigEntry:
-    """Return a config entry for this integration."""
+def config_entry(request: pytest.FixtureRequest) -> MockConfigEntry:
+    """Return a config entry for this integration; parametrize it indirectly to set its options."""
     return MockConfigEntry(
         domain=DOMAIN,
         title="demo",
         unique_id="demo",
         data={CONF_USERNAME: "demo", CONF_PASSWORD: "secret"},
+        options=getattr(request, "param", {}),
     )
 
 

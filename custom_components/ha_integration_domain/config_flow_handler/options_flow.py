@@ -8,7 +8,7 @@ from .schemas import get_options_schema
 
 
 class IntegrationBlueprintOptionsFlow(config_entries.OptionsFlowWithReload):
-    """Let the user change the poll interval after setup."""
+    """Let the user tune how the integration interprets the device after setup."""
 
     async def async_step_init(
         self,

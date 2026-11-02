@@ -1,5 +1,6 @@
 """Data update coordinator for ha_integration_domain."""
 
+from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
 from custom_components.ha_integration_domain.api import (
@@ -7,14 +8,21 @@ from custom_components.ha_integration_domain.api import (
     IntegrationBlueprintApiClientError,
     IntegrationBlueprintApiClientRateLimitError,
 )
-from custom_components.ha_integration_domain.const import DOMAIN
+from custom_components.ha_integration_domain.const import (
+    CONF_FILTER_REPLACEMENT_THRESHOLD,
+    DEFAULT_FILTER_REPLACEMENT_THRESHOLD,
+    DOMAIN,
+    LOGGER,
+)
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 if TYPE_CHECKING:
     from custom_components.ha_integration_domain.data import IntegrationBlueprintConfigEntry
+    from homeassistant.core import HomeAssistant
 
 MIN_RETRY_AFTER = 10.0
+UPDATE_INTERVAL = timedelta(hours=1)
 
 
 class IntegrationBlueprintDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
@@ -22,9 +30,20 @@ class IntegrationBlueprintDataUpdateCoordinator(DataUpdateCoordinator[dict[str, 
 
     config_entry: IntegrationBlueprintConfigEntry
 
+    def __init__(self, hass: HomeAssistant, config_entry: IntegrationBlueprintConfigEntry) -> None:
+        """Set up the coordinator for one config entry."""
+        super().__init__(
+            hass,
+            LOGGER,
+            name=DOMAIN,
+            config_entry=config_entry,
+            update_interval=UPDATE_INTERVAL,
+            always_update=False,
+        )
+
     async def _async_update_data(self) -> dict[str, Any]:
         """
-        Fetch the current device state.
+        Fetch the current device state and add the values derived from the entry's options.
 
         Returns:
             The payload entities read by key.
@@ -36,7 +55,7 @@ class IntegrationBlueprintDataUpdateCoordinator(DataUpdateCoordinator[dict[str, 
 
         """
         try:
-            return await self.config_entry.runtime_data.client.async_get_data()
+            data = await self.config_entry.runtime_data.client.async_get_data()
         except IntegrationBlueprintApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(
                 translation_domain=DOMAIN,
@@ -53,6 +72,11 @@ class IntegrationBlueprintDataUpdateCoordinator(DataUpdateCoordinator[dict[str, 
                 translation_domain=DOMAIN,
                 translation_key="update_failed",
             ) from exception
+        else:
+            threshold = self.config_entry.options.get(
+                CONF_FILTER_REPLACEMENT_THRESHOLD, DEFAULT_FILTER_REPLACEMENT_THRESHOLD
+            )
+            return {**data, "filter_replacement": data["filter_life"] < threshold}
 
     def _bounded_retry_after(self, seconds: float) -> float:
         """

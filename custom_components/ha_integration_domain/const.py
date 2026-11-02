@@ -7,6 +7,5 @@ LOGGER: Logger = getLogger(__package__)
 DOMAIN = "ha_integration_domain"
 ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
 
-CONF_UPDATE_INTERVAL_HOURS = "update_interval_hours"
-
-DEFAULT_UPDATE_INTERVAL_HOURS = 1.0
+CONF_FILTER_REPLACEMENT_THRESHOLD = "filter_replacement_threshold"
+DEFAULT_FILTER_REPLACEMENT_THRESHOLD = 10

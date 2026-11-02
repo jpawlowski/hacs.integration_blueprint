@@ -27,8 +27,8 @@ Uncomment and customize these badges if you want to use them:
 - **Child Lock**: Safety feature to prevent accidental changes
 - **Diagnostic Info**: View filter life, runtime hours, and device statistics
 - **Reconfigurable**: Change credentials anytime without removing the integration
-- **Options Flow**: Adjust settings like update interval after setup
-- **Custom Services**: Advanced control with built-in service calls
+- **Options Flow**: Choose when the filter replacement warning turns on
+- **Custom Actions**: Advanced control with built-in actions
 
 **This integration will set up the following platforms.**
 

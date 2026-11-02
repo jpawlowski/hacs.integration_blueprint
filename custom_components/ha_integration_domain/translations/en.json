@@ -42,21 +42,19 @@
       "unknown": "An unknown error occurred."
     },
     "abort": {
-      "already_configured": "This entry is already configured.",
-      "reauth_successful": "Reauthentication was successful.",
-      "reconfigure_successful": "Reconfiguration was successful."
+      "already_configured": "This entry is already configured."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Configure integration options",
-        "description": "Customize how this integration operates.",
+        "title": "Integration options",
+        "description": "Adjust how this integration interprets the device.",
         "data": {
-          "update_interval_hours": "Update interval (hours)"
+          "filter_replacement_threshold": "Filter replacement threshold"
         },
         "data_description": {
-          "update_interval_hours": "How often to fetch the device state, between 0.25 and 24 hours."
+          "filter_replacement_threshold": "Report that the filter needs replacing once its remaining life drops below this percentage."
         }
       }
     }
@@ -85,12 +83,6 @@
     },
     "invalid_fan_speed": {
       "message": "{speed} is not a fan speed this device supports."
-    },
-    "entry_not_found": {
-      "message": "No configuration entry of this integration matches {target}."
-    },
-    "entry_not_loaded": {
-      "message": "The configuration entry {target} is not loaded, so it cannot be refreshed."
     }
   },
   "entity": {
