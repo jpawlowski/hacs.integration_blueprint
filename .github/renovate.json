@@ -6,8 +6,7 @@
     "script/template-sync-guard reads the managers and patterns here to know which pins a template sync must not lower."
   ],
   "extends": [
-    "config:recommended",
-    "helpers:pinGitHubActionDigests",
+    "config:best-practices",
     ":semanticCommits",
     ":semanticCommitTypeAll(chore)",
     ":semanticCommitScope(deps)"
@@ -37,7 +36,7 @@
       "managerFilePatterns": ["/(^|/)mise\\.toml$/", "/(^|/)\\.devcontainer/devcontainer\\.json$/"],
       "matchStrings": [
         "min_version = \"(?<currentValue>[^\"]+)\"",
-        "\"ghcr\\.io/devcontainers-extra/features/mise:\\d+\":\\s*\\{\\s*\"version\":\\s*\"(?<currentValue>[^\"]+)\""
+        "\"ghcr\\.io/devcontainers-extra/features/mise:\\d+(?:@sha256:[a-f0-9]+)?\":\\s*\\{\\s*\"version\":\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "depNameTemplate": "jdx/mise",
       "datasourceTemplate": "github-releases",
