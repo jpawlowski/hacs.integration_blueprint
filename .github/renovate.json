@@ -93,6 +93,12 @@
       "minimumReleaseAge": "7 days"
     },
     {
+      "description": "These actions take a tool version beside their pin, so Renovate raises both together; dependabot.yml ignores them.",
+      "matchManagers": ["github-actions"],
+      "matchDepNames": ["trufflesecurity/trufflehog", "jdx/mise-action"],
+      "enabled": true
+    },
+    {
       "description": "Home Assistant decides the Python version. Raise it by hand together with the Home Assistant version.",
       "matchManagers": ["mise"],
       "matchUpdateTypes": ["major", "minor"],

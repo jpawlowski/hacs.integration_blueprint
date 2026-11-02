@@ -26,6 +26,10 @@ updates:
       day: "monday"
     commit-message:
       prefix: "chore(deps)"
+    # These two take a tool version beside their pin; Renovate raises both together (.github/renovate.json)
+    ignore:
+      - dependency-name: "trufflesecurity/trufflehog"
+      - dependency-name: "jdx/mise-action"
     # Let new action versions settle for 7 days before opening a PR (same as HA Core)
     cooldown:
       default-days: 7
