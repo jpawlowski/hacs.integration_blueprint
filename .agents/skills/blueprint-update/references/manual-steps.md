@@ -4,6 +4,17 @@ What an integration repository has to do by hand because template sync cannot do
 for the `skipped` list in `.agents/blueprint-update.json`, the date it entered the blueprint, and a check that passes
 once it is done. Run the check from the repository root.
 
+## `root-gitignore` — 2026-11-02
+
+**Check:** `grep -qE '^![^/]+/$' custom_components/.gitignore && ! grep -qxF '.gitignore' .templatesyncignore`
+
+The root `.gitignore` is now template-synced and no longer generated from toptal, whose unanchored patterns such as
+`image`, `tts` and `lib` hid integration platforms of that name. Opt in in this order: first create
+`custom_components/.gitignore` containing `!<domain>/`, then delete the `.gitignore` line from `.templatesyncignore`.
+The other way round, Git silently ignores every new file in the integration, and already tracked files hide that.
+Move anything this repository added to its root `.gitignore` into `custom_components/.gitignore` or
+`.git/info/exclude` first — the next sync overwrites the root file.
+
 ## `squash-pull-requests` — 2026-11-01
 
 **Check:** `gh api "repos/{owner}/{repo}" --jq '.allow_merge_commit == false' | grep -q true`
