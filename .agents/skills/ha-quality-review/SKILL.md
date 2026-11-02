@@ -128,6 +128,10 @@ Look for the failure modes linters miss:
 
 - `README.md`, `docs/user/` describe what actually exists — not the blueprint's placeholder text.
 - `manifest.json`: correct `integration_type`, `iot_class`, `documentation`, `issue_tracker`, `codeowners`, `version`.
+- Marketplace catalog readiness, when it is meant to be listed: a published release, a repository description and
+  topics, issues enabled, `brand/icon.png` that is not the blueprint's placeholder, `categories` in the manifest, and
+  hassfest plus the HACS action passing without `ignore`
+  ([Get into the catalog](https://contributors.home-assistant.io/marketplace/guides/catalog/)).
 - Architectural choices worth remembering are in `docs/development/DECISIONS.md`
   ([`ha-planning`](../ha-planning/SKILL.md)).
 - Breaking changes carry a migration path ([`ha-breaking-changes`](../ha-breaking-changes/SKILL.md)).

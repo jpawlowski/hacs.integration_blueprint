@@ -12,6 +12,15 @@ The blueprint moved from `jpawlowski/hacs.integration_blueprint` to `jpawlowski/
 redirects the old name, so the sync keeps working, but only for as long as nobody claims that name again. Replace the
 old name in `source_repo_path` of this repository's `template-sync.yml`; the workflow is excluded from the sync.
 
+## `brand-images` — 2026-11-02
+
+**Check:** `ls custom_components/*/brand/icon.png`
+
+Add the integration's icon as `custom_components/<domain>/brand/icon.png` — square, at most 256 pixels, plus an
+optional 512-pixel `icon@2x.png` and a `logo.png`. Home Assistant shows it, and the Marketplace catalog requires it.
+`custom_components/` is never synced, so only new repositories get the blueprint's placeholder. Once the file exists,
+the HACS validation in `validate.yml` stops skipping its `brands` check.
+
 ## `root-gitignore` — 2026-11-02
 
 **Check:** `grep -qE '^![^/]+/$' custom_components/.gitignore && ! grep -qxF '.gitignore' .templatesyncignore`

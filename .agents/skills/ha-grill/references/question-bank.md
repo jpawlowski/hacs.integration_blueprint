@@ -35,7 +35,7 @@ credentials and no rate limit, and half of what follows would be a wasted turn.
 | A device, a cloud service, a local service, or something produced rather than fetched | Decides which of the blocks below apply at all                     |
 | `integration_type`: `device`, `service`, `hub`, or `helper`                           | Leaving it unset is not neutral — Home Assistant reads it as `hub` |
 | For a device or plan-gated service: which model, firmware, or tier                    | Decides which endpoints and fields exist at all                    |
-| Who else has integrated it — HACS, a Core integration, nobody                         | An existing one may be the answer instead of this repository       |
+| Who else has integrated it — a Marketplace one, a Core integration, nobody            | An existing one may be the answer instead of this repository       |
 
 **Where the values come from** — the branch everything else hangs off
 
@@ -173,12 +173,12 @@ questions. Almost everything here decides how much of the import is affordable a
 
 **Who is running this code**
 
-| Decision                                                                | Why it earns a turn                                               |
-| ----------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Roughly how many installations — HACS analytics, issue traffic, or none | The single number that decides how expensive a breaking change is |
-| Listed in HACS, or in the default repository list                       | The repository URL and its releases are load-bearing              |
-| Is there a live installation to export the entity registry from         | Whether the phase 0 baseline is measured or merely derived        |
-| Can the developer test against the real device after each phase         | What "verified" is allowed to mean in your reports                |
+| Decision                                                                 | Why it earns a turn                                               |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| Roughly how many installations — download counts, issue traffic, or none | The single number that decides how expensive a breaking change is |
+| Listed in the Marketplace catalog, or added as a custom repository       | The repository URL and its releases are load-bearing              |
+| Is there a live installation to export the entity registry from          | Whether the phase 0 baseline is measured or merely derived        |
+| Can the developer test against the real device after each phase          | What "verified" is allowed to mean in your reports                |
 
 **What the maintainer actually wants**
 

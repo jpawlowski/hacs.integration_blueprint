@@ -31,6 +31,11 @@ Releases are managed with [release-please](https://github.com/googleapis/release
    manifest.json version is already updated in the merged PR
 ```
 
+The Home Assistant Marketplace offers users the tag of the latest **published** GitHub Release —
+a bare tag is not enough — and refuses an integration whose `manifest.json` has no `version`. Its update entity shows
+the release body as the release notes. Release-please covers all three; a pre-release only reaches users who switched
+on pre-releases for the repository. Details: [Releases and updates](https://contributors.home-assistant.io/marketplace/guides/releases/).
+
 ### The Release PR
 
 After any `feat`, `fix`, or `perf` commit reaches `main`, release-please opens a pull request titled:

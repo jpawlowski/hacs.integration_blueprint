@@ -1,12 +1,12 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "HACS Repository Manifest (hacs.json)",
-  "description": "JSON schema for the hacs.json configuration file used by HACS (Home Assistant Community Store) to define repository metadata, release settings, and distribution options for custom integrations, plugins, themes, and other Home Assistant extensions.",
+  "title": "Marketplace and HACS Repository Manifest (hacs.json)",
+  "description": "JSON schema for the hacs.json file that the Home Assistant Marketplace (2026.11+) and HACS read for repository metadata, release settings, and distribution options of custom integrations, dashboard plugins, themes, and templates.\nhttps://contributors.home-assistant.io/marketplace/reference/hacs-json/",
   "type": "object",
   "properties": {
     "name": {
       "type": "string",
-      "description": "The display name that will be used in the HACS UI"
+      "description": "The display name shown in the Marketplace and HACS"
     },
     "content_in_root": {
       "type": "boolean",
@@ -22,7 +22,7 @@
     },
     "hide_default_branch": {
       "type": "boolean",
-      "description": "Tells HACS to not offer downloading the default branch"
+      "description": "Do not offer the default branch as an installable version"
     },
     "country": {
       "oneOf": [
@@ -43,12 +43,12 @@
     },
     "homeassistant": {
       "type": "string",
-      "description": "The minimum required Home Assistant version (append 'b0' to allow beta versions)",
+      "description": "The minimum Home Assistant version a release needs (append 'b0' to allow that release's betas). Only checked for repositories with releases; older versions are offered instead.",
       "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+(b0)?)?$"
     },
     "hacs": {
       "type": "string",
-      "description": "The minimum required HACS version",
+      "description": "The minimum HACS version. The Marketplace reads it but does not compare it; HACS before Home Assistant 2026.11 still does.",
       "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$"
     },
     "persistent_directory": {
@@ -57,7 +57,8 @@
     },
     "render_readme": {
       "type": "boolean",
-      "description": "Whether to render README"
+      "description": "Not read by the Marketplace or current HACS versions; the README is always rendered.",
+      "deprecated": true
     }
   },
   "required": ["name"],

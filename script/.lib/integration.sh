@@ -15,14 +15,14 @@
 # _detect_integration_domain: scan custom_components/ and return the first
 # real (non-symlink) directory that contains a manifest.json.
 #
-# HACS-installed integrations are symlinks created by script/setup/sync-hacs
+# Marketplace- and HACS-installed integrations are symlinks created by script/setup/sync-hacs
 # (custom_components/<name> → ../../config/custom_components/<name>), so
 # excluding symlinks reliably isolates the blueprint's own integration.
 _detect_integration_domain() {
     local dir name
     for dir in custom_components/*/; do
         [[ -d "$dir" ]] || continue
-        # Skip symlinks — HACS integrations are linked from config/custom_components/
+        # Skip symlinks — installed integrations are linked from config/custom_components/
         [[ -L "${dir%/}" ]] && continue
         name="${dir%/}"
         name="${name##*/}"

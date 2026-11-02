@@ -1,10 +1,11 @@
 #!/bin/bash
 
-# script/sync-hacs: Sync HACS-installed integrations to custom_components/
+# script/sync-hacs: Sync Marketplace- and HACS-installed integrations to custom_components/
 #
-# Creates symlinks from workspace custom_components/ to integrations installed
-# by HACS in config/custom_components/. Keeps development workspace in sync with
-# test Home Assistant instance.
+# Creates symlinks from workspace custom_components/ to integrations the
+# Marketplace (Home Assistant 2026.11+) or HACS installed in config/custom_components/,
+# and removes links whose target is gone. Keeps the development workspace in sync
+# with the test Home Assistant instance.
 #
 # Usage:
 #   ./script/setup/sync-hacs
@@ -22,7 +23,7 @@ source "$SCRIPT_DIR/../.lib/output.sh"
 
 run_hook "setup/sync-hacs" "pre"
 
-log_header "Syncing HACS-installed integrations"
+log_header "Syncing Marketplace- and HACS-installed integrations"
 
 # Check if config/custom_components exists
 if [[ ! -d "$SCRIPT_DIR/../../config/custom_components" ]]; then

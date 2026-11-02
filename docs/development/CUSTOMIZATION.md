@@ -214,11 +214,11 @@ After changing either file, run **Dev Containers: Rebuild Container** to apply.
 
 ### Available variables
 
-| Variable          | Default                  | Description                                                                                                      |
-| ----------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `HA_VERSION`      | version from `hacs.json` | Home Assistant version to install. Accepts `latest`, `beta`, `YEAR.MONTH`, or an exact version like `2026.10.1`. |
-| `HA_INSTALL_HACS` | `1`                      | Set to `0` to skip HACS installation (speeds up first-time setup).                                               |
-| `APT_UPDATE`      | `0`                      | Set to `1` to run `apt-get update && apt-get upgrade` during setup.                                              |
+| Variable          | Default                  | Description                                                                                                                                           |
+| ----------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `HA_VERSION`      | version from `hacs.json` | Home Assistant version to install. Accepts `latest`, `beta`, `YEAR.MONTH`, or an exact version like `2026.10.1`.                                      |
+| `HA_INSTALL_HACS` | `1`                      | Set to `0` to skip HACS installation (speeds up first-time setup). Ignored from Home Assistant 2026.11, which ships HACS as the built-in Marketplace. |
+| `APT_UPDATE`      | `0`                      | Set to `1` to run `apt-get update && apt-get upgrade` during setup.                                                                                   |
 
 ### Scope limitations
 

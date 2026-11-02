@@ -36,8 +36,8 @@ if [[ -f "$_hook_file" ]]; then
 fi
 unset _hook_file
 
-# Sync HACS-installed integrations to custom_components/ on every container start.
-# Refreshes symlinks in case HACS was updated or reinstalled while stopped.
+# Sync Marketplace- and HACS-installed integrations to custom_components/ on every
+# container start, in case something was installed or removed while stopped.
 script/setup/sync-hacs
 
 # Hide the default Codespaces first-run notice so project MOTD is the primary greeting.

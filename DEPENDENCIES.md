@@ -152,8 +152,8 @@ This approach means this project only needs to maintain a minimal set of depende
 ```
 
 - ❌ **No Python dependencies** - only metadata
-- ✅ Minimum Home Assistant version
-- ✅ Minimum HACS version
+- ✅ Minimum Home Assistant version, read by the Marketplace (Home Assistant 2026.11+) and by HACS
+- ✅ Minimum HACS version, only compared by HACS before 2026.11 — keep it while `homeassistant` is older than that
 
 ### manifest.json
 
@@ -166,4 +166,4 @@ This approach means this project only needs to maintain a minimal set of depende
 - ✅ **Python package dependencies**
 - ✅ Installed by Home Assistant
 
-**No duplication needed!** `hacs.json` only contains version constraints for HA/HACS, not Python packages.
+**No duplication needed!** `hacs.json` only contains version constraints for Home Assistant and HACS, not Python packages.
