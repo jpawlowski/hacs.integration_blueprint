@@ -30,6 +30,36 @@ jobs:
         with:
           persist-credentials: false
 
+      # The version script/hassfest and the dev container use, so a rule newer than the minimum cannot fail it
+      - name: Resolve the Home Assistant version
+        id: version
+        run: |
+          set -a
+          source .devcontainer/.env
+          set +a
+          source script/.lib/output.sh
+          source script/.lib/ha_version.sh
+          target_ha_version version
+          echo "version=${version}" >>"$GITHUB_OUTPUT"
+
+      - name: Run hassfest validation
+        env:
+          HA_VERSION: ${{ steps.version.outputs.version }}
+        run: docker run --rm -v "${GITHUB_WORKSPACE}:/github/workspace" "ghcr.io/home-assistant/hassfest:${HA_VERSION}"
+
+  hassfest-dev:
+    name: Hassfest with Home Assistant dev
+    # An early warning of rules the next release brings: never on pull requests, so it cannot block a merge
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read # check out the repository
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - name: Run hassfest validation
         uses: home-assistant/actions/hassfest@cd6f3635a740c84d8a14f6121a90068b8ece6bf6 # master
 
