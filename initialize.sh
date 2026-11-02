@@ -661,7 +661,7 @@ categories_supported() {
 
 # Ask for up to three categories; prints them space-separated, or nothing when skipped
 ask_categories() {
-    local response result matches
+    local response result matches searched=""
 
     while true; do
         response=$(ask_input "Categories (Enter to skip, ? for the list, or a word to search):" true)
@@ -669,12 +669,22 @@ ask_categories() {
             return 0
         elif [[ "$response" == "?" ]]; then
             category_tool list >&2
+            continue
+        fi
+
+        # A single word searches first, even a valid category with subcategories; repeating it picks it
+        if [[ "$response" =~ ^[a-z0-9_]+$ && "$response" != "$searched" ]] &&
+            matches=$(category_tool list "$response") && [[ -n "$matches" ]] &&
+            { ! grep -q "^  $response " <<< "$matches" || [[ $(wc -l <<< "$matches") -gt 1 ]]; }; then
+            searched=$response
+            print_info "Matching categories:"
+            echo "$matches" >&2
+            if grep -q "^  $response " <<< "$matches"; then
+                print_info "Enter $response again to pick it, or one of the above."
+            fi
         elif result=$(category_tool check "$response"); then
             printf "%s" "$result"
             return 0
-        elif [[ "$response" =~ ^[a-z0-9_]+$ ]] && matches=$(category_tool list "$response") && [[ -n "$matches" ]]; then
-            print_info "Matching categories:"
-            echo "$matches" >&2
         else
             echo "$result" >&2
         fi

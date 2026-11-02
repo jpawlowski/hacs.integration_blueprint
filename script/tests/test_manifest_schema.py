@@ -24,6 +24,10 @@ def test_every_category_has_a_description() -> None:
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(
+    not (Path(__file__).parents[2] / "initialize.sh").exists(),
+    reason="the blueprint keeps this list; template sync brings an initialised repository its updates",
+)
 def test_categories_match_installed_home_assistant() -> None:
     """A category Home Assistant added, renamed or dropped has to reach the schema, which initialize.sh reads."""
     categories = manifest_categories.installed_categories()
