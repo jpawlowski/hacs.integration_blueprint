@@ -37,11 +37,26 @@ jobs:
     name: HACS validation
     if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # check out the repository
     steps:
+      - name: Checkout the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Detect brand images
+        id: brand
+        run: |
+          if compgen -G "custom_components/*/brand/icon.png" >/dev/null; then
+            echo "ignore=" >>"$GITHUB_OUTPUT"
+          else
+            echo "::warning::No custom_components/<domain>/brand/icon.png - skipping the brands check the Marketplace catalog requires"
+            echo "ignore=brands" >>"$GITHUB_OUTPUT"
+          fi
+
       - name: Run HACS validation
         uses: hacs/action@d556e736723344f83838d08488c983a15381059a # 22.5.0
         with:
           category: integration
-          # Remove this 'ignore' key when you have added brand images for your integration
-          # https://developers.home-assistant.io/docs/creating_integration_file_structure/#brand-images---brand
-          ignore: brands
+          ignore: ${{ steps.brand.outputs.ignore }}
