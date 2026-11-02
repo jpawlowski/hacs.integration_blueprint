@@ -21,7 +21,8 @@ Two kinds of repository are in this state, and they are byte-identical — nothi
   being maintained. Every change ships to every downstream repository through the weekly template-sync pull request,
   so skills and instruction files must use the `<domain>` and `{ClassPrefix}` placeholders rather than the concrete
   identifiers, and [`blueprint-skill-maintenance`](.agents/skills/blueprint-skill-maintenance/SKILL.md) governs the
-  shipped skill set.
+  shipped skill set. `docs/user/` and `README.template.md` are skeletons a downstream repository fills in: keep their
+  placeholder fields and sections even where the example integration has nothing that matches.
 - **A fresh copy** made with GitHub's "Use this template" button, which still has to be initialised. **Do not write
   integration code first** — `initialize.sh` would overwrite it. Run `./initialize.sh`, then
   [`blueprint-scaffold`](.agents/skills/blueprint-scaffold/SKILL.md); when existing integration code is being migrated
