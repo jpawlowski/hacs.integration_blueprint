@@ -287,8 +287,11 @@ The `initialize.sh` script supports both interactive and unattended modes:
   --title "My Awesome Device" \
   --repo myusername/ha-my-integration \
   --author "Your Name" \
+  --category "sensors.temperature_humidity" \
   --force
 ```
+
+`--category` is optional: one to three [integration categories](https://contributors.home-assistant.io/core/integrations/categories/), primary first, from the list in `schemas/json/manifest_schema.json`. The script asks for them interactively too, once `hacs.json` names Home Assistant 2026.11 or newer.
 
 The script will:
 

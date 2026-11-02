@@ -65,9 +65,10 @@ This schema combines Home Assistant's official manifest requirements with the fi
   entry" a safe assumption in a service action handler.
 - `categories` - One to three values from the
   [category list](https://contributors.home-assistant.io/core/integrations/categories/), `category` or
-  `category.subcategory`. Optional for a custom integration, but the catalog publishes them and the HACS action warns
-  when the key is missing. Hassfest before Home Assistant 2026.11 rejects it, so add it only once `hacs.json` →
-  `homeassistant` is 2026.11 or newer.
+  `category.subcategory`, the primary one first; `schemas/json/manifest_schema.json` carries the same list. Optional
+  for a custom integration, but the catalog publishes them and the HACS action warns when the key is missing.
+  Hassfest before Home Assistant 2026.11 rejects it, so add it only once `hacs.json` → `homeassistant` is 2026.11 or
+  newer.
 - `quality_scale` - The tier the integration claims. Optional for custom integrations and not shown in the UI.
 - `dhcp`, `zeroconf`, `ssdp`, `usb`, `bluetooth` - Discovery configs. Each protocol has a matcher rule that fails
   silently when guessed — see

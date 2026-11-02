@@ -78,8 +78,8 @@ Set `iot_class` to match reality. Beyond `local_polling`, `cloud_polling`, `loca
 sends commands it cannot read back.
 
 Pick one to three `categories` with the developer — "what is this, and where would someone look for it?" — from the
-[category list](https://contributors.home-assistant.io/core/integrations/categories/). The Marketplace catalog
-publishes them; when to add the key is in `blueprint.manifest`.
+list in `schemas/json/manifest_schema.json`, primary first, unless `initialize.sh` already wrote them. The
+Marketplace catalog publishes them; when to add the key is in `blueprint.manifest`.
 
 Add discovery matchers only when you will also implement the matching flow step
 ([`ha-config-flow`](../ha-config-flow/SKILL.md)); a matcher without a handler fails `script/hassfest`.
