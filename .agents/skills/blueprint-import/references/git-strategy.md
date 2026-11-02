@@ -4,9 +4,9 @@ Read this during phase 1, before running `initialize.sh`.
 
 ## Keep the existing repository
 
-Issues, pull requests, stars, release tags and the HACS listing are tied to the repository **URL**, not to the commit
+Issues, pull requests, stars, release tags and the catalog listing are tied to the repository **URL**, not to the commit
 history inside it. Creating a new repository from the template and abandoning the old one throws all of that away, and
-HACS users end up on a repository that no longer receives updates.
+users who installed it through the Marketplace end up on a repository that no longer receives updates.
 
 Both strategies below work inside the existing repository.
 

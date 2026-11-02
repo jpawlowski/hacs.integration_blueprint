@@ -90,7 +90,20 @@ activate_venv
 
 "$SCRIPT_DIR/setup/seed-http-config"
 
-if [[ ${HA_INSTALL_HACS:-"0"} == "1" ]]; then
+install_hacs=${HA_INSTALL_HACS:-"0"}
+if [[ $install_hacs == "1" ]]; then
+    # Home Assistant 2026.11 blocks the HACS custom integration and ships it as the
+    # built-in Marketplace, which also takes over and removes an existing HACS install.
+    if ! marketplace_version=$(python3 -c 'from importlib.metadata import version; from packaging.version import Version; v = version("homeassistant"); print(v if Version(v).release[:2] >= (2026, 11) else "")'); then
+        log_warning "Could not read the installed Home Assistant version, skipping HACS"
+        install_hacs=0
+    elif [[ -n $marketplace_version ]]; then
+        log_info "Home Assistant ${marketplace_version} has the Marketplace built in, skipping HACS"
+        install_hacs=0
+    fi
+fi
+
+if [[ $install_hacs == "1" ]]; then
     # Install HACS for testing with other custom components
     echo ""
     log_header "Installing HACS in dev environment"

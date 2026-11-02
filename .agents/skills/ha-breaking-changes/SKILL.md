@@ -35,8 +35,8 @@ Before 1.0.0:
   cost ~40 lines we would then maintain" is the useful form. Not "shall I migrate?"
 - **Do not record each one in `DECISIONS.md`.** That log is for architecture. A key renamed before the first stable
   release is not an architectural decision, and a log padded with them is one nobody reads.
-- **Keep the `BREAKING CHANGE:` footer anyway.** It costs one line, and it is the whole price of this freedom: HACS
-  installs `0.x` versions too, and the people testing early deserve a changelog entry rather than a silent surprise.
+- **Keep the `BREAKING CHANGE:` footer anyway.** It costs one line, and it is the whole price of this freedom: the
+  Marketplace installs `0.x` versions too, and the people testing early deserve a changelog entry rather than a silent surprise.
   Release-please turns it into a minor bump pre-1.0 ([`ha-release`](../ha-release/SKILL.md)), so it is cheap.
 
 This is also the window in which unique IDs stop being free. `{entry_id}_{key}` is the documented last resort — if the

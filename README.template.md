@@ -51,16 +51,16 @@ Uncomment and customize these badges if you want to use them:
 
 ### Step 1: Install the Integration
 
-**Prerequisites:** This integration requires [HACS](https://hacs.xyz/) (Home Assistant Community Store) to be installed.
+**Prerequisites:** Home Assistant 2026.11 or newer has the Marketplace built in (**Settings** → **Marketplace**). On older versions, install [HACS](https://hacs.xyz/) (Home Assistant Community Store) first.
 
-Click the button below to open the integration directly in HACS:
+Click the button below to open the integration in the Marketplace, or in HACS on older versions:
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jpawlowski&repository=ha-integration-blueprint&category=integration)
+[![Open your Home Assistant instance and open this repository in the Marketplace.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jpawlowski&repository=ha-integration-blueprint&category=integration)
 
 Then:
 
 1. Click "Download" to install the integration
-2. **Restart Home Assistant** (required after installation)
+2. With HACS (before Home Assistant 2026.11), **restart Home Assistant**. The Marketplace loads it right away.
 
 > [!NOTE]
 > The My Home Assistant redirect will first take you to a landing page. Click the button there to open your Home Assistant instance.
@@ -68,7 +68,7 @@ Then:
 <details>
 <summary><strong>Manual Installation (Advanced)</strong></summary>
 
-If you prefer not to use HACS:
+If you prefer not to use the Marketplace or HACS:
 
 1. Download the `custom_components/ha_integration_domain/` folder from this repository
 2. Copy it to your Home Assistant's `custom_components/` directory
@@ -78,7 +78,7 @@ If you prefer not to use HACS:
 
 ### Step 2: Add and Configure the Integration
 
-**Important:** You must have installed the integration first (see Step 1) and restarted Home Assistant!
+**Important:** You must have installed the integration first (see Step 1), and restarted Home Assistant if Step 1 asked you to.
 
 #### Option 1: One-Click Setup (Quick)
 
@@ -429,8 +429,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 [commits-shield]: https://img.shields.io/github/commit-activity/y/jpawlowski/ha-integration-blueprint.svg?style=for-the-badge
 [commits]: https://github.com/jpawlowski/ha-integration-blueprint/commits/main
-[hacs]: https://github.com/hacs/integration
-[hacsbadge]: https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge
+[hacs]: https://www.hacs.xyz/docs/marketplace/
+[hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
 [license-shield]: https://img.shields.io/github/license/jpawlowski/ha-integration-blueprint.svg?style=for-the-badge
 [maintenance-shield]: https://img.shields.io/badge/maintainer-%40jpawlowski-blue.svg?style=for-the-badge
 [releases-shield]: https://img.shields.io/github/release/jpawlowski/ha-integration-blueprint.svg?style=for-the-badge

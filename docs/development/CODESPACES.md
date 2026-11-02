@@ -29,7 +29,7 @@ For the complete Copilot Agent workflow, see [AI_AGENTS.md](AI_AGENTS.md).
 - ✅ Port forwarding for Home Assistant (port 8123)
 - ✅ All VS Code extensions pre-installed
 - ✅ Python 3.14 & Node.js LTS environment with dependencies
-- ✅ Home Assistant + HACS ready to use
+- ✅ Home Assistant ready to use, with the Marketplace
 - ✅ All development scripts work identically
 
 ## Key Differences from Local Development
@@ -65,7 +65,7 @@ When running `script/develop`, Home Assistant starts on port 8123:
 
 - Workspace files persist between stops/starts
 - Git changes are preserved
-- Home Assistant config and HACS persist
+- Home Assistant config and installed integrations persist
 
 ### Multiple Projects
 

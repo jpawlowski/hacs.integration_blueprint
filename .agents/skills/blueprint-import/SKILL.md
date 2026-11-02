@@ -49,7 +49,7 @@ This file is the acceptance test for phases 4 to 6. Nothing in it may change wit
 
 ## Phase 1 — Repository, then `initialize.sh`
 
-**Stay in the existing GitHub repository.** Issues, stars, releases and the HACS listing are tied to the repository
+**Stay in the existing GitHub repository.** Issues, stars, releases and the catalog listing are tied to the repository
 URL, not to the commit history inside it. Pull the blueprint into that repository rather than starting a new one from
 the template. The git strategies — clean force-push versus merging unrelated histories — and the repository settings
 to re-check are in [`references/git-strategy.md`](references/git-strategy.md).

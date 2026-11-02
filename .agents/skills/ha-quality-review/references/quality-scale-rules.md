@@ -1,7 +1,7 @@
 # Integration Quality Scale — full rule list
 
 The authoritative list is `script/hassfest/quality_scale.py` in `home-assistant/core`, and each rule has a page under
-<https://developers.home-assistant.io/docs/core/integration-quality-scale/rules/>. Tiers are cumulative: Silver requires
+<https://contributors.home-assistant.io/core/quality-scale/rules/>. Tiers are cumulative: Silver requires
 all of Bronze, Gold all of Silver, Platinum all of Gold.
 
 For a **custom** integration the `quality_scale` key in `manifest.json` is optional and is not shown in the Home
@@ -14,7 +14,7 @@ Gold.
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `action-setup`                   | Actions are registered in `async_setup()`, and each handler resolves its entry and checks `ConfigEntryState.LOADED`                                                                              |
 | `appropriate-polling`            | Coordinator `update_interval`, or `SCAN_INTERVAL` in the platform when `_attr_should_poll`; minimum 5 s, sensible for the source, documented                                                     |
-| `brands`                         | Icon and logo ship in `custom_components/<domain>/brand/` (HA 2026.3+); `home-assistant/brands` is Core-only                                                                                     |
+| `brands`                         | Icon and logo ship in `custom_components/<domain>/brand/` (HA 2026.3+); the Marketplace catalog requires `icon.png`                                                                              |
 | `common-modules`                 | The coordinator and the base entity live in the expected place. Upstream says `coordinator.py` and `entity.py`; this project's `coordinator/` and `entity/` packages are the accepted equivalent |
 | `config-flow`                    | Setup happens through the UI; every field has a `data_description`; everything needed to connect is in `ConfigEntry.data` and everything else in `ConfigEntry.options`                           |
 | `config-flow-test-coverage`      | The config flow has full test coverage, including every abort and error path                                                                                                                     |

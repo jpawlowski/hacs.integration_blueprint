@@ -200,11 +200,11 @@ Two layers, both sourced by the lifecycle scripts:
 | `.devcontainer/.env`       | ✅ yes             | project defaults for everyone  |
 | `.devcontainer/.env.local` | ❌ no (gitignored) | personal overrides, always win |
 
-| Variable          | Default                  | Effect                                                    |
-| ----------------- | ------------------------ | --------------------------------------------------------- |
-| `HA_VERSION`      | version from `hacs.json` | `latest`, `beta`, `YEAR.MONTH`, or an exact version       |
-| `HA_INSTALL_HACS` | `1`                      | `0` skips the HACS install and speeds up first-time setup |
-| `APT_UPDATE`      | `0`                      | `1` runs `apt-get update && upgrade` during setup         |
+| Variable          | Default                  | Effect                                                                               |
+| ----------------- | ------------------------ | ------------------------------------------------------------------------------------ |
+| `HA_VERSION`      | version from `hacs.json` | `latest`, `beta`, `YEAR.MONTH`, or an exact version                                  |
+| `HA_INSTALL_HACS` | `1`                      | `0` skips the HACS install; ignored from 2026.11, which has the Marketplace built in |
+| `APT_UPDATE`      | `0`                      | `1` runs `apt-get update && upgrade` during setup                                    |
 
 Changes require **Dev Containers: Rebuild Container**. These files are not visible to devcontainer _features_ or
 `containerEnv` — those are set at image build time and must be edited in `devcontainer.json`.

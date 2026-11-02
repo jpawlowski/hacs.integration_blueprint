@@ -1,6 +1,6 @@
-# Migrating an Existing HACS Integration to This Blueprint
+# Migrating an Existing Custom Integration to This Blueprint
 
-This guide is for developers who already have a HACS integration and want to adopt this
+This guide is for developers who already have a custom integration and want to adopt this
 blueprint's project structure, DevContainer environment, and tooling.
 
 > [!NOTE]
@@ -21,7 +21,7 @@ configuration — comes from the blueprint and stays as-is (or is extended via h
 ### 1. Keep your existing repository
 
 > [!IMPORTANT]
-> Issues, pull requests, stars, releases, and the HACS listing are all tied to the repository
+> Issues, pull requests, stars, releases, and the catalog listing are all tied to the repository
 > URL — not to the git history inside it. Creating a new repository from the template and
 > abandoning the old one means losing all of that, and leaving your users subscribed to a
 > repository that no longer updates.

@@ -73,7 +73,8 @@ commits on main → release-please opens/updates "chore(main): release X.Y.Z"
 ```
 
 `manifest.json` → `version` is the source of truth and is bumped inside the release PR by release-please
-(`release-please-config.json` → `extra-files`). Never edit it by hand.
+(`release-please-config.json` → `extra-files`). Never edit it by hand. The Marketplace depends on that: it offers the tag of the latest published GitHub Release — a bare tag is not enough — expects
+`version` to equal it, and shows the release body as the notes in the update dialog.
 
 There is no automatic merge. The developer decides when to release.
 
@@ -121,6 +122,7 @@ Also confirm:
 - Every breaking change has a `BREAKING CHANGE:` footer and a migration note.
 - `docs/user/` and the README match the released behaviour.
 - The minimum Home Assistant version in `hacs.json` and `manifest.json` is still accurate.
+- `custom_components/<domain>/brand/icon.png` is the product's icon, not the blueprint's placeholder.
 
 ## Troubleshooting
 

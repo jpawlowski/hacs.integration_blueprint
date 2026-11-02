@@ -242,7 +242,7 @@ This blueprint demonstrates all the essential integration features:
 - VS Code dev container with the toolchain from `mise.toml` and all extensions pre-configured
 - Comprehensive development scripts (based on "Scripts to Rule Them All" pattern)
 - Test infrastructure with pytest and Home Assistant test utilities
-- HACS integration support out of the box
+- Ready for the Home Assistant Marketplace: `hacs.json`, brand images, release workflow and validation
 
 ## Contributing to this Blueprint
 
@@ -310,7 +310,7 @@ This repository uses the [Scripts to Rule Them All](https://github.com/github/sc
 - **`script/setup/bootstrap`** - First-time setup after cloning (installs dependencies and git hooks)
 - **`script/setup/setup`** - Complete project setup (runs bootstrap + additional configuration)
 - **`script/setup/reset`** - Reset development environment to fresh state
-- **`script/setup/sync-hacs`** - Sync HACS-installed integrations to `custom_components/` for development
+- **`script/setup/sync-hacs`** - Link integrations installed through the Marketplace or HACS into `custom_components/` for development
 - **`script/setup/toolchain`** - Install the tools `mise.toml` pins (run by bootstrap)
 - **`script/setup/github`** - Apply the repository's GitHub settings and rulesets (`--dry-run` first) — see [Repository setup](docs/development/REPOSITORY_SETUP.md)
 - **`script/blueprint-update`** - Show what the blueprint changed in the files the template sync never touches
@@ -345,7 +345,7 @@ See [docs/development/CUSTOMIZATION.md](docs/development/CUSTOMIZATION.md) for d
 
 ### Migrating an existing integration
 
-Already have a HACS integration? You can adopt this blueprint's structure and tooling without starting from scratch. The short version: copy your `custom_components/<domain>/` folder in and adapt your code incrementally.
+Already have a custom integration? You can adopt this blueprint's structure and tooling without starting from scratch. The short version: copy your `custom_components/<domain>/` folder in and adapt your code incrementally.
 
 See [docs/blueprint/MIGRATION.md](docs/blueprint/MIGRATION.md) for an overview of strategies (clean start vs. preserving git history) and common pitfalls like namespace mismatches and repository permissions.
 
@@ -735,7 +735,7 @@ The [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json) configu
 - GitHub CLI pre-installed
 - All VS Code extensions configured (Python, Ruff, YAML, etc.)
 - Home Assistant 2026.10+ automatically installed
-- HACS pre-installed and configured
+- The Marketplace for other custom integrations (built in from Home Assistant 2026.11, HACS pre-installed before)
 - Automatic port forwarding for Home Assistant (port 8123)
 
 **First startup:**
@@ -745,7 +745,7 @@ The container runs `script/setup/setup` automatically, which:
 1. Creates a Python virtual environment
 2. Installs all dependencies
 3. Downloads Home Assistant
-4. Sets up HACS
+4. Sets up HACS on Home Assistant before 2026.11
 5. Installs the git hooks
 
 Just wait for the setup to complete (check the terminal), then run `script/develop`.
@@ -900,7 +900,7 @@ While this blueprint is inspired by the original, it includes significant enhanc
 | **Development scripts**     | Comprehensive Scripts to Rule Them All                                                   | Basic scripts                  |
 | **Test infrastructure**     | Preconfigured `pytest-homeassistant-custom-component`                                    | Manual test setup needed       |
 | **Type checking**           | Pyright configured                                                                       | Not included                   |
-| **HACS integration**        | Auto-installed in dev container                                                          | Manual setup                   |
+| **Marketplace / HACS**      | Built in from 2026.11, HACS auto-installed before                                        | Manual setup                   |
 | **VS Code tasks**           | Pre-configured tasks for common operations                                               | Not included                   |
 | **Package architecture**    | Organized into packages for scalability                                                  | Single-file platforms          |
 | **AI agent support**        | Comprehensive instructions for GitHub Copilot, Claude, etc.                              | Not included                   |
@@ -917,19 +917,19 @@ Once you have the blueprint working with your device or service:
 
 - **Add tests**: Use `pytest-homeassistant-custom-component` to test your config flow, coordinator, and entities
 - **Run type checking**: Ensure `script/type-check` passes without errors
-- **Test with real Home Assistant**: Install via HACS or copy to your real HA instance
+- **Test with real Home Assistant**: Install via the Marketplace or copy to your real HA instance
 
 #### Branding & distribution
 
-- **Add brand images**: Place logo (`logo.png`) and icon (`icon.png`) in the `brand/` directory — Home Assistant picks them up automatically for custom integrations (see [docs](https://developers.home-assistant.io/docs/creating_integration_file_structure/#brand-images---brand))
+- **Replace the brand images**: Swap the placeholder `icon.png` / `icon@2x.png` in `custom_components/<domain>/brand/` for your own, and add `logo.png` if you have one — Home Assistant shows them, and the Marketplace catalog requires at least `icon.png` (see [docs](https://contributors.home-assistant.io/marketplace/guides/integrations/))
 - **Write documentation**: Update this README with your integration's specific features
 - **Create releases**: Use the included Release Please workflow and `script/release-notes` for AI-assisted changelogs — see [docs/development/RELEASE.md](docs/development/RELEASE.md)
 
 #### Share & Connect
 
 - **Share your work**: Post on the [Home Assistant Forum](https://community.home-assistant.io/)
-- **Submit to HACS**: Follow the [HACS documentation](https://hacs.xyz/docs/publish/start) to make your integration discoverable
-- **Contribute**: If your integration would benefit many users, consider [submitting it to Home Assistant Core](https://developers.home-assistant.io/docs/creating_integration_manifest)
+- **Get into the Marketplace catalog**: Follow [Get into the catalog](https://contributors.home-assistant.io/marketplace/guides/catalog/) — a published release, a repository description and topics, brand images, and passing hassfest and HACS validation
+- **Contribute**: If your integration would benefit many users, consider [submitting it to Home Assistant Core](https://contributors.home-assistant.io/core/integrations/manifest/)
 
 ---
 
@@ -946,11 +946,11 @@ Once you have the blueprint working with your device or service:
 
 ### Home Assistant documentation
 
-- [Developer documentation](https://developers.home-assistant.io/) - Official developer guide
-- [Creating a custom integration](https://developers.home-assistant.io/docs/creating_component_index) - Step-by-step tutorial
-- [Config flow documentation](https://developers.home-assistant.io/docs/config_entries_config_flow_handler) - Setting up user configuration
-- [DataUpdateCoordinator](https://developers.home-assistant.io/docs/integration_fetching_data) - Efficient data fetching pattern
-- [Entity documentation](https://developers.home-assistant.io/docs/core/entity) - Creating entities
+- [Developer documentation](https://contributors.home-assistant.io/) - Official developer guide
+- [Creating a custom integration](https://contributors.home-assistant.io/core/integrations/create/) - Step-by-step tutorial
+- [Config flow documentation](https://contributors.home-assistant.io/core/integrations/config-flow/) - Setting up user configuration
+- [DataUpdateCoordinator](https://contributors.home-assistant.io/core/integrations/fetching-data/) - Efficient data fetching pattern
+- [Entity documentation](https://contributors.home-assistant.io/core/entities/entity-class/) - Creating entities
 
 ### Development tools
 

@@ -77,6 +77,10 @@ Set `iot_class` to match reality. Beyond `local_polling`, `cloud_polling`, `loca
 `calculated`, for an integration that derives its values instead of fetching them, and `assumed_state`, for one that
 sends commands it cannot read back.
 
+Pick one to three `categories` with the developer — "what is this, and where would someone look for it?" — from the
+[category list](https://contributors.home-assistant.io/core/integrations/categories/). The Marketplace catalog
+publishes them; when to add the key is in `blueprint.manifest`.
+
 Add discovery matchers only when you will also implement the matching flow step
 ([`ha-config-flow`](../ha-config-flow/SKILL.md)); a matcher without a handler fails `script/hassfest`.
 
@@ -171,10 +175,11 @@ verification is the developer's to do, not yours to claim.
 ## 7. Finish the paperwork, then retire this skill
 
 - Update `README.md` and `docs/user/` to describe the real integration.
-- Add the brand images. Since Home Assistant 2026.3 a custom integration ships its own, in
-  `custom_components/<domain>/brand/` as `icon.png` and `logo.png`; local images take precedence over the
-  `home-assistant/brands` repository, which only Core integrations can use. Ask the developer for the files — do not
-  invent placeholders, and do not open a pull request against `home-assistant/brands`.
+- Replace the brand images. `custom_components/<domain>/brand/` ships the blueprint's placeholder `icon.png` and
+  `icon@2x.png`; swap them for the product's, square and at most 256 / 512 pixels, and add `logo.png` if there is
+  one. The Marketplace catalog requires at least `icon.png`, and the integration must not use Home Assistant's own
+  branding. Ask the developer for the files — do not invent artwork, and do not open a pull request against
+  `home-assistant/brands`.
 - Record the library-versus-own-client decision in `docs/development/DECISIONS.md` if you have not already.
 - Commit in reviewable pieces, following [`ha-release`](../ha-release/SKILL.md). Never commit unasked.
 
