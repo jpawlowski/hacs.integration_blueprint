@@ -50,7 +50,7 @@ Maintaining the shipped agent skills has its own procedure:
 ## Contents
 
 - [`DECISIONS.md`](DECISIONS.md) — architectural decisions about the blueprint itself
-- [`MIGRATION.md`](MIGRATION.md) — adopting the blueprint in an existing HACS integration
+- [`MIGRATION.md`](MIGRATION.md) — adopting the blueprint in an existing custom integration
 - [`TRANSFORMATION_PROMPT.md`](TRANSFORMATION_PROMPT.md) — prompting a coding agent to run the transformation
 
 `MIGRATION.md` and `TRANSFORMATION_PROMPT.md` are read **before** `initialize.sh` runs, which is why deleting them at

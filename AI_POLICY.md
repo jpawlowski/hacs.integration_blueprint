@@ -6,7 +6,7 @@ knowledge to build them.
 
 ## Scope
 
-Home Assistant custom integrations, commonly distributed through HACS, are community projects. They are not part of
+Home Assistant custom integrations, commonly distributed through the Marketplace or HACS, are community projects. They are not part of
 Home Assistant Core and are not automatically subject to the contribution rules of the Open Home Foundation (OHF).
 Core policies may still provide valuable guidance, but this project does not assume that every restriction appropriate
 for Core is also appropriate for an independently maintained community integration.
@@ -44,7 +44,7 @@ that the code is low quality.
 ## Maintainer responsibility
 
 Maintainers are encouraged to understand and oversee as much of their integration as reasonably possible, especially
-when distributing it through HACS. They remain responsible for honestly documenting what they have and have not
+when distributing it through the Marketplace or HACS. They remain responsible for honestly documenting what they have and have not
 reviewed or tested, responding to safety and security concerns, and avoiding unsupported claims about reliability.
 
 Where complete manual review is impractical, stronger indirect safeguards become more important. These include focused
