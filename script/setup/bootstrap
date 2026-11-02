@@ -176,9 +176,7 @@ EOF
     set -e
 fi
 
-if ! target_ha_version HA_VERSION; then
-    exit 1
-fi
+target_ha_version HA_VERSION || exit 1
 
 HA_CORE_BASE_URL="https://raw.githubusercontent.com/home-assistant/core/${HA_VERSION}"
 

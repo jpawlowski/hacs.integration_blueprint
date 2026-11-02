@@ -9,6 +9,9 @@
 #   # shellcheck source=script/.lib/ha_version.sh
 #   source "$SCRIPT_DIR/.lib/ha_version.sh"
 #
+# Or run it to print the targeted version, for workflows:
+#   bash script/.lib/ha_version.sh
+#
 # Supported version formats:
 #   "latest"          → newest stable release on PyPI
 #   "beta"            → newest pre-release (alpha/beta/RC) on PyPI
@@ -17,8 +20,8 @@
 #   "YEAR.MONTH.NbM"  → returned as-is (explicit pre-release pin, e.g. 2026.8.0b1)
 #   "YEAR.MONTH.NrcM" → returned as-is (explicit release-candidate pin)
 #
-# Note: Callers that wish to treat YEAR.MONTH.0 as "latest patch" (e.g. when
-# reading from hacs.json) should strip the .0 before calling this function.
+# A hacs.json minimum of YEAR.MONTH.0 means the latest patch; target_ha_version
+# strips the .0 before resolving it.
 
 # _PYPI_JSON_CACHE holds the raw PyPI JSON after the first successful fetch so
 # that multiple resolve_ha_version calls in the same shell session only hit the
@@ -191,3 +194,17 @@ target_ha_version() {
     resolve_ha_version _tha_resolved "$_tha_version" || return 1
     _tha_result="$_tha_resolved"
 }
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    set -euo pipefail
+    cd "$(dirname "$0")/../.."
+    # shellcheck source=script/.lib/output.sh
+    source script/.lib/output.sh
+    for _env_file in .devcontainer/.env .devcontainer/.env.local; do
+        # shellcheck source=/dev/null
+        if [[ -f "$_env_file" ]]; then source "$_env_file"; fi
+    done
+    _version=""
+    target_ha_version _version >&2
+    printf '%s\n' "$_version"
+fi
