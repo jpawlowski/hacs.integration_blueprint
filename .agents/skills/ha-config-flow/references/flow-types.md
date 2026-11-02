@@ -85,8 +85,9 @@ Core's `[%key:common::…%]` references do not resolve in a custom integration.
 The handler is constructed with **no arguments** (`return OptionsFlowHandler()`); the base class provides
 `self.config_entry`. Older examples that store it themselves are wrong.
 
-**Auto-reload:** subclass `OptionsFlowWithReload` — no manual listener needed. The manual alternative is an update
-listener registered in `async_setup_entry()` that calls `async_reload()`.
+**Auto-reload:** subclass `OptionsFlowWithReload`. Every change has one reload owner: this class for options,
+`async_update_reload_and_abort` for reauth and reconfigure. An update listener that calls `async_reload()` reloads a
+second time after those flows, so it is a pattern to recognise and remove, not an alternative.
 
 ## Subentry flow
 
