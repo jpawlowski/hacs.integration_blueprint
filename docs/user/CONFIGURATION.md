@@ -38,6 +38,9 @@ After initial setup, you can modify settings:
 **Available options:**
 
 - Filter replacement threshold: the remaining filter life, in percent, below which the filter replacement warning turns on
+- Name/identifier
+- Connection timeout
+- Additional features (device-specific)
 
 ## Entity Configuration
 
