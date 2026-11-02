@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 from custom_components.ha_integration_domain.api import (
     IntegrationBlueprintApiClientAuthenticationError,
     IntegrationBlueprintApiClientError,
+    IntegrationBlueprintApiClientRateLimitError,
 )
 from custom_components.ha_integration_domain.const import DOMAIN
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -28,7 +29,8 @@ class IntegrationBlueprintDataUpdateCoordinator(DataUpdateCoordinator[dict[str, 
 
         Raises:
             ConfigEntryAuthFailed: If the credentials were rejected; triggers reauth.
-            UpdateFailed: If the fetch failed for any other reason.
+            UpdateFailed: If the fetch failed for any other reason; after a rate limit, it carries the wait the API
+                asked for.
 
         """
         try:
@@ -37,6 +39,12 @@ class IntegrationBlueprintDataUpdateCoordinator(DataUpdateCoordinator[dict[str, 
             raise ConfigEntryAuthFailed(
                 translation_domain=DOMAIN,
                 translation_key="authentication_failed",
+            ) from exception
+        except IntegrationBlueprintApiClientRateLimitError as exception:
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="update_failed",
+                retry_after=exception.retry_after,
             ) from exception
         except IntegrationBlueprintApiClientError as exception:
             raise UpdateFailed(

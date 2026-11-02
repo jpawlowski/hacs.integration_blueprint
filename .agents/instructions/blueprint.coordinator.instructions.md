@@ -78,19 +78,24 @@ Define in `api/__init__.py`:
 - `{ClassPrefix}ApiClientError` (Base)
 - `{ClassPrefix}ApiClientCommunicationError` (Network, timeout, HTTP errors)
 - `{ClassPrefix}ApiClientAuthenticationError` (401, 403, invalid credentials)
-- Optional: `ApiClientRateLimitError(retry_after)` for rate limiting
+- `{ClassPrefix}ApiClientRateLimitError(retry_after)` (429), a subclass of the communication error, so code that
+  only knows the base still catches it
 
-**Mapping:** HTTP 401/403 → Auth, HTTP 429 → RateLimit (parse `Retry-After`), Timeout/ClientError → Communication
+**Mapping:** HTTP 401/403 → Auth, HTTP 429 → RateLimit with the `Retry-After` seconds (a client default when the
+header is missing or a date), Timeout/ClientError → Communication
 
 ## Error Handling in `_async_update_data()`
 
 Translate API exceptions into Home Assistant ones here, and only here:
 
-| API Exception         | Raise                          | Home Assistant Behavior |
-| --------------------- | ------------------------------ | ----------------------- |
-| `AuthenticationError` | `ConfigEntryAuthFailed`        | Triggers reauth flow    |
-| `CommunicationError`  | `UpdateFailed("message")`      | Retry with backoff      |
-| `RateLimitError`      | `UpdateFailed(retry_after=60)` | Wait before retry       |
+| API Exception         | Raise                                       | Home Assistant Behavior     |
+| --------------------- | ------------------------------------------- | --------------------------- |
+| `AuthenticationError` | `ConfigEntryAuthFailed`                     | Triggers reauth flow        |
+| `RateLimitError`      | `UpdateFailed(retry_after=err.retry_after)` | Next poll waits that long   |
+| `CommunicationError`  | `UpdateFailed("message")`                   | Retry at the usual interval |
+
+Catch `RateLimitError` before the communication error it subclasses. Home Assistant ignores `retry_after` during
+`async_config_entry_first_refresh()`; a rate limit at setup retries on the `ConfigEntryNotReady` backoff instead.
 
 **Import from:** `homeassistant.exceptions.ConfigEntryAuthFailed`,
 `homeassistant.helpers.update_coordinator.UpdateFailed`
