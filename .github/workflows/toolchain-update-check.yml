@@ -3,7 +3,8 @@ name: Toolchain Update Check
 
 # Dependabot has no mise ecosystem, so mise.toml and mise itself are raised by
 # Renovate alone. Where the Renovate GitHub App is not active, this keeps one
-# issue open that lists what is outdated, and closes it once nothing is.
+# issue open that lists what is outdated, and closes it once nothing is or once
+# Renovate takes over.
 
 on:
   workflow_dispatch:
@@ -48,7 +49,6 @@ jobs:
   report:
     name: Report outdated tools
     needs: detect-renovate
-    if: needs.detect-renovate.outputs.active == 'false'
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     permissions:
@@ -58,11 +58,13 @@ jobs:
       MISE_ENV: devcontainer # report mise.devcontainer.toml too
     steps:
       - name: Checkout the repository
+        if: needs.detect-renovate.outputs.active == 'false'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Set up mise
+        if: needs.detect-renovate.outputs.active == 'false'
         uses: jdx/mise-action@6be3c7ed4c21d4f76b208d351d95aac273ebb76d # v5.2.4
         with:
           # renovate: datasource=github-releases depName=jdx/mise extractVersion=^v(?<version>.+)$
@@ -71,13 +73,15 @@ jobs:
           install: false
 
       - name: Collect outdated tools
+        if: needs.detect-renovate.outputs.active == 'false'
         id: collect
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           {
             row='"| `\(.key)` | \(.value.requested // .value.current) | \(.value.latest) |"'
-            mise outdated --bump --json | jq -r "to_entries[] | select(.key != \"python\") | ${row}"
+            # The tools are not installed here, so mise lists every one; only a set bump is a newer release.
+            mise outdated --bump --json | jq -r "to_entries[] | select(.key != \"python\" and .value.bump != null) | ${row}"
             # Python follows Home Assistant, so only a newer patch release of the pinned minor version counts.
             python=$(sed -n 's/^python *= *"\([^"]*\)".*/\1/p' mise.toml)
             if [[ -n "${python}" ]]; then
@@ -118,6 +122,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OUTDATED: ${{ steps.collect.outputs.outdated }}
+          RENOVATE: ${{ needs.detect-renovate.outputs.active }}
           TITLE: "Toolchain updates available"
         run: |
           number=$(gh issue list --repo "${GITHUB_REPOSITORY}" --state open --author "app/github-actions" \
@@ -128,6 +133,9 @@ jobs:
             else
               gh issue create --repo "${GITHUB_REPOSITORY}" --title "${TITLE}" --body-file report.md
             fi
+          elif [[ -n "${number}" && "${RENOVATE}" == "true" ]]; then
+            gh issue close "${number}" --repo "${GITHUB_REPOSITORY}" \
+              --comment "Renovate is active on this repository and raises these pins itself."
           elif [[ -n "${number}" ]]; then
             gh issue close "${number}" --repo "${GITHUB_REPOSITORY}" \
               --comment "Every pin in mise.toml and mise.devcontainer.toml is current."

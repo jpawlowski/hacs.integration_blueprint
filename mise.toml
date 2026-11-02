@@ -2,6 +2,11 @@
 # which template sync leaves alone; personal overrides in the gitignored mise.local.toml.
 min_version = "2026.10.22"
 
+# Unset, these fall back to a source build when no precompiled one matches; false makes that an error instead.
+[settings]
+python.compile = false
+node.compile = false
+
 [tools]
 # Follows the Python version Home Assistant requires.
 python = "3.14.9"
