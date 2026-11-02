@@ -8,6 +8,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry, async_
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMocker
 
 from custom_components.ha_integration_domain.api.client import API_URL, DEFAULT_RETRY_AFTER
+from custom_components.ha_integration_domain.coordinator.base import MIN_RETRY_AFTER
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
 
@@ -27,6 +28,8 @@ async def _tick(hass: HomeAssistant, freezer: FrozenDateTimeFactory, delta: time
         ({"Retry-After": "120"}, 120),
         ({}, DEFAULT_RETRY_AFTER),
         ({"Retry-After": "Wed, 21 Oct 2026 07:28:00 GMT"}, DEFAULT_RETRY_AFTER),
+        ({"Retry-After": "0"}, MIN_RETRY_AFTER),
+        ({"Retry-After": "99999999"}, 3600),
     ],
 )
 async def test_rate_limit_delays_the_next_refresh(
@@ -37,7 +40,7 @@ async def test_rate_limit_delays_the_next_refresh(
     headers: dict[str, str],
     wait: float,
 ) -> None:
-    """After a 429 the next poll waits as long as the API asked, or a minute, instead of the usual hour."""
+    """After a 429 the next poll waits as long as the API asked, within ten seconds and the usual hour."""
     aioclient_mock.get(API_URL, json=DEMO_RESPONSE)
     config_entry.add_to_hass(hass)
     await hass.config_entries.async_setup(config_entry.entry_id)

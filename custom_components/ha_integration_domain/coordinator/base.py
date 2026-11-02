@@ -14,6 +14,8 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 if TYPE_CHECKING:
     from custom_components.ha_integration_domain.data import IntegrationBlueprintConfigEntry
 
+MIN_RETRY_AFTER = 10.0
+
 
 class IntegrationBlueprintDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Fetch the device state once per interval and hand it to every entity."""
@@ -44,10 +46,22 @@ class IntegrationBlueprintDataUpdateCoordinator(DataUpdateCoordinator[dict[str, 
             raise UpdateFailed(
                 translation_domain=DOMAIN,
                 translation_key="update_failed",
-                retry_after=exception.retry_after,
+                retry_after=self._bounded_retry_after(exception.retry_after),
             ) from exception
         except IntegrationBlueprintApiClientError as exception:
             raise UpdateFailed(
                 translation_domain=DOMAIN,
                 translation_key="update_failed",
             ) from exception
+
+    def _bounded_retry_after(self, seconds: float) -> float:
+        """
+        Keep the wait a rate limit asks for between MIN_RETRY_AFTER and the regular update interval.
+
+        Returns:
+            The seconds until the next poll.
+
+        """
+        if self.update_interval:
+            seconds = min(seconds, self.update_interval.total_seconds())
+        return max(seconds, MIN_RETRY_AFTER)
