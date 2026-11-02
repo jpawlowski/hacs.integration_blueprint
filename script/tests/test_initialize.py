@@ -5,8 +5,10 @@ the blueprint on purpose would be rewritten, then reverted by the next sync pull
 domain only survives by leaving the sync, and then never receives an upstream change again.
 """
 
+import json
 from pathlib import Path
 import re
+import shutil
 import subprocess
 
 import pytest
@@ -151,3 +153,62 @@ def test_excluded_paths_exist() -> None:
     missing = [path for path in _array("exclude_paths") if not (REPO_ROOT / path).is_file()]
 
     assert not missing, f"exclude_paths in initialize.sh points at files that do not exist: {missing}"
+
+
+def _initialize_function(tmp_path: Path, minimum: str, *command: str) -> subprocess.CompletedProcess[str]:
+    """Call a function from initialize.sh, without its main, in a directory with the schema and a hacs.json."""
+    (tmp_path / "schemas" / "json").mkdir(parents=True, exist_ok=True)
+    shutil.copy(REPO_ROOT / "schemas" / "json" / "manifest_schema.json", tmp_path / "schemas" / "json")
+    (tmp_path / "hacs.json").write_text(json.dumps({"homeassistant": minimum}), encoding="utf-8")
+    return subprocess.run(
+        [
+            "bash",
+            "-c",
+            'command=("$@"); set --; source <(sed "\\$d" "$0") && "${command[@]}"',
+            str(INITIALIZE),
+            *command,
+        ],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(("minimum", "supported"), [("2026.10.0", False), ("2026.11.0", True), ("2027.1.0", True)])
+def test_categories_need_home_assistant_2026_11(tmp_path: Path, minimum: str, *, supported: bool) -> None:
+    """Hassfest before 2026.11 rejects the key, so initialize.sh only offers it from that minimum."""
+    assert (_initialize_function(tmp_path, minimum, "categories_supported").returncode == 0) is supported
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("given", "problem"),
+    [
+        ("energy, energy.ev_charging", "implied by its subcategory"),
+        ("energy.not_a_category", "Unknown category"),
+        ("energy climate sensors lighting", "Pick 1 to 3"),
+        ("energy energy", "listed twice"),
+    ],
+)
+def test_invalid_categories_are_rejected(tmp_path: Path, given: str, problem: str) -> None:
+    """The rules hassfest and the HACS action apply are caught before the manifest is written."""
+    result = _initialize_function(tmp_path, "2026.11.0", "category_tool", "check", given)
+
+    assert result.returncode == 1
+    assert problem in result.stdout
+
+
+@pytest.mark.unit
+def test_categories_are_written_in_hassfest_key_order(tmp_path: Path) -> None:
+    """Commas or spaces both work, the primary category stays first, and the manifest keys stay sorted."""
+    checked = _initialize_function(tmp_path, "2026.11.0", "category_tool", "check", "energy.ev_charging, climate")
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps({"domain": "x", "name": "X", "version": "0.1.0", "codeowners": []}), "utf-8")
+
+    _initialize_function(tmp_path, "2026.11.0", "category_tool", "write", str(manifest), *checked.stdout.split())
+
+    assert checked.stdout.strip() == "energy.ev_charging climate"
+    assert list(json.loads(manifest.read_text("utf-8"))) == ["domain", "name", "categories", "codeowners", "version"]
+    assert json.loads(manifest.read_text("utf-8"))["categories"] == ["energy.ev_charging", "climate"]

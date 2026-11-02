@@ -26,6 +26,7 @@ PARAM_TITLE=""
 PARAM_NAMESPACE=""
 PARAM_REPO=""
 PARAM_AUTHOR=""
+PARAM_CATEGORY=""
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -59,6 +60,11 @@ while [[ $# -gt 0 ]]; do
             UNATTENDED=true
             shift 2
             ;;
+        --category|--categories)
+            PARAM_CATEGORY="$2"
+            UNATTENDED=true
+            shift 2
+            ;;
         --force)
             FORCE=true
             shift
@@ -79,6 +85,8 @@ Options:
                             If omitted, will be generated from title
   --repo USER/REPO          GitHub repository (e.g., username/repo-name)
   --author "NAME"            Author name for LICENSE (e.g., "John Doe")
+  --category "IDS"          One to three manifest categories, primary first (e.g., "energy.ev_charging")
+                            Optional; the list is in schemas/json/manifest_schema.json
   --force                   Skip confirmation prompts (required for unattended)
   --dry-run, --simulate     Test mode - no actual changes
   --help, -h                Show this help message
@@ -95,8 +103,9 @@ Examples:
     --domain my_awesome_integration \\
     --title "My Awesome Integration" \\
     --namespace "MyAwesome" \\
-    --repo myusername/my-hacs-integration \\
+    --repo myusername/ha-my-integration \\
     --author "John Doe" \\
+    --category "sensors.temperature_humidity" \\
     --force
 
 EOF
@@ -583,6 +592,106 @@ generate_namespace_from_title() {
     fi
 
     printf "%s" "$namespace"
+}
+
+# Hassfest before this release rejects the manifest's categories key.
+CATEGORIES_MIN_HA="2026.11"
+
+# Manifest categories, read from the list in the manifest schema. Modes:
+#   supported MIN          exit 0 when hacs.json's minimum Home Assistant is MIN (YEAR.MONTH) or newer
+#   list [TERM]            print the categories whose id or name contains TERM
+#   check INPUT            print INPUT normalised to space-separated ids, or the problems and exit 1
+#   write MANIFEST ID...   set the categories in MANIFEST, keeping hassfest's key order
+category_tool() {
+    python3 - "$@" <<'PY'
+import json
+import re
+import sys
+from pathlib import Path
+
+mode, *args = sys.argv[1:]
+
+
+def schema():
+    return json.loads(Path("schemas/json/manifest_schema.json").read_text(encoding="utf-8"))["else"]["properties"]["categories"]
+
+
+if mode == "supported":
+    version = json.loads(Path("hacs.json").read_text(encoding="utf-8")).get("homeassistant", "")
+    release = tuple(int(part) for part in re.findall(r"\d+", version)[:2])
+    sys.exit(0 if release >= tuple(int(part) for part in args[0].split(".")) else 1)
+elif mode == "list":
+    term = args[0].lower() if args else ""
+    items = schema()["items"]
+    for slug, description in zip(items["enum"], items["enumDescriptions"]):
+        name = description.split(":")[0]
+        if term in slug or term in name.lower():
+            print(f"  {slug:42} {name}")
+elif mode == "check":
+    categories = [category for category in re.split(r"[\s,]+", args[0]) if category]
+    rules = schema()
+    problems = []
+    if not rules["minItems"] <= len(categories) <= rules["maxItems"]:
+        problems.append(f"Pick {rules['minItems']} to {rules['maxItems']} categories")
+    if len(set(categories)) != len(categories):
+        problems.append("A category is listed twice")
+    for category in categories:
+        parent, _, subcategory = category.partition(".")
+        if category not in rules["items"]["enum"]:
+            problems.append(f"Unknown category: {category}")
+        elif subcategory and parent in categories:
+            problems.append(f"{parent} is implied by its subcategory {category}")
+    if problems:
+        print("\n".join(problems))
+        sys.exit(1)
+    print(" ".join(categories))
+elif mode == "write":
+    path = Path(args[0])
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest["categories"] = args[1:]
+    head = {key: manifest.pop(key) for key in ("domain", "name")}
+    path.write_text(json.dumps(head | dict(sorted(manifest.items())), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+PY
+}
+
+# Whether this template's minimum Home Assistant version can take manifest categories at all
+categories_supported() {
+    command -v python3 &> /dev/null && category_tool supported "$CATEGORIES_MIN_HA"
+}
+
+# Ask for up to three categories; prints them space-separated, or nothing when skipped
+ask_categories() {
+    local response result matches
+
+    while true; do
+        response=$(ask_input "Categories (Enter to skip, ? for the list, or a word to search):" true)
+        if [[ -z "$response" ]]; then
+            return 0
+        elif [[ "$response" == "?" ]]; then
+            category_tool list >&2
+        elif result=$(category_tool check "$response"); then
+            printf "%s" "$result"
+            return 0
+        elif [[ "$response" =~ ^[a-z0-9_]+$ ]] && matches=$(category_tool list "$response") && [[ -n "$matches" ]]; then
+            print_info "Matching categories:"
+            echo "$matches" >&2
+        else
+            echo "$result" >&2
+        fi
+    done
+}
+
+# Write the chosen categories into the integration's manifest
+write_categories() {
+    local manifest=$1
+    shift
+
+    if $DRY_RUN; then
+        print_dryrun "Would set categories in $manifest: $*"
+    else
+        category_tool write "$manifest" "$@"
+        print_success "Categories set in $manifest: $*"
+    fi
 }
 
 # Check if domain exists online
@@ -1289,6 +1398,7 @@ main() {
     local title=""
     local namespace=""
     local github_repo=""
+    local categories=""
 
     # Handle unattended mode with parameters
     if $UNATTENDED; then
@@ -1356,6 +1466,18 @@ main() {
         fi
         print_success "Author: $author_name @$github_username"
 
+        # Validate categories (optional)
+        if [[ -n "$PARAM_CATEGORY" ]]; then
+            if ! categories_supported; then
+                print_warning "Ignoring --category: it needs python3, and Home Assistant $CATEGORIES_MIN_HA or newer as the minimum in hacs.json"
+            elif ! categories=$(category_tool check "$PARAM_CATEGORY"); then
+                print_error "$categories"
+                exit 1
+            else
+                print_success "Categories: $categories"
+            fi
+        fi
+
         # Check domain availability (abort on conflicts in unattended mode)
         if ! check_domain_availability "$domain"; then
             print_error "Domain conflicts detected. Unattended mode requires conflict-free domain."
@@ -1370,6 +1492,7 @@ main() {
         echo "Namespace:  $namespace (class prefix)"
         echo "Repository: $github_repo"
         echo "Author:     $author_name @$github_username"
+        echo "Categories: ${categories:-none}"
         echo ""
 
         if ! $FORCE && ! $DRY_RUN; then
@@ -1456,7 +1579,7 @@ main() {
 
         if [[ -z "$github_repo" ]]; then
             echo "Enter your GitHub repository in format: username/repository"
-            echo "Example: myusername/my-hacs-integration"
+            echo "Example: myusername/ha-my-integration"
             echo ""
 
             while true; do
@@ -1482,13 +1605,27 @@ main() {
 
         local author_name=$(ask_input "Your name (or alias):")
 
-        # Step 6: Confirmation
-        print_header "Step 6: Confirm Settings"
+        # Step 6: Get categories (optional)
+        print_header "Step 6: Categories (optional)"
+        if categories_supported; then
+            echo "Where would someone look for your integration? Pick one to three categories, primary first."
+            echo "Example: energy.ev_charging, or several: climate.thermostats_heating sensors.temperature_humidity"
+            echo "You can also add them to manifest.json later."
+            echo ""
+            categories=$(ask_categories)
+        else
+            print_info "Skipped: needs python3, and Home Assistant $CATEGORIES_MIN_HA or newer as the minimum in hacs.json."
+            print_info "Add them to manifest.json once it does."
+        fi
+
+        # Step 7: Confirmation
+        print_header "Step 7: Confirm Settings"
         echo "Domain:     $domain"
         echo "Title:      $title"
         echo "Namespace:  $namespace (class prefix)"
         echo "Repository: $github_repo"
         echo "Author:     $author_name @$github_username"
+        echo "Categories: ${categories:-none}"
         echo ""
         if ! ask_yes_no "Proceed with these settings?"; then
             print_error "Setup cancelled"
@@ -1499,7 +1636,7 @@ main() {
     # Perform file operations (do this FIRST to avoid unnecessary replacements)
     local step_prefix=""
     if ! $UNATTENDED; then
-        step_prefix="Step 7: "
+        step_prefix="Step 8: "
     fi
     print_header "${step_prefix}Applying Changes"
 
@@ -1554,11 +1691,15 @@ main() {
     # Declare this repository as an initialized integration (must follow the replacements above)
     rewrite_repo_role
     record_identity "$domain" "$title" "$namespace" "$github_username" "$github_repo_name" "$author_name"
+    if [[ -n "$categories" ]]; then
+        # shellcheck disable=SC2086 # One argument per category
+        write_categories "custom_components/$domain/manifest.json" $categories
+    fi
 
     # Show statistics
     local stats_prefix=""
     if ! $UNATTENDED; then
-        stats_prefix="Step 8: "
+        stats_prefix="Step 9: "
     fi
     print_header "${stats_prefix}Summary & Statistics"
     show_statistics

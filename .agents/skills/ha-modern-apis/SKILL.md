@@ -113,6 +113,9 @@ script/hassfest && script/test
 rg -n "DeprecationWarning|will be removed" config/home-assistant.log
 ```
 
+When `script/test` reports that the manifest schema's categories differ from the installed Home Assistant, run
+`python3 script/.lib/manifest_categories.py` in the project virtualenv to copy them over.
+
 Bumping the minimum HA version in `hacs.json` / `manifest.json` drops support for older installs — that is a breaking
 change for users. See [`ha-breaking-changes`](../ha-breaking-changes/SKILL.md).
 
