@@ -6,9 +6,13 @@
   "devDependencies": {
     "@commitlint/cli": "21.2.1",
     "@commitlint/config-conventional": "21.2.0",
-    "@github/copilot": "1.0.24",
+    "@github/copilot": "1.0.105",
     "markdownlint-cli2": "0.24.0",
     "prettier": "3.8.2",
     "pyright": "1.1.408"
+  },
+  "overrides": {
+    "katex": "^0.18.2",
+    "re2js": "~2.8.7"
   }
 }
