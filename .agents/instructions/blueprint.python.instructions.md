@@ -135,7 +135,7 @@ reference, because CPython's import machinery is not thread-safe. Type-only impo
 
 **Setup Failure Handling:**
 
-See [Integration Setup Failures](https://developers.home-assistant.io/docs/integration_setup_failures) for details.
+See [Integration Setup Failures](https://contributors.home-assistant.io/core/integrations/setup-failures/) for details.
 
 - `ConfigEntryNotReady` - Device offline/unavailable, retry later (raise in `async_setup_entry()`)
 - `ConfigEntryAuthFailed` - Expired credentials (triggers reauth flow)

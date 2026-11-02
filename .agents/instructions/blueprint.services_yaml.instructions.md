@@ -100,4 +100,4 @@ Service action implementations are in `custom_components/<your_domain>/service_a
 `script/hassfest` cross-checks this file against the translation keys, and `script/yaml-check` runs yamllint. Home
 Assistant validates the schema again on load — see `config/home-assistant.log`.
 
-Reference: <https://developers.home-assistant.io/docs/dev_101_services/>
+Reference: <https://contributors.home-assistant.io/core/integrations/actions/>

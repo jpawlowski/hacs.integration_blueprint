@@ -99,7 +99,7 @@ Use `raise ... from err`. Pass the error message to the exception constructor an
 failures manually — Home Assistant does it, and manual logging buries the real error in repetition. Normal operation
 logging (debug/info) is still appropriate.
 
-See [Integration Setup Failures](https://developers.home-assistant.io/docs/integration_setup_failures).
+See [Integration Setup Failures](https://contributors.home-assistant.io/core/integrations/setup-failures/).
 
 ## Data Transformation (Coordinator Responsibility)
 
@@ -129,7 +129,7 @@ the protocol is proprietary, undocumented, or not worth the implementation effor
   released via `self.async_on_remove(...)` — a disabled entity is never added, so subscribing at setup leaks.
 - `async_set_updated_data()` on a polling coordinator also resets the timer until the next poll.
 
-See [HA Data Update Patterns](https://developers.home-assistant.io/docs/integration_fetching_data)
+See [HA Data Update Patterns](https://contributors.home-assistant.io/core/integrations/fetching-data/)
 
 ## First Refresh
 
@@ -140,7 +140,7 @@ See [HA Data Update Patterns](https://developers.home-assistant.io/docs/integrat
 **When setup should not be retried at all**, use `await coordinator.async_refresh()` instead — it does not raise, so
 the entry loads with entities in an unavailable state rather than going into the retry loop.
 
-See [Integration Setup Failures](https://developers.home-assistant.io/docs/integration_setup_failures#integrations-using-async_setup_entry)
+See [Integration Setup Failures](https://contributors.home-assistant.io/core/integrations/setup-failures/#during-setup)
 
 ## Always Update Parameter
 
@@ -208,4 +208,4 @@ accumulates itself; use `Store` for the payload the coordinator hands out.
 
 ## Reference
 
-[Home Assistant: Fetching Data](https://developers.home-assistant.io/docs/integration_fetching_data)
+[Home Assistant: Fetching Data](https://contributors.home-assistant.io/core/integrations/fetching-data/)

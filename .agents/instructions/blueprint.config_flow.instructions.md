@@ -15,10 +15,10 @@ what has to happen alongside it, including the entry migration a shape change fo
 
 **Official Documentation:**
 
-- [Data Entry Flow Index](https://developers.home-assistant.io/docs/data_entry_flow_index) - Fundamental flow concepts and result types
-- [Config Entries Index](https://developers.home-assistant.io/docs/config_entries_index) - Overview and lifecycle
-- [Config Flow Handler](https://developers.home-assistant.io/docs/config_entries_config_flow_handler)
-- [Options Flow Handler](https://developers.home-assistant.io/docs/config_entries_options_flow_handler)
+- [Data Entry Flow Index](https://contributors.home-assistant.io/core/integrations/flow-steps/) - Fundamental flow concepts and result types
+- [Config Entries Index](https://contributors.home-assistant.io/core/integrations/config-entries/) - Overview and lifecycle
+- [Config Flow Handler](https://contributors.home-assistant.io/core/integrations/config-flow/)
+- [Options Flow Handler](https://contributors.home-assistant.io/core/integrations/options-flow/)
 
 ## Architecture Overview
 
@@ -36,7 +36,7 @@ from users, the other types `entry.runtime_data`.
 
 ## Data Entry Flow Fundamentals
 
-Every step method must return one of these result types (see [Data Entry Flow docs](https://developers.home-assistant.io/docs/data_entry_flow_index)):
+Every step method must return one of these result types (see [Data Entry Flow docs](https://contributors.home-assistant.io/core/integrations/flow-steps/)):
 
 **Result Types:**
 
@@ -53,7 +53,7 @@ Every step method must return one of these result types (see [Data Entry Flow do
 
 **Simple fields** - Use voluptuous: `vol.Required("field"): str`, `vol.Optional("field", default=value): int`
 
-**Rich UI** - Use selectors for better UX: `TextSelector`, `NumberSelector`, `EntitySelector`, etc. (see [Selector docs](https://developers.home-assistant.io/docs/data_entry_flow_index#show-form))
+**Rich UI** - Use selectors for better UX: `TextSelector`, `NumberSelector`, `EntitySelector`, etc. (see [Selector docs](https://contributors.home-assistant.io/core/integrations/flow-steps/#show-a-form))
 
 **Sections** - Group with `section()`: `vol.Required("advanced"): section(vol.Schema({...}), {"collapsed": True})`
 

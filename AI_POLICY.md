@@ -12,7 +12,7 @@ Core policies may still provide valuable guidance, but this project does not ass
 for Core is also appropriate for an independently maintained community integration.
 
 If code from this project is contributed to an OHF repository, the current
-[OHF AI Policy](https://developers.home-assistant.io/docs/ai_policy/) applies to that contribution.
+[OHF AI Policy](https://contributors.home-assistant.io/start/ai-policy/) applies to that contribution.
 
 ## AI use is welcome
 
@@ -95,7 +95,7 @@ change.
 
 The rules above govern this repository. The moment a contribution is aimed at an Open Home Foundation repository —
 `home-assistant/core`, the developer documentation, the brands repository — the [OHF AI
-policy](https://developers.home-assistant.io/docs/ai_policy) applies instead, and it is stricter:
+policy](https://contributors.home-assistant.io/start/ai-policy/) applies instead, and it is stricter:
 
 - **Agents must never open an issue, pull request, or comment there.** Autonomous contributions are closed on sight,
   and that includes anything that bypasses the issue or pull request templates. Prepare the material locally and hand

@@ -14,8 +14,8 @@ act on — and the warn-first policy that comes before either.
 
 **Official Documentation:**
 
-- [Repairs Framework](https://developers.home-assistant.io/docs/core/platform/repairs)
-- [Issue Registry](https://developers.home-assistant.io/docs/core/platform/repairs#issue-registry)
+- [Repairs Framework](https://contributors.home-assistant.io/core/integrations/repairs/)
+- [Issue Registry](https://contributors.home-assistant.io/core/integrations/repairs/#create-an-issue)
 
 ## Overview
 

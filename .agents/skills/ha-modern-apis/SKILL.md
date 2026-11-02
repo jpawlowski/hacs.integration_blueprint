@@ -38,7 +38,7 @@ rg -n "runtime_data" .venv/lib/python*/site-packages/homeassistant/components/<s
 any secondary source.
 
 When the installed source is not enough — a pattern that is new rather than deprecated — check
-<https://developers.home-assistant.io/blog/> before implementing.
+<https://contributors.home-assistant.io/blog/> before implementing.
 
 ## The same rule, generalised: what counts as verified
 

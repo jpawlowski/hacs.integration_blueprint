@@ -496,10 +496,10 @@ Everything beyond that is in the per-file-type instruction files listed in the r
 ## Reference
 
 Home Assistant's APIs change often, and a pattern from an older integration, a blog post or model memory may already be
-deprecated. Verify against the [developer docs](https://developers.home-assistant.io/), the
-[developer blog](https://developers.home-assistant.io/blog/) and the installed Home Assistant source before relying on
+deprecated. Verify against the [developer docs](https://contributors.home-assistant.io/), the
+[developer blog](https://contributors.home-assistant.io/blog/) and the installed Home Assistant source before relying on
 one — [`ha-modern-apis`](.agents/skills/ha-modern-apis/SKILL.md) is the procedure.
 
-- [Integration Quality Scale](https://developers.home-assistant.io/docs/integration_quality_scale_index)
-- [Architecture docs](https://developers.home-assistant.io/docs/architecture_index)
+- [Integration Quality Scale](https://contributors.home-assistant.io/core/quality-scale/)
+- [Architecture docs](https://contributors.home-assistant.io/architecture/big-picture/)
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — contribution guidelines

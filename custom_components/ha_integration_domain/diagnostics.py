@@ -1,7 +1,7 @@
 """
 Diagnostics support for ha_integration_domain.
 
-https://developers.home-assistant.io/docs/core/integration_diagnostics
+https://contributors.home-assistant.io/core/integrations/diagnostics/
 """
 
 from typing import TYPE_CHECKING, Any

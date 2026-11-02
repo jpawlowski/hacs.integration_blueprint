@@ -199,7 +199,7 @@ entity object outside `async_added_to_hass`: a disabled entity is never added, a
 property that re-reads it every poll. `supported_features`, `device_class` and capability attributes may change, but
 each change forces voice-assistant integrations to resynchronise with their cloud service.
 
-**Reference:** [Entity Developer Docs](https://developers.home-assistant.io/docs/core/entity)
+**Reference:** [Entity Developer Docs](https://contributors.home-assistant.io/core/entities/entity-class/)
 
 ## Entity Utilities
 

@@ -121,7 +121,7 @@ All language files must have identical structure — only the values differ. For
 
 ## References
 
-- [Custom Integration Localization](https://developers.home-assistant.io/docs/internationalization/custom_integration) - **Primary reference**
-- [Backend Localization](https://developers.home-assistant.io/docs/internationalization/core) - Key structure only; it
+- [Custom Integration Localization](https://contributors.home-assistant.io/core/integrations/translations/) - **Primary reference**
+- [Backend Localization](https://contributors.home-assistant.io/core/integrations/translations/) - Key structure only; it
   documents Core's `strings.json` and its `[%key:...%]` syntax, neither of which applies here
 - [ICU Message Format](https://formatjs.github.io/docs/core-concepts/icu-syntax/) - Placeholder syntax for plurals
