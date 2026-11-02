@@ -15,7 +15,7 @@ jobs:
   release-please:
     name: Release Please
     # Skip when running inside the template repository itself
-    if: github.repository != 'jpawlowski/hacs.integration_blueprint'
+    if: github.repository != 'jpawlowski/ha-integration-blueprint'
     runs-on: ubuntu-latest
     # "Allow GitHub Actions to create and approve pull requests" must also be enabled
     # under Settings > Actions > General.
