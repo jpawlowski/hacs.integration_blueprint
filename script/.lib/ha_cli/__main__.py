@@ -124,11 +124,9 @@ def build_parser(domain: str) -> argparse.ArgumentParser:
         const="auto",
         help="reconfigure an existing entry, optionally by entry id",
     )
-    flow_start.add_argument("--advanced", action="store_true", help="show advanced options")
 
     flow_options = add_flow("options", flows.cmd_flow_options, "Start an options flow")
     flow_options.add_argument("entry_id", nargs="?", help="defaults to this integration's only entry")
-    flow_options.add_argument("--advanced", action="store_true", help="show advanced options")
 
     flow_show = add_flow("show", flows.cmd_flow_show, "Show the current step of a running flow")
     flow_show.add_argument("flow_id")

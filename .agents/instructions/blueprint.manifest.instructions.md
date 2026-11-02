@@ -67,15 +67,25 @@ This schema combines Home Assistant's official manifest requirements with the fi
   [category list](https://contributors.home-assistant.io/core/integrations/categories/), `category` or
   `category.subcategory`, the primary one first; `schemas/json/manifest_schema.json` carries the same list. Optional
   for a custom integration, but the catalog publishes them and the HACS action warns when the key is missing.
-  Hassfest before Home Assistant 2026.11 rejects it, so add it only once `hacs.json` → `homeassistant` is 2026.11 or
-  newer.
-- `quality_scale` - The tier the integration claims. Optional for custom integrations and not shown in the UI.
+  (HA 2026.11+) Hassfest rejects it before then, so add it only once `hacs.json` → `homeassistant` reaches 2026.11.
+- `quality_scale` - The tier the integration claims: `bronze` to `platinum`, or `custom`. Optional for custom
+  integrations and not shown in the UI. Hassfest rejects `silver` and above without a non-empty `codeowners`.
+- `disabled` - A reason string that stops Home Assistant from loading the integration at all; it only logs the reason.
+  An emergency brake for a release that must not run, never a feature switch.
+- `import_executor` - Custom integrations only. Defaults to `true`, importing the integration off the event loop; set
+  `false` only when the import itself must run in the event loop.
 - `dhcp`, `zeroconf`, `ssdp`, `usb`, `bluetooth` - Discovery configs. Each protocol has a matcher rule that fails
   silently when guessed — see
   [`ha-config-flow/references/discovery-matchers.md`](../skills/ha-config-flow/references/discovery-matchers.md).
 - `homekit`, `mqtt` - Protocol configs
-- `preview_features` - Home Assistant Labs. A real key, but the surrounding process (feedback threads, Core issue
-  templates) is Core-only; a custom integration just releases a version instead.
+- `preview_features` - Home Assistant Labs features the user switches on themselves, keyed by slug, each with optional
+  `feedback_url`, `learn_more_url` and `report_issue_url`. Works for a custom integration too; point the URLs at this
+  repository, and read the switch with `async_is_preview_feature_enabled()` /
+  `async_subscribe_preview_feature()` from `homeassistant.components.labs`.
+
+There is **no minimum Home Assistant version key** in `manifest.json`. That lives in `hacs.json` → `homeassistant`
+([`ha-marketplace`](../skills/ha-marketplace/SKILL.md)), and raising it is a breaking change
+([`ha-breaking-changes`](../skills/ha-breaking-changes/SKILL.md)).
 
 **Naming:** if the product exists as both a local and a cloud integration, the cloud one appends "Cloud". The local
 one uses the plain product name — never append "Local".
@@ -102,7 +112,7 @@ Use package name with version constraint:
 ```
 
 **Only list what Home Assistant does not already ship.** A custom integration must not repeat a package from Core's
-own `requirements.txt` — `aiohttp`, `voluptuous`, `httpx`, `awesomeversion` and friends are already there, and
+own `requirements.txt` — `aiohttp`, `probatio`, `httpx`, `awesomeversion` and friends are already there, and
 pinning them from here can only conflict with Core.
 
 ## Validation

@@ -58,7 +58,6 @@ Click **Submit** to test the connection.
 
 Configure optional settings:
 
-- **Update Interval:** How often to poll for updates (default: 5 minutes)
 - **Name:** Friendly name for this integration instance
 
 Click **Submit** to complete setup.

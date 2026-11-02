@@ -21,10 +21,9 @@ These options are configured during initial setup via the Home Assistant UI.
 
 #### Update Settings
 
-| Option              | Type              | Required | Default  | Description                                         |
-| ------------------- | ----------------- | -------- | -------- | --------------------------------------------------- |
-| **Update Interval** | integer (seconds) | No       | 300      | How often to poll for updates (minimum: 30 seconds) |
-| **Name**            | string            | No       | "Device" | Friendly name for the integration instance          |
+| Option   | Type   | Required | Default  | Description                                |
+| -------- | ------ | -------- | -------- | ------------------------------------------ |
+| **Name** | string | No       | "Device" | Friendly name for the integration instance |
 
 ### Options Flow (Reconfiguration)
 
@@ -38,10 +37,7 @@ After initial setup, you can modify settings:
 
 **Available options:**
 
-- Update interval
-- Name/identifier
-- Connection timeout
-- Additional features (device-specific)
+- Filter replacement threshold: the remaining filter life, in percent, below which the filter replacement warning turns on
 
 ## Entity Configuration
 
@@ -146,17 +142,10 @@ If the device is on a different network or behind a firewall:
 
 ### Polling Behavior
 
-The integration uses polling to fetch updates:
-
-- **Minimum interval:** 30 seconds (prevents overloading the device)
-- **Recommended interval:** 5 minutes (default)
-- **Longer intervals:** Save resources but reduce responsiveness
-
-Adjust based on your needs:
-
-- Real-time monitoring: 30-60 seconds
-- Regular updates: 5 minutes
-- Slow-changing values: 15-30 minutes
+The integration polls the device at a fixed interval chosen to suit it; the interval is not configurable. To fetch
+the current state sooner, call the `refresh_data` action, or use Home Assistant's
+[polling options](https://www.home-assistant.io/common-tasks/general/#defining-a-custom-polling-interval) to disable
+polling and drive updates from an automation.
 
 ## Diagnostic Data
 

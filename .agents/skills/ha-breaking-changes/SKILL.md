@@ -54,13 +54,14 @@ Treat as breaking:
 - Changing a state value, its unit, `device_class`, `state_class`, or an attribute name/format.
 - Renaming, removing, or changing the signature of a service action.
 - Removing or renaming a config option — including one you believe is unused.
-- Raising the minimum Home Assistant version in `hacs.json` / `manifest.json`.
+- Raising the minimum Home Assistant version — `hacs.json` → `homeassistant`; `manifest.json` has no such key. It
+  does not break a running install: the Marketplace withholds that release from anyone on an older Home Assistant,
+  and they silently stop receiving fixes until they upgrade ([`ha-marketplace`](../ha-marketplace/SKILL.md)).
 - Removing an entity, a platform, or a device.
 
 Long-term statistics deserve special care: changing `state_class`, the unit, or the entity ID discards or corrupts
-history that cannot be recovered. One case is recoverable — when only the **spelling** of a unit changes (`"KWh"` to
-`UnitOfEnergy.KILO_WATT_HOUR`), declare the pair equivalent with `recorder.async_custom_equivalent_units` instead of
-letting the statistics break.
+history that cannot be recovered. One case is recoverable — when only the **spelling** of a unit changes; see
+[`references/recipes.md`](references/recipes.md#a-unit-whose-spelling-changes).
 
 `supported_features`, `device_class` and capability attributes are changeable at runtime, but every change forces
 voice-assistant integrations to resynchronise with their cloud service — treat a change at poll rate as a bug.
@@ -85,51 +86,70 @@ Before 1.0.0 this section is an option to offer, not the default to reach for; s
 
 ### Unique ID migration
 
-Rewrite existing registry entries during setup, before the platforms load:
+Rewrite the registry entries inside `async_migrate_entry()` with `er.async_migrate_entries`, together with a **major**
+`VERSION` bump — an older release that does not know the new IDs would otherwise recreate every entity after a
+downgrade, whereas a newer major version makes it refuse the entry instead:
 
 ```python
-async def _async_migrate_unique_ids(hass: HomeAssistant, entry: {ClassPrefix}ConfigEntry) -> None:
-    """Migrate entity unique IDs from the legacy format."""
-    registry = er.async_get(hass)
-    for entity in er.async_entries_for_config_entry(registry, entry.entry_id):
-        if not entity.unique_id.startswith(f"{entry.entry_id}_"):
-            continue
-        new_unique_id = entity.unique_id.replace(entry.entry_id, serial_number, 1)
-        if registry.async_get_entity_id(entity.domain, DOMAIN, new_unique_id):
-            # A collision means the new entity already exists — drop the stale one.
-            registry.async_remove(entity.entity_id)
-            continue
-        registry.async_update_entity(entity.entity_id, new_unique_id=new_unique_id)
+async def async_migrate_entry(hass: HomeAssistant, entry: {ClassPrefix}ConfigEntry) -> bool:
+    """Migrate an old config entry."""
+    if entry.version == 1:
+        registry = er.async_get(hass)
+        serial = entry.unique_id
+
+        @callback
+        def _migrate(entity: er.RegistryEntry) -> dict[str, Any] | None:
+            if not entity.unique_id.startswith(f"{entry.entry_id}_"):
+                return None
+            new_unique_id = entity.unique_id.replace(entry.entry_id, serial, 1)
+            if registry.async_get_entity_id(entity.domain, DOMAIN, new_unique_id):
+                registry.async_remove(entity.entity_id)
+                return None
+            return {"new_unique_id": new_unique_id}
+
+        await er.async_migrate_entries(hass, entry.entry_id, _migrate)
+        hass.config_entries.async_update_entry(entry, version=2, minor_version=1)
+    return True
 ```
 
-The entity ID follows the registry entry, so the user's automations keep working. Migrations must be idempotent and
-must handle the case where they already ran.
+The entity ID follows the registry entry, so the user's automations keep working. A collision means the new entity
+already exists, so the stale one is removed. Migrations must be idempotent and must handle the case where they
+already ran.
 
 ### Config entry migration
 
 Bump `MINOR_VERSION` for additive changes and `VERSION` for restructuring, then implement `async_migrate_entry()` — see
-[`ha-config-flow`](../ha-config-flow/SKILL.md). Return `False` for a downgrade rather than corrupting data.
+[`ha-config-flow`](../ha-config-flow/SKILL.md). Downgrades need no code
+([Version and Migration](../../instructions/blueprint.config_flow.instructions.md#version-and-migration)); tell users in
+the release notes that going back past a major bump means restoring a backup.
 
 ### Deprecation period instead of removal
 
 When you cannot migrate automatically, keep the old thing working and tell the user:
 
 ```python
-async_create_issue(
+ir.async_create_issue(
     hass,
     DOMAIN,
-    "deprecated_option_scan_interval",
+    f"deprecated_option_{entry.entry_id}",
     is_fixable=True,
-    severity=IssueSeverity.WARNING,
-    translation_key="deprecated_option_scan_interval",
+    severity=ir.IssueSeverity.WARNING,
+    translation_key="deprecated_option",
+    data={"entry_id": entry.entry_id},
 )
 ```
 
-- `is_fixable=True` requires a `RepairsFlow` in `repairs.py` that performs the fix.
-- Delete the issue with `async_delete_issue()` as soon as the condition no longer holds — a stale repair notification
-  trains users to ignore them.
-- Keep the deprecated path working for at least one release cycle before removing it.
-- Add the `issues.<issue_id>.title` / `.description` strings ([`ha-translations`](../ha-translations/SKILL.md)).
+- Severity, the entry ID in the `issue_id`, the fix flow and when to delete the issue:
+  [`blueprint.repairs`](../../instructions/blueprint.repairs.instructions.md).
+- **Period:** at least **6 months** for anything users touch — options, actions, entities, attributes — and 12 months
+  for anything other integrations import from this one. That mirrors Core's minimum; announce the removal version in
+  the issue text and the changelog, and never shorten it once announced.
+- A removed YAML or action option becomes `cv.removed(CONF_X)` in the schema, not a silent deletion — the user gets a
+  clear message instead of a generic validation error.
+- Add the `issues.<translation_key>.title` / `.description` strings ([`ha-translations`](../ha-translations/SKILL.md)).
+
+**Deprecating an entity:** create the replacement first, then follow
+[`references/recipes.md`](references/recipes.md#deprecating-an-entity).
 
 ## 4. Implement
 
@@ -154,7 +174,9 @@ async_create_issue(
   automations for renamed entities.
   ```
 
-- Update `docs/user/` and the README where the old behaviour is described.
+- Update `docs/user/` and the README where the old behaviour is described. Text users read — docs, release notes,
+  repair issues — says **backward-incompatible change**, Home Assistant's term; `BREAKING CHANGE:` stays the commit
+  footer, because release-please keys on it.
 - Record the reasoning in `docs/development/DECISIONS.md` if it was an architectural call
   ([`ha-planning`](../ha-planning/SKILL.md)).
 

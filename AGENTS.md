@@ -84,6 +84,7 @@ agent that implements it. If yours does not, read the `SKILL.md` before starting
 | planning a large change, recording a decision          | [`ha-planning`](.agents/skills/ha-planning/SKILL.md)                   | —                                                      |
 | commit messages, versioning, changelog, release notes  | [`ha-release`](.agents/skills/ha-release/SKILL.md)                     | `blueprint.commit-message`                             |
 | triaging or fixing a backlog of GitHub issues          | [`ha-issue-triage`](.agents/skills/ha-issue-triage/SKILL.md)           | —                                                      |
+| publishing through HACS and the Marketplace            | [`ha-marketplace`](.agents/skills/ha-marketplace/SKILL.md)             | —                                                      |
 | validation scripts, dependencies, hooks, template sync | [`blueprint-tooling`](.agents/skills/blueprint-tooling/SKILL.md)       | `blueprint.shell`                                      |
 | blueprint changes the template sync cannot deliver     | [`blueprint-update`](.agents/skills/blueprint-update/SKILL.md)         | —                                                      |
 | `manifest.json`                                        | —                                                                      | `blueprint.manifest`                                   |
@@ -113,7 +114,8 @@ These are the ones an agent typically breaks _before_ it realises a skill or ins
   address, a username, or a name the user chose. Take a MAC from the device API or a discovery handler and normalise
   it with `format_mac()`; reading the ARP cache (`getmac` and friends) does not work in every supported network setup
   and is not acceptable.
-- **Entity metadata comes from `EntityDescription` + `translation_key`** — never a hardcoded `name=` or `icon=`.
+- **Entity metadata comes from `EntityDescription` + `translation_key`** — never a hardcoded `name=` or `icon=`. The
+  one exception is a name the device or its library supplies, or a proper noun.
 - **Coordinator failures raise**: `ConfigEntryAuthFailed` (triggers reauth), `UpdateFailed` (retry),
   `ConfigEntryNotReady` during setup (retry later), or `ConfigEntryError` when the failure will not resolve on its own
   — a closed account, unsupported firmware — which stops the retry loop instead of spinning forever. Do not log
@@ -139,8 +141,9 @@ unique only within their owning entry — never assume they are globally unique.
 - Never attach this config entry to a device owned by another integration; helper entities link through
   `self.device_entry`.
 - One device per config subentry; model a hub or account parent and its subentry devices as separate devices related
-  by `via_device_id`.
-- Do not rely on the composite-device compatibility shims — they are scheduled for removal in HA Core 2027.8.
+  by `via_device_id`. `via_device_id` means "reached through"; the parts of one product — the outlets of a power
+  strip — are child devices (`ChildDeviceInfo`).
+- Do not rely on the compatibility shims — composite-device resolution goes in HA Core 2027.8, the rest by 2027.10.
 
 Full "do not use → use instead" table: [`ha-modern-apis`](.agents/skills/ha-modern-apis/SKILL.md).
 
@@ -158,7 +161,8 @@ Full "do not use → use instead" table: [`ha-modern-apis`](.agents/skills/ha-mo
 - `utils/` — integration-wide utilities
 
 Top-level modules beside these: `config_flow.py` (a discovery shim), `diagnostics.py`, `repairs.py`, and — when the
-integration provides them — `trigger.py` / `condition.py` with their `triggers.yaml` / `conditions.yaml`.
+integration provides them — `trigger.py` / `condition.py` with their `triggers.yaml` / `conditions.yaml`, and the
+platform modules Home Assistant looks up by name, such as `recorder.py`, `intent.py` and `llm.py`.
 
 `helpers/`, `common/`, `shared/`, `lib/` and any other new top-level package need explicit approval — use `utils/` or
 `entity_utils/` instead.
@@ -289,9 +293,9 @@ overstate human review, maintainer understanding, automated coverage, or real-de
 for code in proportion to its risk; it is not the default for external replies an agent was explicitly asked to write
 and post. Follow the policy of any destination repository.
 
-**Never open an issue, pull request, or comment on an Open Home Foundation repository** — `home-assistant/core`, the
-developer docs, the brands repo. Their AI policy closes anything it believes an agent filed, so draft it locally and
-hand it over. `AI_POLICY.md` has the rest of what applies there.
+**Never open an issue, pull request, or comment on an Open Home Foundation repository** — `home-assistant/core`,
+`home-assistant/frontend`, the user and developer documentation, the brands repo. Their AI policy closes anything it
+believes an agent filed, so draft it locally and hand it over. `AI_POLICY.md` has the rest of what applies there.
 
 ### Do not assume the developer speaks Home Assistant's vocabulary
 
@@ -498,7 +502,13 @@ Everything beyond that is in the per-file-type instruction files listed in the r
 Home Assistant's APIs change often, and a pattern from an older integration, a blog post or model memory may already be
 deprecated. Verify against the [developer docs](https://contributors.home-assistant.io/), the
 [developer blog](https://contributors.home-assistant.io/blog/) and the installed Home Assistant source before relying on
-one — [`ha-modern-apis`](.agents/skills/ha-modern-apis/SKILL.md) is the procedure.
+one — [`ha-modern-apis`](.agents/skills/ha-modern-apis/SKILL.md) is the procedure. The docs follow Home Assistant's
+development branch and can be ahead of the pinned version; the installed source decides what code may use.
+
+For agents, [`llms.txt`](https://contributors.home-assistant.io/llms.txt) indexes a Markdown copy of every page, and
+each area has its own `/<area>/llms.txt` and `/<area>/llms-full.txt`. The
+[glossary](https://contributors.home-assistant.io/glossary/) has the one-line definitions the vocabulary rule above
+asks for.
 
 - [Integration Quality Scale](https://contributors.home-assistant.io/core/quality-scale/)
 - [Architecture docs](https://contributors.home-assistant.io/architecture/big-picture/)

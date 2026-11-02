@@ -49,27 +49,42 @@ Every step method must return one of these result types (see [Data Entry Flow do
   - Report a fraction with `self.async_update_progress(0.5)` (0–1)
   - While the task is still running, call `async_show_progress` again — never start a second task
 
+**Always pass `step_id`** to `async_show_form`, `async_show_menu`, `async_show_progress` and `async_external_step`:
+the name of the step method you are in, without `async_step_`. Leaving it out is deprecated (HA 2026.11+), and the
+inferred ID is wrong whenever one step method calls another.
+
 ### Form Schemas
 
-**Simple fields** - Use voluptuous: `vol.Required("field"): str`, `vol.Optional("field", default=value): int`
+Schemas are written with Probatio (`import probatio`), the validation library Home Assistant uses — not voluptuous.
 
-**Rich UI** - Use selectors for better UX: `TextSelector`, `NumberSelector`, `EntitySelector`, etc. (see [Selector docs](https://contributors.home-assistant.io/core/integrations/flow-steps/#show-a-form))
+**Simple fields** - `probatio.Required("field"): str`, `probatio.Optional("field", default=value): int`
 
-**Sections** - Group with `section()`: `vol.Required("advanced"): section(vol.Schema({...}), {"collapsed": True})`
+**Rich UI** - Use [selectors](https://contributors.home-assistant.io/glossary/selector/): `TextSelector`,
+`NumberSelector`, `EntitySelector`, `DeviceClassSelector`, `StateClassSelector`, etc.
+
+**Sections** - Group with `section()`:
+`probatio.Required("advanced"): section(probatio.Schema({...}), {"collapsed": True})`
 
 - Only **one level** — a section inside a section is not allowed.
 - A section **nests the submitted data**: `{"host": …, "advanced": {"port": …}}`. Read it accordingly. (Sections in
   `services.yaml` do the opposite and leave the data flat — see `blueprint.services_yaml`.)
 - Icons for a section go under `config.step.<step>.sections.<name>`.
+- Options most users never need go in a collapsed section. **Never read `self.show_advanced_options`** — it is
+  deprecated and always returns `True`.
+
+**Fields that depend on another field (HA 2026.11+)** — `visible=` and the device-class-driven unit selector:
+[`flow-types.md`](../skills/ha-config-flow/references/flow-types.md#fields-that-depend-on-another-field-ha-202611).
 
 **Schema hygiene:**
 
 - Required keys first, optional second.
-- An optional key's default must be a **valid value** — `vol.Optional(CONF_X, default=None): cv.string` is wrong;
+- An optional key's default must be a **valid value** — `probatio.Optional(CONF_X, default=None): cv.string` is wrong;
   use `default=""`.
-- Reach for the specific validator before `cv.string`: `cv.port`, `cv.url`, `cv.positive_int`, `cv.small_float`,
-  `cv.entity_id`, `cv.time_zone`, `cv.slug`, `cv.icon`, `cv.temperature_unit`.
-- A `vol.In(...)` field with no `default` pre-selects the first option in the frontend.
+- Reach for the specific validator before `cv.string`: `probatio.Port()`, `cv.url`, `cv.positive_int`,
+  `cv.small_float`, `cv.entity_id`, `cv.time_zone`, `cv.slug`, `cv.icon`, `cv.temperature_unit`.
+- Wrap the key of a password, token or PIN in `probatio.Secret(...)` —
+  `probatio.Required(probatio.Secret(CONF_PASSWORD))` — so a validation error never echoes the value.
+- A `probatio.In(...)` field with no `default` pre-selects the first option in the frontend.
 
 **Menus** - `async_show_menu(..., sort=True)` sorts entries by their translated label; per-entry help text comes from
 `menu_option_descriptions` in the translations.
@@ -79,17 +94,20 @@ split below, so it cannot hold connection data or credentials.
 
 **Pre-filling:**
 
-- Default values: `vol.Optional("field", default="value")`
-- Suggested values: `vol.Optional("field", description={"suggested_value": "value"})`
+- Default values: `probatio.Optional("field", default="value")`
+- Suggested values: `probatio.Optional("field", description={"suggested_value": "value"})`
 - Merge from existing: `self.add_suggested_values_to_schema(schema, entry.options)`
 
 **Read-only fields** - Set `read_only=True` in selector config (e.g., `EntitySelectorConfig(read_only=True)`)
 
 ### Validation and Error Handling
 
-**Return errors dict for validation failures** - Use translation keys: `errors={"base": "cannot_connect"}`
+**Return errors dict for validation failures** - Use translation keys. Attach an error to the field that caused it —
+`errors={CONF_HOST: "invalid_host"}` — and use `"base"` only for what concerns the whole form:
+`errors={"base": "cannot_connect"}`.
 
-**Common error keys:** `cannot_connect`, `invalid_auth`, `already_configured`, `unknown`
+**Common error keys:** `cannot_connect`, `invalid_auth`, `unknown`. `already_configured` is an **abort** reason, not
+an error — `_abort_if_unique_id_configured()` ends the flow with it.
 
 **Pattern:** Try validation → catch exceptions → set errors → re-show form
 
@@ -125,26 +143,31 @@ split below, so it cannot hold connection data or credentials.
 
 Where a value lives is decided once and changing it later requires a migration.
 
-| `entry.data`                                             | `entry.options`                                              |
-| -------------------------------------------------------- | ------------------------------------------------------------ |
-| Identity and connection: host, port, API key, account ID | Behaviour the user may tune later: poll interval, thresholds |
-| Anything needed to establish the connection at all       | Anything safe to change without re-validating credentials    |
+| `entry.data`                                             | `entry.options`                                           |
+| -------------------------------------------------------- | --------------------------------------------------------- |
+| Identity and connection: host, port, API key, account ID | Behaviour the user may tune later: thresholds, filters    |
+| Anything needed to establish the connection at all       | Anything safe to change without re-validating credentials |
 
 **MUST:**
 
 - Keep credentials in `entry.data` only — never in `entry.options`, never in the entry title.
 - Reuse `CONF_*` names from `homeassistant.const` where one exists; otherwise define them in `const.py`.
-- Give every schema field a `selector.*` and a default. A bare `vol.Coerce(int)` renders as an untyped box and is a
-  review blocker.
+- Give every schema field a `selector.*` and a default. A bare `probatio.Coerce(int)` renders as an untyped box and is
+  a review blocker.
 - Give every field both a `data` and a `data_description` translation key.
 - Pre-fill with `self.add_suggested_values_to_schema(schema, entry.data)` on reconfigure and options.
 - Tolerate entries created before the field existed — supply a default at read time or migrate.
 
 ```python
-vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): selector.NumberSelector(
-    selector.NumberSelectorConfig(min=1, max=60, unit_of_measurement="min", mode=selector.NumberSelectorMode.BOX),
+probatio.Optional(CONF_THRESHOLD, default=DEFAULT_THRESHOLD): selector.NumberSelector(
+    selector.NumberSelectorConfig(min=1, max=60, unit_of_measurement="%", mode=selector.NumberSelectorMode.BOX),
 ),
 ```
+
+**NEVER** offer the polling interval as a field, in setup or options (Quality Scale `appropriate-polling`; Core's
+pylint check `home-assistant-config-flow-polling-field`). The integration picks an interval that suits most users;
+anyone who needs another one disables polling for the entry and drives `homeassistant.update_entity` from an
+automation.
 
 **Consumers:** the coordinator reads `entry.options`, the API client reads `entry.data`.
 
@@ -160,17 +183,23 @@ vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): selector.Number
 - `reauth` - Re-authentication flow
 - `reconfigure` - Configuration changes
 - `import` - YAML migration
-- `hassio` - Supervisor add-on discovery
+- `hassio` - A Supervisor app announced itself (`HassioServiceInfo`)
+- `integration_discovery` - Another integration found a device for this one and started the flow with
+  `discovery_flow.async_create_flow(hass, DOMAIN, context={"source": SOURCE_INTEGRATION_DISCOVERY}, data=…)`. Always
+  start flows from code with that helper — it de-duplicates and waits for Home Assistant to start.
 
 **Rules:**
 
 - If discovery step exists → called on discovery
-- If discovery step omitted → `user` step called on discovery
+- If discovery step omitted → `user` step called on discovery, and only while the integration has no config entry yet
+- A user step that sets the same unique ID as discovery passes `raise_on_progress=False` to `async_set_unique_id`, so a
+  user setting up by hand is not aborted by an open discovery flow for the same device.
 - **NEVER** auto-create entries from discovery - always confirm with user first
 - **`discovery` is a deprecated step name** — never implement `async_step_discovery`. Use the specific step for the
   protocol.
-- A reauth flow starts with `source`, `entry_id` and `unique_id` in `self.context`, and reauth and reconfigure set
-  `title_placeholders` to `{"name": <entry title>}` for you.
+- A reauth flow starts with `source`, `entry_id` and `unique_id` in `self.context`, and sets `title_placeholders` to
+  `{"name": <entry title>}` for you. A reconfigure flow gets no `title_placeholders`; pass the name through
+  `description_placeholders` yourself.
 
 ## Unique IDs
 
@@ -182,7 +211,8 @@ vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): selector.Number
   device, or — for a cloud service — an account ID that is guaranteed collision-free
 - Take the MAC **from the device API or the discovery handler** and normalise it with `format_mac()`. Reading the ARP
   cache (`getmac` and similar) does not work in every supported network setup and is not acceptable.
-- Normalize email and username to lowercase, and only use them when nothing better exists
+- **Never** use an email address or a username. Core's docs accept them for cloud services; this project does not,
+  because the user can change both at the provider. Use the account ID the API returns.
 - Use `updates` parameter to refresh config data: `self._abort_if_unique_id_configured(updates={CONF_HOST: host})`
 
 **NEVER:**
@@ -215,8 +245,13 @@ Setup failures in `async_setup_entry()` are not this file's scope: see
 
 **Implement `async_migrate_entry()` in `__init__.py`:**
 
-- Return `False` for downgrades
+- Handle only the versions you know — `if entry.version == 1 and entry.minor_version < 2:`. Home Assistant never
+  calls it for a **newer major** version (it refuses that entry itself), and a **newer minor** version from a later
+  release must be left alone and `True` returned. A `if entry.version > N: return False` branch is dead code.
 - Update via `hass.config_entries.async_update_entry(entry, version=X, minor_version=Y)`
+- On failure, **raise** rather than return `False`: `ConfigEntryNotReady` when retrying later can succeed,
+  `ConfigEntryError` when it cannot — the repair that retries the latter:
+  [`migration.md`](../skills/ha-config-flow/references/migration.md).
 - Log migration events
 
 Both default to `1`; set them only when implementing a migration.

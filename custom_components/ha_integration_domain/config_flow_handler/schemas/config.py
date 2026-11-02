@@ -30,7 +30,7 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> probatio.Schem
         defaults: Previously submitted values, used to pre-fill the form.
 
     Returns:
-        The voluptuous schema for the credentials form.
+        The probatio schema for the credentials form.
 
     """
     defaults = defaults or {}
@@ -53,7 +53,7 @@ def get_credentials_schema(username: str) -> probatio.Schema:
         username: The entry's current username, used to pre-fill the form.
 
     Returns:
-        The voluptuous schema for the credentials form.
+        The probatio schema for the credentials form.
 
     """
     return probatio.Schema(

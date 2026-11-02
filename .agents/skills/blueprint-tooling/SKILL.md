@@ -84,6 +84,12 @@ script/help              # list every script with its description
 `script/develop` is a **takeover**, not a "start if needed" — the run-loop rules, and why, are in
 [`ha-coordinator-debug`](../ha-coordinator-debug/SKILL.md).
 
+**HACS validation has no local script.** The `hacs` job in `.github/workflows/validate.yml` runs the
+[HACS action](https://github.com/hacs/action) in CI only. It skips itself with a notice on a private repository,
+which the action cannot read, and adds `ignore: brands` with a warning while `brand/icon.png` is missing — so a green
+job proves less than it looks. What it checks, and why `ignore` is never the fix:
+[`ha-marketplace`](../ha-marketplace/SKILL.md).
+
 ### architecture-check vs. tests/
 
 `script/architecture-check` enforces a handful of AGENTS.md rules that are source-pattern violations rather than
@@ -147,6 +153,19 @@ Pin versions in both, and keep them identical. Renovate raises the two files in 
 
 Before adding a dependency at all, decide whether you want it: the criteria are in `AGENTS.md` § Custom Integration
 Flexibility, and the choice belongs in `docs/development/DECISIONS.md` ([`ha-planning`](../ha-planning/SKILL.md)).
+For a serial port that means `serialx`, not `pyserial-asyncio` — the replacement table is in
+[`ha-modern-apis`](../ha-modern-apis/references/deprecations.md).
+
+Every package you add ships to every user, so check it like Core does
+([`dependency-transparency`](https://contributors.home-assistant.io/core/quality-scale/dependency-transparency/)),
+and report what you could not verify rather than assuming it:
+
+- **Adding:** published on PyPI with a source distribution, an OSI-approved licence, a public repository and an open
+  issue tracker, and the PyPI version matches a tagged release built by public CI.
+- **Bumping**, Renovate's pull requests included: read the upstream diff or changelog, not just the version. Look for
+  new network calls, `subprocess` or `os.system`, new file or environment access, new transitive dependencies, a
+  changed licence, a new PyPI maintainer, or a repository that moved or was archived. Any of these goes to the
+  developer before the merge.
 
 ## Command-line tools and dependency updates
 

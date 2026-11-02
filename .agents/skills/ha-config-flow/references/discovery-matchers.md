@@ -60,6 +60,18 @@ the config flow's job, not the matcher's — always `async_set_unique_id()` and 
   the HomeKit zeroconf type.
 - **MQTT** needs `mqtt` in `dependencies`, and `await mqtt.async_wait_for_mqtt_client(hass)` before subscribing.
 
+## LoRaWAN (HA 2026.11+)
+
+```json
+"dependencies": ["lorawan"],
+"lorawan": [["chirpstack", 744], ["tts", "sensecap"]]
+```
+
+- Each matcher is a pair of network-server stack and the vendor's brand ID there. A match starts
+  `async_step_integration_discovery` with an empty `LoRaWANDiscoveryInfo`; the library decides which models it
+  supports.
+- hassfest on an older version rejects the key — add it only once `hacs.json` → `homeassistant` has reached it.
+
 ## Helper APIs
 
 Using these from code requires the matching integration in `dependencies` (`zeroconf`, `ssdp`, `dhcp`, `usb`,

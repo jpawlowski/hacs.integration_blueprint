@@ -25,9 +25,16 @@ injects it automatically when you edit an entity file; other agents must open it
 
 This skill is the procedure and the decisions — it does not restate those rules.
 
-| File                                                               | When to read                                                           |
-| ------------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| [`references/platform-members.md`](references/platform-members.md) | Before implementing a platform — its required members and its one trap |
+Before implementing a platform, read its row — required members and the trap it carries:
+
+| File                                                                           | Platforms                                                                                                                                                     |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`references/sensors.md`](references/sensors.md)                               | `sensor`, `binary_sensor` — state class and unit rules                                                                                                        |
+| [`references/controls.md`](references/controls.md)                             | `switch`, `button`, `number`, `select`, `text`, `date`, `datetime`, `time`, `scene`, `siren`, `cover`, `valve`, `lock`, `alarm_control_panel`, `fan`, `light` |
+| [`references/climate-and-appliances.md`](references/climate-and-appliances.md) | `climate`, `water_heater`, `humidifier`, `vacuum`, `lawn_mower`, `media_player`                                                                               |
+| [`references/other-platforms.md`](references/other-platforms.md)               | `event`, `update`, `image`, `camera`, `device_tracker`, `notify`, `todo`, infrared and radio frequency consumers                                              |
+
+Lifecycle hooks beyond `async_added_to_hass` — any platform: [`references/lifecycle.md`](references/lifecycle.md).
 
 ## Before you write code
 
@@ -75,8 +82,9 @@ The mechanical rules are in the instructions file. What this step actually costs
 - **`key`** becomes part of the unique ID. Pick it once — renaming it later is a breaking change
   ([`ha-breaking-changes`](../ha-breaking-changes/SKILL.md)).
 - **Primary, diagnostic or config?** Anything a user would not put on a dashboard is
-  `EntityCategory.DIAGNOSTIC`. If it is also noisy, decide between `entity_registry_enabled_default=False` (not
-  created at all) and `_attr_entity_registry_visible_default = False` (created and automatable, just off dashboards).
+  `EntityCategory.DIAGNOSTIC`. Useful to few and noisy for everyone else — a signal strength, a value that changes
+  every second — means disabled by default; hidden is something else. Which is which, and why the choice is final:
+  [Disabled and Hidden By Default](../../instructions/blueprint.entities.instructions.md#disabled-and-hidden-by-default).
 - **Is there a matching `device_class`?** Check the platform's enum before inventing units or icons. A device class
   buys unit conversion, correct icons and voice-assistant behaviour for free.
 - **Is the value a measurement?** Then it needs a `state_class`, or the user gets no history.
@@ -122,9 +130,14 @@ For a brand-new platform only:
 ### 4. Device grouping
 
 The base entity places every entity on the config entry's device. Only deviate when the integration genuinely models
-multiple physical devices, and then follow the single-owner registry rules in
-[`ha-modern-apis`](../ha-modern-apis/SKILL.md) — one device belongs to exactly one config entry and at most one
-subentry, and parent/child relationships use `via_device_id`.
+more than one device, and then decide whether each one is a part of one product (a child device) or a separate
+product behind a hub (`via_device_id`) — the decision table and the single-owner rules are in
+[`device-registry.md`](../ha-modern-apis/references/device-registry.md#hub-or-parts-via_device_id-versus-child-devices).
+
+When devices come and go at runtime (`dynamic-devices`), add entities from a coordinator listener that diffs
+`set(coordinator.data)` against a `known_devices` set. If the integration also removes devices that are gone
+(`stale-devices`), drop each removed ID from `known_devices` too — otherwise a device that returns is never added
+again until the entry reloads. Both rules: [`quality-scale-rules.md`](../ha-quality-review/references/quality-scale-rules.md).
 
 ### 5. Translations
 
@@ -178,4 +191,4 @@ wrap the unsubscribe callable every helper returns in `entry.async_on_unload(...
 
 The remaining hard rules are in
 [`blueprint.entities.instructions.md`](../../instructions/blueprint.entities.instructions.md); the per-platform
-members are in [`references/platform-members.md`](references/platform-members.md).
+members are in the `references/` files listed at the top.

@@ -1,6 +1,6 @@
 ---
 name: "Markdown Documentation"
-description: "markdownlint rules, document structure, and the instructions-file frontmatter contract"
+description: "markdownlint rules, document structure, user-documentation style, and the instructions-file frontmatter contract"
 applyTo: "**/*.md"
 paths:
   - "**/*.md"
@@ -30,6 +30,27 @@ defaults and would otherwise surprise you: **MD013 off** (no line-length limit),
 - Root `*.md` — project metadata (README, CONTRIBUTING, …)
 
 Past ~500 lines, add a table of contents or split the file.
+
+## User documentation (`docs/user/`)
+
+Pages here are read by people using Home Assistant, so the
+[UI text style](blueprint.translations.instructions.md#ui-text-style) applies — American English, "you", "Home
+Assistant" in full, "select" not "click", no Latin abbreviations, and the glossary's terms instead of the retired
+ones. On top of that, from the
+[documentation style guide](https://contributors.home-assistant.io/writing/reference/style/):
+
+- UI labels in bold, spelled exactly as the UI writes them, with `>` between steps:
+  `**Settings** > **Devices & services**`
+- Backticks for file names, paths, and anything the reader types
+- Sentence-case headings that name their subject — not "Overview" or "Good to know"
+
+Whether in one page or several, the content follows Home Assistant's
+[integration page order](https://contributors.home-assistant.io/writing/reference/integration-page/), leaving out
+what does not apply: supported and unsupported devices, prerequisites, configuration, configuration options, supported
+functionality, triggers, conditions and actions, examples, data updates, known limitations, troubleshooting, and
+removing the integration. Most of these answer a Quality Scale `docs-*` rule — `docs-data-update`,
+`docs-known-limitations`, `docs-troubleshooting`, `docs-removal-instructions` and the rest — so a missing section is
+usually a missing rule.
 
 ## Instructions Files
 

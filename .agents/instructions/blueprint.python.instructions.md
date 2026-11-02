@@ -157,7 +157,9 @@ See [Integration Setup Failures](https://contributors.home-assistant.io/core/int
 **Units of Measurement:**
 
 - Always use constants from `homeassistant.const` - Never hardcode strings
-- Examples: `UnitOfDensity.MICROGRAMS_PER_CUBIC_METER`, `PERCENTAGE`, `UnitOfTime.HOURS`
+- Examples: `UnitOfDensity.MICROGRAMS_PER_CUBIC_METER`, `UnitOfRatio.PERCENTAGE`, `UnitOfTime.HOURS` — not the bare
+  `PERCENTAGE` or the `CONCENTRATION_*` constants
+  ([`deprecations.md`](../skills/ha-modern-apis/references/deprecations.md#entities))
 - Construct compound units if no combined constant exists: `f"{UnitOfLength.METERS}/{UnitOfTime.SECONDS}"`
 - **Do not convert units yourself.** Set `native_unit_of_measurement` and let Home Assistant convert according to
   `hass.config.units`. `hass.config.language` and `.country` are there too, when an API needs a locale.
@@ -187,11 +189,13 @@ See [Integration Setup Failures](https://contributors.home-assistant.io/core/int
 - Required in **every** platform `__init__.py`, not optional — a missing one fails the `parallel-updates` rule
 - A module-level literal, never imported from `const.py`; `0` or `1` is decided per platform in
   [`blueprint.entities`](blueprint.entities.instructions.md)
-- Left undefined, Home Assistant derives it: `0` when the entity defines `async_update`, otherwise `1`
+- Left undefined, Home Assistant derives it: `1` only when the entity has a sync `update()`, otherwise unlimited
 
 ## Imports
 
-Ruff orders them. **Standard HA aliases:** `vol`, `cv`, `dr`, `er`, `dt_util`.
+Ruff orders them. **Standard HA aliases:** `cv`, `dr`, `er`, `dt_util`. Schemas use a plain `import probatio`
+(`probatio.Schema`, `probatio.Required`, …), not `import voluptuous as vol` — see
+[`ha-modern-apis`](../skills/ha-modern-apis/references/deprecations.md#schema-validation--voluptuous-replaced-by-probatio).
 
 **A relative import may not reach into a parent package.** Ruff's `TID252` runs with the default
 `ban-relative-imports = "parents"`, the same setting Home Assistant Core uses, so `from ..const import DOMAIN` is
@@ -209,19 +213,22 @@ reports it, but only after the file is written.
 
 **Use specific exceptions from integration's exception module**
 
+- Keep `try` blocks small — only the call that can raise, with the code that uses its result in `else:`.
+- `except Exception` only as the **last** handler of a config-flow step, to turn the unexpected into an `unknown`
+  error (and log it with `_LOGGER.exception`). Nowhere else — not in the coordinator, not in an API client.
+- Log **or** raise, never both: a raised exception is logged where it is handled.
+- Read keys a schema has already validated as `data["key"]`, not `data.get("key")`; `.get()` is for keys that may be
+  missing, such as one added in a later entry version.
+
 **Errors that reach the user** — from a service action handler _and_ from an entity method
-(`async_set_native_value`, `async_set_hvac_mode`, …):
-
-- `ServiceValidationError` — the user got something wrong (bad value, unsupported option). The stack trace is only
-  logged at debug level, so they see a message rather than a wall of text.
-- `HomeAssistantError` — the device or service failed. The full stack trace **is** logged.
-- **Never `ValueError`.** It is what these two exist to replace, and it reaches the user as an unhandled crash.
-
-Both take `translation_domain`, `translation_key` and `translation_placeholders` — never a plain English string.
+(`async_set_native_value`, `async_set_hvac_mode`, …) — are a translated `ServiceValidationError` or
+`HomeAssistantError`, **never `ValueError`**, which reaches the user as an unhandled crash. Which of the two:
+[`blueprint.service_actions`](blueprint.service_actions.instructions.md#exception-handling).
 
 **Logging:** `_LOGGER.exception()` inside an exception handler, `_LOGGER.info()` sparingly and only for something the
 user needs. No period at the end (syslog style), never a credential, token or API key in any line at any level, and
-`%` formatting rather than an f-string (Ruff G004).
+`%` formatting rather than an f-string (Ruff G004). When a line must identify a key or an account ID, mask it with
+`partial_redact(value)` from `homeassistant.helpers.redact` — users attach debug logs to public issues.
 
 ## Validation
 

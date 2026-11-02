@@ -6,6 +6,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.ha_integration_domain.api import IntegrationBlueprintApiClientError
+from custom_components.ha_integration_domain.const import CONF_FILTER_REPLACEMENT_THRESHOLD
 from homeassistant.components.fan import DOMAIN as FAN_DOMAIN, SERVICE_SET_PERCENTAGE
 from homeassistant.const import ATTR_ENTITY_ID, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
@@ -24,6 +25,13 @@ async def test_entities_read_the_coordinator_payload(
     assert hass.states.get("select.demo_fan_speed").state == "auto"
     assert hass.states.get("switch.demo_child_lock").state == "off"
     assert hass.states.get("number.demo_target_humidity").state == "50.0"
+
+
+@pytest.mark.parametrize("config_entry", [{CONF_FILTER_REPLACEMENT_THRESHOLD: 50}], indirect=True)
+@pytest.mark.usefixtures("init_integration")
+async def test_filter_replacement_follows_the_threshold_option(hass: HomeAssistant) -> None:
+    """A threshold above the remaining filter life turns the warning on."""
+    assert hass.states.get("binary_sensor.demo_filter_replacement_needed").state == "on"
 
 
 async def test_fan_is_the_main_feature_entity(

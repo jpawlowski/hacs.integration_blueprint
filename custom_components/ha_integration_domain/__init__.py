@@ -5,7 +5,6 @@ For more details about this integration, please refer to:
 https://github.com/jpawlowski/ha-integration-blueprint
 """
 
-from datetime import timedelta
 from typing import TYPE_CHECKING
 
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
@@ -14,7 +13,7 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.loader import async_get_loaded_integration
 
 from .api import IntegrationBlueprintApiClient
-from .const import CONF_UPDATE_INTERVAL_HOURS, DEFAULT_UPDATE_INTERVAL_HOURS, DOMAIN, LOGGER
+from .const import DOMAIN
 from .coordinator import IntegrationBlueprintDataUpdateCoordinator
 from .data import IntegrationBlueprintData
 from .service_actions import async_setup_services
@@ -45,7 +44,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         True once the actions are registered.
 
     """
-    await async_setup_services(hass)
+    async_setup_services(hass)
     return True
 
 
@@ -66,15 +65,7 @@ async def async_setup_entry(
         session=async_get_clientsession(hass),
     )
 
-    interval_hours = float(entry.options.get(CONF_UPDATE_INTERVAL_HOURS, DEFAULT_UPDATE_INTERVAL_HOURS))
-    coordinator = IntegrationBlueprintDataUpdateCoordinator(
-        hass=hass,
-        logger=LOGGER,
-        name=DOMAIN,
-        config_entry=entry,
-        update_interval=timedelta(hours=interval_hours),
-        always_update=False,
-    )
+    coordinator = IntegrationBlueprintDataUpdateCoordinator(hass, entry)
 
     entry.runtime_data = IntegrationBlueprintData(
         client=client,

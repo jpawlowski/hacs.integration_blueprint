@@ -28,7 +28,7 @@ custom_components/ha_integration_domain/
 │   ├── __init__.py          # Package exports
 │   ├── config_flow.py       # Main config flow (user, reauth, reconfigure)
 │   ├── options_flow.py      # Options flow
-│   ├── schemas/             # Voluptuous schemas
+│   ├── schemas/             # probatio schemas
 │   │   ├── __init__.py      # Schema exports
 │   │   ├── config.py        # Config flow schemas
 │   │   └── options.py       # Options flow schemas
@@ -60,7 +60,7 @@ entity, so no entity ever calls the API itself.
 
 **Core functionality:**
 
-- Update interval from `entry.options`, defaulting to one hour
+- A fixed one-hour update interval (`UPDATE_INTERVAL`), chosen by the developer rather than the user
 - Translation of API client exceptions into `ConfigEntryAuthFailed` and `UpdateFailed`
 - Raising and clearing the repair issue for the deprecated API version
 
@@ -99,13 +99,13 @@ is organized modularly to support complex flows without becoming monolithic.
 
 - `config_flow.py`: Main flow (user setup, reauth, reconfigure)
 - `options_flow.py`: Options flow for post-setup configuration
-- `schemas/`: Voluptuous schemas for all forms
+- `schemas/`: probatio schemas for all forms
 - `validators/`: Validation logic separated from flow logic
 
 **Supported flows:**
 
 - Initial user setup with validation
-- Options flow for the poll interval
+- Options flow for the filter replacement threshold
 - Reauthentication flow for expired credentials
 - Reconfiguration of the stored credentials
 

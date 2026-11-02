@@ -312,7 +312,7 @@
       "quality_scale": {
         "description": "The quality scale of the integration.\nhttps://contributors.home-assistant.io/core/integrations/manifest/#quality_scale",
         "type": "string",
-        "enum": ["bronze", "silver", "gold", "platinum", "internal", "legacy"]
+        "enum": ["bronze", "silver", "gold", "platinum", "custom", "no_score", "internal", "legacy"]
       },
       "requirements": {
         "description": "The PyPI package requirements for the integration. The package has to be pinned to a specific version.\nhttps://contributors.home-assistant.io/core/integrations/manifest/#requirements",
@@ -361,8 +361,37 @@
         "uniqueItems": true
       },
       "disabled": {
-        "description": "The reason for the integration being disabled.",
+        "description": "A short reason that keeps the integration from loading. Home Assistant logs it and does not set the integration up.\nhttps://contributors.home-assistant.io/core/integrations/manifest/#disabled",
         "type": "string"
+      },
+      "import_executor": {
+        "description": "Whether Home Assistant imports the integration in an executor rather than in the event loop. Defaults to true; set it to false only when the integration must be imported in the event loop. Custom integrations only.\nhttps://contributors.home-assistant.io/core/integrations/manifest/#custom-integrations-only",
+        "type": "boolean"
+      },
+      "preview_features": {
+        "description": "Home Assistant Labs preview features the integration offers, keyed by feature slug.\nhttps://contributors.home-assistant.io/core/development/labs/",
+        "type": "object",
+        "propertyNames": {
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "additionalProperties": {
+          "type": "object",
+          "properties": {
+            "feedback_url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "learn_more_url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "report_issue_url": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "additionalProperties": false
+        }
       },
       "iot_class": {
         "description": "The IoT class of the integration, describing how the integration connects to the device or service.\nhttps://contributors.home-assistant.io/core/integrations/manifest/#iot_class",

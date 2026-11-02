@@ -470,8 +470,8 @@ custom_components/ha_integration_domain/  # Your integration code
 ├── config_flow_handler/       # Config flow package
 │   ├── __init__.py
 │   ├── config_flow.py         # User setup, reauth and reconfigure
-│   ├── options_flow.py        # Options flow (poll interval)
-│   ├── schemas/               # Voluptuous schemas
+│   ├── options_flow.py        # Options flow (filter replacement threshold)
+│   ├── schemas/               # probatio schemas
 │   │   ├── __init__.py
 │   │   ├── config.py          # Config flow schemas
 │   │   └── options.py         # Options flow schemas
@@ -609,8 +609,8 @@ The config flow is organized in the [`config_flow_handler/`](custom_components/h
 **Package structure:**
 
 - [`config_flow.py`](custom_components/ha_integration_domain/config_flow_handler/config_flow.py) - User setup, reauth and reconfigure
-- [`options_flow.py`](custom_components/ha_integration_domain/config_flow_handler/options_flow.py) - Options flow for the poll interval
-- [`schemas/`](custom_components/ha_integration_domain/config_flow_handler/schemas/) - Voluptuous schemas for input validation
+- [`options_flow.py`](custom_components/ha_integration_domain/config_flow_handler/options_flow.py) - Options flow for the filter replacement threshold
+- [`schemas/`](custom_components/ha_integration_domain/config_flow_handler/schemas/) - probatio schemas for input validation
 - [`validators/`](custom_components/ha_integration_domain/config_flow_handler/validators/) - Custom validators
 
 Shared flow logic goes in `handler.py`, and a subentry flow in `subentry_flow.py`, once the
@@ -620,7 +620,7 @@ integration needs either.
 
 - Input validation with custom error messages
 - Unique ID to prevent duplicate entries
-- Reconfiguration support via options flow
+- Reconfiguration of the stored credentials, and an options flow for the filter replacement threshold
 - Proper error handling with user-friendly messages
 
 ### DataUpdateCoordinator
@@ -630,7 +630,7 @@ The [`coordinator/`](custom_components/ha_integration_domain/coordinator/) packa
 - **Single API call**: Instead of each entity polling separately, the coordinator fetches data once
 - **Shared data**: All entities receive the same data, reducing API load
 - **Error handling**: Handles authentication failures and communication errors consistently
-- **Automatic updates**: Polls at regular intervals (configurable in `__init__.py`)
+- **Automatic updates**: Polls at a fixed interval (`UPDATE_INTERVAL` in `coordinator/base.py`)
 
 This is the recommended pattern in Home Assistant Core for any integration that polls an API.
 

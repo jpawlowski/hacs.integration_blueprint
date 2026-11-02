@@ -70,7 +70,46 @@ class {ClassPrefix}ConfigFlow(
   existing entry instead of creating a second one. The base class does not do that for you.
 - The token dict is stored under `entry.data["token"]`. Do not reshape it; the helper refreshes it in place.
 
-## 4. Translations
+## 4. Setting up the entry
+
+In `async_setup_entry`, resolve the implementation and hand an `OAuth2Session` to the client:
+
+```python
+from homeassistant.helpers.config_entry_oauth2_flow import (
+    OAuth2Session,
+    async_get_config_entry_implementation,
+)
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: {ClassPrefix}ConfigEntry) -> bool:
+    """Set up from a config entry."""
+    implementation = await async_get_config_entry_implementation(hass, entry)
+    session = OAuth2Session(hass, entry, implementation)
+    coordinator = {ClassPrefix}DataUpdateCoordinator(hass, entry, {ClassPrefix}ApiClient(session))
+    await coordinator.async_config_entry_first_refresh()
+    entry.runtime_data = coordinator
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    return True
+```
+
+The client calls `await session.async_ensure_token_valid()` before each request and reads
+`session.token["access_token"]`.
+
+**Let the OAuth2 errors propagate**
+([`blueprint.coordinator`](../../../instructions/blueprint.coordinator.instructions.md)). Everything the helper raises
+is already a config entry exception with a translated message, imported from `homeassistant.exceptions`.
+`UnknownImplementationError` and `OAuth2TokenRequestReauthError` are `ConfigEntryAuthFailed` (reauth starts);
+`ImplementationUnavailableError` and the other `OAuth2TokenRequest*Error` classes are `ConfigEntryNotReady` (setup is
+retried). With a coordinator, they arrive as a failed refresh and are handled the same way.
+
+- Never catch `ValueError` around `async_get_config_entry_implementation` — `UnknownImplementationError` subclasses
+  it for compatibility, and the handler would swallow the reauth. Catch one specifically only to do something different, such as raising
+  `ConfigEntryError` for a status that is permanent for this service.
+- No `exceptions` translation keys for them; Home Assistant ships the text.
+- Without a coordinator, `await session.async_ensure_token_valid()` in `async_setup_entry` is the
+  `test-before-setup` check.
+
+## 5. Translations
 
 Beyond the usual `config.*` keys, the application-credentials dialog reads a top-level key that tells the user where
 to get a client ID:

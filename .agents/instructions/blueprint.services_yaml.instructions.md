@@ -14,7 +14,7 @@ skill is what keeps those four in step.
 
 **Applies to:** `services.yaml` files (legacy filename)
 
-**Note:** This file defines service action schemas. The filename `services.yaml` is legacy from when these were called "services". Use "service actions" in code/documentation and "actions" for users.
+**Note:** This file defines service action schemas. The filename `services.yaml` is legacy from when these were called "services". `service` stays in code identifiers; every text a user reads — names, descriptions, `docs/user/` — says "action", never "service" or "service action".
 
 ## Schema Validation
 
@@ -26,11 +26,11 @@ This schema defines the complete structure for Home Assistant service definition
 
 ```yaml
 action_name:
-  name: Human-Readable Name
-  description: Clear description of what the action does.
+  name: Set target value
+  description: Sets the target value of the device.
   fields:
     parameter_name:
-      name: Parameter Name
+      name: Parameter name
       description: What this parameter does.
       required: true
       example: "example_value"
@@ -47,6 +47,10 @@ action_name:
 translation is missing; `services.<action>.name` / `.description` and one pair per field are what users actually see,
 and hassfest requires them. To keep something out of the translations — a URL, say — pass
 `description_placeholders={"docs_url": …}` to `hass.services.async_register`.
+
+**Wording** (fallbacks here and the translations alike): sentence case, never Title Case. An action name is an
+imperative ("Set target value"); its description is third person and says what the action does in a sentence a person
+would say ("Sets the target value of the device."), because the Assist API hands it to conversation agents as is.
 
 **Service action definition:**
 
@@ -76,6 +80,10 @@ nest the data: a field inside a section still arrives as `{"speed_pct": 50}`, no
 `{"additional_fields": {"speed_pct": 50}}`.
 
 Under `target.entity.supported_features`, a nested list means AND — both features must be present.
+
+**`target:` never takes a `device:` filter** — only `entity:`. Hassfest fails on it, and Home Assistant rejects such a
+target selector at load (HA 2026.11+). An action that needs a device of this integration uses a `device_id` field with a
+`device:` selector filtered to `integration: <domain>`.
 
 ## Selectors
 

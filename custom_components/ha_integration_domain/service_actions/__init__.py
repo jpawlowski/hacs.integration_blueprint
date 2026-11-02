@@ -5,10 +5,11 @@ from typing import TYPE_CHECKING
 import probatio
 
 from custom_components.ha_integration_domain.const import DOMAIN
-from homeassistant.core import SupportsResponse
+from homeassistant.const import ATTR_CONFIG_ENTRY_ID
+from homeassistant.core import SupportsResponse, callback
 from homeassistant.helpers import config_validation as cv
 
-from .refresh_data import ATTR_CONFIG_ENTRY_ID, async_handle_refresh_data
+from .refresh_data import async_handle_refresh_data
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant, ServiceCall, ServiceResponse
@@ -22,7 +23,8 @@ REFRESH_DATA_SCHEMA = probatio.Schema(
 )
 
 
-async def async_setup_services(hass: HomeAssistant) -> None:
+@callback
+def async_setup_services(hass: HomeAssistant) -> None:
     """Register the integration's service actions once, at component level."""
 
     async def handle_refresh_data(call: ServiceCall) -> ServiceResponse:

@@ -18,79 +18,34 @@ Home Assistant tests are integration tests by nature: you load a real config ent
 assert on `hass.states` — not on Python objects.
 
 **Read [`blueprint.tests.instructions.md`](../../instructions/blueprint.tests.instructions.md) first** — it
-holds the rules: directory mirroring, pytest markers, which fixtures to define, the core-interface rule, registry
-assertions, what to mock and what never to mock, the full command list, and the do/don't list. This skill is the
+holds the rules: directory mirroring, pytest markers, the fixture names, how a test is written (types, no branches, no
+network), the core-interface rule, registry assertions, what to mock and what never to mock, and the command list. This skill is the
 scaffolding and the judgement calls.
 
 ## When a test is required
 
 - Behavioural change, bug fix, or regression → add a proportionate test.
+- **A bug fix starts with a failing test.** Write it, watch it fail for the reported reason, then fix — a test written
+  after the fix may never have been able to fail.
 - Documentation-only, formatting-only, or anything that cannot affect runtime → no test needed.
 - If a test is impractical (needs real hardware, non-deterministic timing), say so explicitly and describe the residual
   risk. Do not silently skip it, and never claim coverage that does not exist.
 
-## Bootstrap: `tests/conftest.py`
+## The shared fixtures: `tests/conftest.py`
 
-The suite currently has no `conftest.py`. Custom integrations are **not** loaded by default in tests, so the first thing
-any new test file needs is this — create it once:
+Use these by name instead of defining a variant per file — every existing test depends on them:
 
-```python
-"""Shared fixtures for <domain> tests."""
+- `auto_enable_custom_integrations` — autouse; without `enable_custom_integrations` a custom integration does not load
+  in a test at all.
+- `config_entry` — a `MockConfigEntry`, not yet added to `hass`.
+- `mock_api` — the `AsyncMock` that stands in for the data source; set `return_value` or `side_effect` per test.
+- `init_integration` — adds `config_entry`, sets it up with `mock_api` active, and returns the loaded entry.
 
-from collections.abc import Generator
-from unittest.mock import AsyncMock, patch
-
-import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-from custom_components.<domain>.const import DOMAIN
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
-from homeassistant.core import HomeAssistant
-
-
-@pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
-    """Load the custom integration in every test."""
-
-
-@pytest.fixture
-def mock_config_entry() -> MockConfigEntry:
-    """Return a config entry for the integration."""
-    return MockConfigEntry(
-        domain=DOMAIN,
-        title="Example Device",
-        data={CONF_USERNAME: "test-user", CONF_PASSWORD: "test-password"},
-        unique_id="test-unique-id",
-    )
-
-
-@pytest.fixture
-def mock_api_client() -> Generator[AsyncMock]:
-    """Patch the API client with a mock that returns fixture data."""
-    with patch(
-        "custom_components.<domain>.{ClassPrefix}ApiClient",
-        autospec=True,
-    ) as client_class:
-        client = client_class.return_value
-        client.async_get_data.return_value = {"model": "Blueprint", "title": "ok"}
-        yield client
-
-
-@pytest.fixture
-async def init_integration(
-    hass: HomeAssistant,
-    mock_config_entry: MockConfigEntry,
-    mock_api_client: AsyncMock,
-) -> MockConfigEntry:
-    """Set up the integration and return the loaded entry."""
-    mock_config_entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
-    await hass.async_block_till_done()
-    return mock_config_entry
-```
-
-Patch the client where it is **imported**, not where it is defined. `autospec=True` makes the mock fail when the real
-signature changes, which is the whole point.
+A library client instead of our own needs a different `mock_api` — see
+[`references/recipes.md`](references/recipes.md#mock_api-for-a-third-party-library-client). Recorded payloads go in
+a `fixtures/` folder: `load_fixture("device.json")` and `load_json_object_fixture("device.json")` resolve against the
+one next to the calling test file. Never pass `DOMAIN` as their second argument — that points at Core's
+`tests/components/<domain>/fixtures/`, which does not exist here.
 
 ## Layout
 
@@ -99,6 +54,7 @@ signature changes, which is the whole point.
 ```text
 tests/
 ├── conftest.py
+├── fixtures/                  # recorded API payloads
 ├── test_init.py               # setup, unload, reload, migration
 ├── test_config_flow.py        # user, reauth, reconfigure, options, discovery
 ├── test_diagnostics.py        # snapshot + redaction
@@ -126,17 +82,23 @@ async def test_setup_and_unload(hass: HomeAssistant, init_integration: MockConfi
 @pytest.mark.parametrize(
     ("error", "expected_state"),
     [
-        ({ClassPrefix}ApiClientCommunicationError, ConfigEntryState.SETUP_RETRY),
-        ({ClassPrefix}ApiClientAuthenticationError, ConfigEntryState.SETUP_ERROR),
+        pytest.param({ClassPrefix}ApiClientCommunicationError, ConfigEntryState.SETUP_RETRY, id="unreachable"),
+        pytest.param({ClassPrefix}ApiClientAuthenticationError, ConfigEntryState.SETUP_ERROR, id="bad-credentials"),
     ],
 )
-async def test_setup_failures(hass, mock_config_entry, mock_api_client, error, expected_state) -> None:
+async def test_setup_failures(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    mock_api: AsyncMock,
+    error: type[Exception],
+    expected_state: ConfigEntryState,
+) -> None:
     """Client failures map onto the right entry state."""
-    mock_api_client.async_get_data.side_effect = error
-    mock_config_entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    mock_api.side_effect = error
+    config_entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
-    assert mock_config_entry.state is expected_state
+    assert config_entry.state is expected_state
 ```
 
 ### Entity state
@@ -147,15 +109,23 @@ async def test_sensor_state(hass: HomeAssistant, init_integration: MockConfigEnt
     state = hass.states.get("sensor.example_device_pm25")
     assert state is not None
     assert state.state == "12.3"
-    assert state.attributes[ATTR_UNIT_OF_MEASUREMENT] == "µg/m³"
+    assert state.attributes[ATTR_UNIT_OF_MEASUREMENT] == UnitOfDensity.MICROGRAMS_PER_CUBIC_METER
 ```
 
-Never instantiate an entity class directly — go through `hass.states`.
+Never instantiate an entity class directly — go through `hass.states`. Compare units against the `homeassistant.const`
+constant, never a typed literal: `µ` (U+00B5) and the `μ` (U+03BC) Home Assistant uses look identical and compare
+unequal.
+
+### Every entity of a platform
+
+`snapshot_platform`, and the `entity_registry_enabled_by_default` fixture it needs, are in
+[`references/recipes.md`](references/recipes.md#every-entity-of-a-platform-snapshot_platform).
 
 ### Config flow
 
 ```python
-async def test_user_flow(hass: HomeAssistant, mock_api_client: AsyncMock) -> None:
+@pytest.mark.usefixtures("mock_api")
+async def test_user_flow(hass: HomeAssistant) -> None:
     """The happy path creates an entry."""
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
     assert result["type"] is FlowResultType.FORM
@@ -181,12 +151,18 @@ async_fire_time_changed(hass)
 await hass.async_block_till_done()
 ```
 
-Use the `freezer` fixture from `freezegun` and `async_fire_time_changed`. `time.sleep()` in a test is always wrong.
+Use the `freezer` fixture (`pytest-freezer`, typed `FrozenDateTimeFactory`) and `async_fire_time_changed`.
+`time.sleep()` in a test is always wrong.
 
 ### Snapshots
 
 ```python
-async def test_diagnostics(hass, hass_client, init_integration, snapshot: SnapshotAssertion) -> None:
+async def test_diagnostics(
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    init_integration: MockConfigEntry,
+    snapshot: SnapshotAssertion,
+) -> None:
     """Diagnostics output is stable and redacted."""
     assert await get_diagnostics_for_config_entry(hass, hass_client, init_integration) == snapshot
 ```
@@ -195,18 +171,28 @@ Snapshots are for large stable structures (diagnostics, entity registry dumps). 
 they do not replace them. Regenerate with `script/test --snapshot-update` and **read the diff** before committing the
 `.ambr` file — an accepted snapshot of a bug is worse than no test.
 
+### Repair issues
+
+Assert through the `issue_registry` fixture: `issue_registry.async_get_issue(DOMAIN, issue_id)` is not `None` after the
+trigger, and is `None` again once the condition clears.
+
 ## Two settings that surprise people
 
-**Warnings are errors.** `filterwarnings = ["error"]` in `pyproject.toml` means a `DeprecationWarning` from Home
-Assistant fails the suite. That is the intended early-warning system — fix the deprecation
-([`ha-modern-apis`](../ha-modern-apis/SKILL.md)) rather than adding an ignore.
+**Warnings are errors, and so are Home Assistant's own deprecations.** `filterwarnings = ["error"]` in
+`pyproject.toml` fails the suite on a Python `DeprecationWarning`, which catches libraries. Home Assistant's own
+deprecations — a removed helper, a deprecated constant, a wrong-thread call — are **logged** instead:
+`Detected that custom integration '<domain>' …` from `report_usage()`, or `The deprecated … was used from <domain>`
+from the deprecation helpers. The autouse `fail_on_deprecation_report` fixture in `tests/conftest.py` fails every test
+whose `caplog` holds such a record. A path no test reaches still needs the runtime log — see
+[`ha-modern-apis`](../ha-modern-apis/SKILL.md#fixing-a-deprecation-warning). Fix the cause; never filter the message.
 
-The exception is a warning **Home Assistant Core raises about its own use of a library it pins**, which no change
-here can fix and which would otherwise block every test that touches that subsystem — the aiohttp warnings from
-`homeassistant/helpers/aiohttp_client.py` and `homeassistant/components/http/` are the ones already ignored. Before
-adding one, confirm the warning's origin is a Core file and not this integration; a warning about our own code stays
-an error. Then key the ignore to the exact message rather than the category, and say in a comment where it comes from
-and why it cannot be fixed here — a bare `DeprecationWarning` ignore also hides the next real deprecation.
+The one exception to "warnings are errors" is a warning **Home Assistant Core raises about its own use of a library it
+pins**, which no change here can fix and which would otherwise block every test that touches that subsystem — the
+aiohttp warnings from `homeassistant/helpers/aiohttp_client.py` and `homeassistant/components/http/` are the ones
+already ignored. Before adding one, confirm the warning's origin is a Core file and not this integration; a warning
+about our own code stays an error. Then key the ignore to the exact message rather than the category, and say in a
+comment where it comes from and why it cannot be fixed here — a bare `DeprecationWarning` ignore also hides the next
+real deprecation.
 
 **`asyncio_mode = "auto"`**, so async tests need no `@pytest.mark.asyncio`.
 

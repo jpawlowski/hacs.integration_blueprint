@@ -16,9 +16,8 @@ old name in `source_repo_path` of this repository's `template-sync.yml`; the wor
 
 **Check:** `ls custom_components/*/brand/icon.png`
 
-Add the integration's icon as `custom_components/<domain>/brand/icon.png` — square, at most 256 pixels, plus an
-optional 512-pixel `icon@2x.png` and a `logo.png`. Home Assistant shows it, and the Marketplace catalog requires it.
-`custom_components/` is never synced, so only new repositories get the blueprint's placeholder. Once the file exists,
+Replace `custom_components/<domain>/brand/` with the product's images — what is required:
+[`ha-marketplace`](../../ha-marketplace/SKILL.md#3-brand-images). `custom_components/` is never synced, so only new repositories get the blueprint's placeholder. Once the file exists,
 the HACS validation in `validate.yml` stops skipping its `brands` check.
 
 ## `root-gitignore` — 2026-11-02

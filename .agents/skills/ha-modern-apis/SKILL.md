@@ -2,11 +2,11 @@
 name: ha-modern-apis
 description: >-
   Verify that Home Assistant APIs used in this custom integration are current, and replace deprecated ones. Use
-  when a DeprecationWarning or "will be removed in HA Core X.Y" appears in logs or tests, when tests fail because
-  warnings are errors, when asked to "modernize", "update to the latest HA version", "fix deprecations", "is this
-  still the right API", "bump the HA version", or before copying a pattern from an older integration, blog post,
-  or model memory. Covers checking the installed Home Assistant source instead of guessing, the device
-  registry single-owner rules from 2026.8, runtime_data, config flow helpers, entity metadata, async I/O, and the
+  when a DeprecationWarning, "Detected that custom integration", or "will be removed in HA Core X.Y" appears in logs
+  or tests, when asked to "modernize", "update to the latest HA version", "fix deprecations", "is this still the
+  right API", "bump the HA version", or before copying a pattern from an older integration, blog post, or model
+  memory. Covers checking the installed Home Assistant source instead of guessing, the device
+  registry single-owner rules, runtime_data, config flow helpers, entity metadata, async I/O, and the
   version bump procedure. SYMPTOMS — load this if you are about to: write `hass.data[DOMAIN]` instead of
   `runtime_data`; call the unscoped `async_get_device()`; use `FlowResult`, `DEVICE_CLASS_*`, or `async_timeout`;
   create your own aiohttp session; add a warning filter to make a deprecation go away; or adopt an undocumented API
@@ -37,8 +37,16 @@ rg -n "runtime_data" .venv/lib/python*/site-packages/homeassistant/components/<s
 `breaks_in_ha_version=` in a `@deprecated_function` decorator tells you the actual removal deadline. Prefer that over
 any secondary source.
 
-When the installed source is not enough — a pattern that is new rather than deprecated — check
-<https://contributors.home-assistant.io/blog/> before implementing.
+When the installed source is not enough — a pattern that is new rather than deprecated — check the current
+documentation before implementing. Every page of <https://contributors.home-assistant.io/> is available as Markdown
+(append `index.md` to its URL), and <https://contributors.home-assistant.io/llms.txt> indexes the site; each area has
+its own list, such as <https://contributors.home-assistant.io/core/llms.txt>, and a full-text `llms-full.txt` next to
+it. Fetch the area you need, not the whole site. Announcements and removal dates are on the
+[developer blog](https://contributors.home-assistant.io/blog/).
+
+**The docs follow Home Assistant's development branch, not the pinned version.** A page can describe an API that
+arrives only in the next release — check that it exists in the installed source before using it; if it does not,
+it is upcoming and needs the minimum version in `hacs.json` raised first.
 
 ## The same rule, generalised: what counts as verified
 
@@ -62,22 +70,25 @@ it. When the answer matters enough to encode, put a check in `script/` rather th
 
 ## Reference files
 
-| File                                                       | When to read                                                                                                                                                                                                                                         |
-| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`references/deprecations.md`](references/deprecations.md) | Fixing a specific deprecation. Full "do not use → use instead" tables for the device registry (2026.8 single ownership), config entry runtime state, config flow helpers, entity metadata, async and I/O, diagnostics, and 2026 behavioural changes. |
+| File                                                             | When to read                                                                                                                                                                                                                                                 |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`references/deprecations.md`](references/deprecations.md)       | Fixing a specific deprecation. "Do not use → use instead" tables with the removal version — moved imports, config entry setup, config flow, entities and per-platform changes, actions and conditions, async and I/O, recorder statistics, upcoming changes. |
+| [`references/device-registry.md`](references/device-registry.md) | Anything that registers, looks up, links or removes a device: single ownership, scoped lookups, `via_device_id` versus child devices, helper entities, and the device registry deprecations with their removal versions.                                     |
 
 Read it when you have a concrete symbol to replace — do not pull it into context speculatively.
 
 ## The three that matter most in this codebase
 
-**1. Device registry single ownership (2026.8).** A device belongs to exactly one config entry and at most one
+**1. Device registry single ownership.** A device belongs to exactly one config entry and at most one
 subentry. Identifiers are unique only within their owning entry. Always scope lookups:
 
 ```python
 device = device_registry.async_get_device_by_identifier((DOMAIN, serial), entry.entry_id)
 ```
 
-Never the unscoped `async_get_device()` — with two entries sharing an identifier it resolves ambiguously.
+Never the unscoped `async_get_device()` — it is deprecated, and with two entries sharing an
+identifier it resolves ambiguously. Parts of one product are child devices, not `via_device_id` devices —
+[`references/device-registry.md`](references/device-registry.md#hub-or-parts-via_device_id-versus-child-devices).
 
 **2. Typed `runtime_data`.** State belongs on the entry, not in `hass.data`:
 
@@ -86,19 +97,19 @@ type {ClassPrefix}ConfigEntry = ConfigEntry[{ClassPrefix}Data]
 entry.runtime_data = {ClassPrefix}Data(client=client, coordinator=coordinator, integration=integration)
 ```
 
-**3. Warnings are errors in tests.** `pyproject.toml` sets `filterwarnings = ["error"]`, so a `DeprecationWarning`
-fails `script/test`. That is the intended early-warning system. Fix the deprecation; add an ignore only when an upstream
-library gives you no alternative, and comment why.
+**3. Tests catch Home Assistant's deprecations through a fixture, not through `warnings`** — see
+[`ha-testing`](../ha-testing/SKILL.md#two-settings-that-surprise-people). Fix the deprecation; never filter it.
 
 ## Fixing a deprecation warning
 
-1. Read the warning — it names the symbol, and usually the replacement and the removal version.
+1. Read the log line — it names the symbol, and usually the replacement and the removal version.
 2. Confirm the replacement's real signature in the installed source. Signatures shift between the announcement and the
    release.
 3. Replace every occurrence, including tests, diagnostics, repairs, and migrations. A half-migrated codebase is worse
    than an un-migrated one.
-4. `script/lint && script/type-check && script/test`, then restart Home Assistant and confirm the warning is gone from
-   `config/home-assistant.log`.
+4. `script/lint && script/type-check && script/test`. For a path no test reaches, restart Home Assistant, exercise
+   it, and confirm the line is gone — many are logged only once per run, and only when the code runs:
+   `rg -n "Detected that custom integration|The deprecated .* from <domain>" config/home-assistant.log`.
 
 ## Bumping the Home Assistant version
 
@@ -110,18 +121,18 @@ Then rebuild the container (or re-run `script/setup/bootstrap`), and:
 
 ```bash
 script/hassfest && script/test
-rg -n "DeprecationWarning|will be removed" config/home-assistant.log
+rg -n "Detected that custom integration|The deprecated|DeprecationWarning|will be removed" config/home-assistant.log
 ```
 
 When `script/test` reports that the manifest schema's categories differ from the installed Home Assistant, run
 `python3 script/.lib/manifest_categories.py` in the project virtualenv to copy them over.
 
-Bumping the minimum HA version in `hacs.json` / `manifest.json` drops support for older installs — that is a breaking
-change for users. See [`ha-breaking-changes`](../ha-breaking-changes/SKILL.md).
+Raising the minimum version is a separate decision:
+[`ha-marketplace`](../ha-marketplace/SKILL.md#2-hacsjson--when-to-touch-it) for where it lives,
+[`ha-breaking-changes`](../ha-breaking-changes/SKILL.md) for why it is breaking.
 
 ## Do not
 
 - Do not "fix" a deprecation by suppressing the warning.
-- Do not adopt a brand-new API before the version in `hacs.json` supports it — users on the minimum version will break.
 - Do not trust an example from an older Home Assistant release, a Stack Overflow answer, or your own recall without
   checking the installed source first.

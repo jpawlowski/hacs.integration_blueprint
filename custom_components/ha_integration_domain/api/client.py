@@ -158,7 +158,6 @@ class IntegrationBlueprintApiClient:
             "air_quality_index": seed % 501,
             "pm25": round((seed * 0.37) % 300, 1),
             "filter_life": filter_life,
-            "filter_replacement": filter_life < 10,
             "runtime": (seed * 12) % 10000,
             "fan_on": self._settings["fan_on"],
             "fan_speed": fan_speed,
