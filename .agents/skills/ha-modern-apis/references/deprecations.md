@@ -72,6 +72,7 @@ These rules apply to migrations, repairs, diagnostics, registry listeners, **and
 | `hass.data[DOMAIN][entry.entry_id] = …`     | `entry.runtime_data = {ClassPrefix}Data(...)`                    |
 | Untyped `ConfigEntry`                       | `type {ClassPrefix}ConfigEntry = ConfigEntry[{ClassPrefix}Data]` |
 | `async_forward_entry_setup` (singular)      | `async_forward_entry_setups(entry, PLATFORMS)`                   |
+| Update listener that only reloads the entry | `OptionsFlowWithReload`; reauth and reconfigure reload already   |
 | `entry.add_update_listener` without cleanup | `entry.async_on_unload(entry.add_update_listener(...))`          |
 
 ## Config flow

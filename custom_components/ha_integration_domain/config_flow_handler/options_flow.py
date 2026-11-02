@@ -7,7 +7,7 @@ from homeassistant import config_entries
 from .schemas import get_options_schema
 
 
-class IntegrationBlueprintOptionsFlow(config_entries.OptionsFlow):
+class IntegrationBlueprintOptionsFlow(config_entries.OptionsFlowWithReload):
     """Let the user change the poll interval after setup."""
 
     async def async_step_init(
