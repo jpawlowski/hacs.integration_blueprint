@@ -106,9 +106,12 @@ jobs:
             script/secret-scan --all
           fi
 
+      # skills-check parses frontmatter with PyYAML; a venv holding only that stands in for the Home Assistant one.
       - name: Check the documentation
         if: steps.docs.outputs.only == 'true'
         run: |
+          uv venv --quiet .local/ha-venv
+          uv pip install --quiet --python .local/ha-venv pyyaml
           npm ci --silent
           script/markdown-check
           script/skills-check
