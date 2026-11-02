@@ -64,6 +64,27 @@ jobs:
             echo "Pull request #${pr} was not tested on this exact tree — running everything"
           fi
 
+      # A change that touches nothing but Markdown cannot affect types or tests, so it skips installing Home Assistant.
+      - name: Detect a documentation-only change
+        id: docs
+        if: steps.tested.outputs.done != 'true'
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          if [[ -z "${BASE}" || "${BASE}" == "0000000000000000000000000000000000000000" ]]; then
+            echo "No base to compare with — running everything"
+            exit 0
+          fi
+          if ! changed=$(git diff --name-only "${BASE}...${HEAD}"); then
+            echo "Cannot compare ${BASE} with ${HEAD} — running everything"
+            exit 0
+          fi
+          if [[ -n "${changed}" ]] && ! grep -qv '\.md$' <<<"${changed}"; then
+            echo "Only Markdown changed — no Home Assistant install, type check or tests" >> "${GITHUB_STEP_SUMMARY}"
+            echo "only=true" >> "${GITHUB_OUTPUT}"
+          fi
+
       - name: Set up mise
         if: steps.tested.outputs.done != 'true'
         uses: jdx/mise-action@6be3c7ed4c21d4f76b208d351d95aac273ebb76d # v5.2.4
@@ -85,15 +106,22 @@ jobs:
             script/secret-scan --all
           fi
 
+      - name: Check the documentation
+        if: steps.docs.outputs.only == 'true'
+        run: |
+          npm ci --silent
+          script/markdown-check
+          script/skills-check
+
       - name: Get Home Assistant version
-        if: steps.tested.outputs.done != 'true'
+        if: steps.tested.outputs.done != 'true' && steps.docs.outputs.only != 'true'
         id: ha_version
         run: |
           version=$(bash script/.lib/ha_version.sh)
           echo "HA_VERSION=${version}" >>"$GITHUB_OUTPUT"
 
       - name: Cache Home Assistant installation
-        if: steps.tested.outputs.done != 'true'
+        if: steps.tested.outputs.done != 'true' && steps.docs.outputs.only != 'true'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
@@ -103,18 +131,18 @@ jobs:
             ha-venv-${{ runner.os }}-ha${{ steps.ha_version.outputs.HA_VERSION }}-
 
       - name: Install requirements
-        if: steps.tested.outputs.done != 'true'
+        if: steps.tested.outputs.done != 'true' && steps.docs.outputs.only != 'true'
         run: script/setup/bootstrap
 
       # Lint, types and tests share one job: each would otherwise install the same venv and Home Assistant again.
       - name: Lint check
-        if: steps.tested.outputs.done != 'true'
+        if: steps.tested.outputs.done != 'true' && steps.docs.outputs.only != 'true'
         run: script/lint-check
 
       - name: Type check
-        if: steps.tested.outputs.done != 'true'
+        if: steps.tested.outputs.done != 'true' && steps.docs.outputs.only != 'true'
         run: script/type-check
 
       - name: Tests
-        if: steps.tested.outputs.done != 'true'
+        if: steps.tested.outputs.done != 'true' && steps.docs.outputs.only != 'true'
         run: script/test

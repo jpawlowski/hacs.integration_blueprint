@@ -25,7 +25,8 @@ cd "$SCRIPT_DIR/.."
 # shellcheck source=script/.lib/output.sh
 source "$SCRIPT_DIR/.lib/output.sh"
 
-activate_venv
+# The checks use the standard library only; the venv adds just the optional reference validator.
+activate_venv_if_present
 
 run_hook "skills-check" "pre"
 

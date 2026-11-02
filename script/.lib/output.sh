@@ -140,6 +140,17 @@ activate_venv() {
     source "$venv_path/bin/activate"
 }
 
+# Like activate_venv, for a script that needs the venv only for optional extras: carries on without one.
+activate_venv_if_present() {
+    if [[ -n ${VIRTUAL_ENV:-} ]]; then
+        return 0
+    fi
+    local venv_path
+    venv_path="$(resolve_venv_path)" || return 0
+    # shellcheck source=/dev/null
+    source "$venv_path/bin/activate"
+}
+
 # Run a user-defined hook script if it exists.
 # Hooks live in script/user/<name>.<phase>.sh and are sourced (not executed),
 # so they can read and set variables in the calling script's environment.
