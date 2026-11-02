@@ -16,7 +16,7 @@ This guide will help you install and set up the Integration Blueprint custom int
 2. Go to "Integrations"
 3. Click the three dots in the top right corner
 4. Select "Custom repositories"
-5. Add this repository URL: `https://github.com/jpawlowski/hacs.integration_blueprint`
+5. Add this repository URL: `https://github.com/jpawlowski/ha-integration-blueprint`
 6. Set category to "Integration"
 7. Click "Add"
 8. Find "Integration Blueprint" in the integration list
@@ -25,7 +25,7 @@ This guide will help you install and set up the Integration Blueprint custom int
 
 ### Manual Installation
 
-1. Download the latest release from the [releases page](https://github.com/jpawlowski/hacs.integration_blueprint/releases)
+1. Download the latest release from the [releases page](https://github.com/jpawlowski/ha-integration-blueprint/releases)
 2. Extract the `ha_integration_domain` folder from the archive
 3. Copy it to `custom_components/ha_integration_domain/` in your Home Assistant configuration directory
 4. Restart Home Assistant
@@ -181,11 +181,11 @@ Add this to `configuration.yaml`, restart, and reproduce the issue. Check logs f
 
 - See [CONFIGURATION.md](./CONFIGURATION.md) for detailed configuration options
 - See [EXAMPLES.md](./EXAMPLES.md) for more automation examples
-- Report issues at [GitHub Issues](https://github.com/jpawlowski/hacs.integration_blueprint/issues)
+- Report issues at [GitHub Issues](https://github.com/jpawlowski/ha-integration-blueprint/issues)
 
 ## Support
 
 For help and discussion:
 
-- [GitHub Discussions](https://github.com/jpawlowski/hacs.integration_blueprint/discussions)
+- [GitHub Discussions](https://github.com/jpawlowski/ha-integration-blueprint/discussions)
 - [Home Assistant Community Forum](https://community.home-assistant.io/)

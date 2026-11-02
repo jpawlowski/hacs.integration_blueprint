@@ -156,4 +156,4 @@ hours_to_show: 24
 
 - [Configuration Reference](./CONFIGURATION.md) - All configuration options
 - [Getting Started](./GETTING_STARTED.md) - Installation and initial setup
-- [GitHub Issues](https://github.com/jpawlowski/hacs.integration_blueprint/issues) - Report problems
+- [GitHub Issues](https://github.com/jpawlowski/ha-integration-blueprint/issues) - Report problems

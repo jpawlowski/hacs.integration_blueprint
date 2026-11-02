@@ -280,7 +280,7 @@ check_if_already_initialized() {
 show_original_blueprint_warning() {
     print_header "⚠️  Original Blueprint Repository Detected"
 
-    print_warning "This appears to be the original jpawlowski/hacs.integration_blueprint repository!"
+    print_warning "This appears to be the original jpawlowski/ha-integration-blueprint repository!"
     echo ""
     print_info "This script is meant for users who have created their own repository"
     print_info "from this template, not for the template repository itself."
@@ -892,9 +892,9 @@ replace_in_files() {
     # File exclusions - these files must NOT have their content replaced
     local exclude_files=(
         "$script_name"            # This script itself
-        ".templatesyncignore"     # Must keep pointing to jpawlowski/hacs.integration_blueprint
-        "template-sync.yml"       # Must keep pointing to jpawlowski/hacs.integration_blueprint
-        "release-please.yml"      # Must keep pointing to jpawlowski/hacs.integration_blueprint
+        ".templatesyncignore"     # Must keep pointing to jpawlowski/ha-integration-blueprint
+        "template-sync.yml"       # Must keep pointing to jpawlowski/ha-integration-blueprint
+        "release-please.yml"      # Must keep pointing to jpawlowski/ha-integration-blueprint
     )
 
     # Template-synced files that name the blueprint on purpose - a rewrite would be reverted by the next sync
@@ -903,6 +903,7 @@ replace_in_files() {
         "./.agents/README.md"
         "./.devcontainer/post-attach.sh"
         "./.agents/skills/blueprint-import/references/git-strategy.md"
+        "./.agents/skills/blueprint-update/references/manual-steps.md"
     )
 
     # Find all files, excluding pruned directories
@@ -1166,7 +1167,7 @@ rewrite_repo_role() {
 ## Which repository is this?
 
 **This is an initialised Home Assistant integration repository.** It was created from the
-[hacs.integration_blueprint](https://github.com/jpawlowski/hacs.integration_blueprint) template and personalised by
+[ha-integration-blueprint](https://github.com/jpawlowski/ha-integration-blueprint) template and personalised by
 `initialize.sh`, which has already run and removed itself. It is not a blueprint — the integration is the product, and
 guidance about maintaining the template does not apply here.
 
@@ -1532,11 +1533,11 @@ main() {
     replace_in_files "IntegrationBlueprint" "$namespace" "class namespace prefix"
 
     # Replace GitHub repository (both full path and repository name only)
-    replace_in_files "jpawlowski/hacs.integration_blueprint" "$github_repo" "GitHub repository"
+    replace_in_files "jpawlowski/ha-integration-blueprint" "$github_repo" "GitHub repository"
 
     # Extract repository name (without owner) for HACS redirect URLs
     local github_repo_name="${github_repo#*/}"
-    replace_in_files "hacs.integration_blueprint" "$github_repo_name" "GitHub repository name"
+    replace_in_files "ha-integration-blueprint" "$github_repo_name" "GitHub repository name"
 
     # Replace author name first (separate from GitHub username)
     replace_in_files "Julian Pawlowski" "$author_name" "author name"

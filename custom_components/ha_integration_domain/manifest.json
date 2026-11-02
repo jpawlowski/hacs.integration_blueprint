@@ -5,10 +5,10 @@
     "@jpawlowski"
   ],
   "config_flow": true,
-  "documentation": "https://github.com/jpawlowski/hacs.integration_blueprint",
+  "documentation": "https://github.com/jpawlowski/ha-integration-blueprint",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/jpawlowski/hacs.integration_blueprint/issues",
+  "issue_tracker": "https://github.com/jpawlowski/ha-integration-blueprint/issues",
   "requirements": [],
   "version": "0.1.0"
 }

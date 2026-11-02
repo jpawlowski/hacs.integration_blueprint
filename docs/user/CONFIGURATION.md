@@ -241,4 +241,4 @@ If configuration changes aren't persisted:
 
 - [Getting Started](./GETTING_STARTED.md) - Installation and initial setup
 - [Examples](./EXAMPLES.md) - Automation and dashboard examples
-- [GitHub Issues](https://github.com/jpawlowski/hacs.integration_blueprint/issues) - Report problems
+- [GitHub Issues](https://github.com/jpawlowski/ha-integration-blueprint/issues) - Report problems

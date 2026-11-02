@@ -1,7 +1,7 @@
 # Template Sync Ignore File
 # ============================================================
 # Files and folders listed here will NOT be synced from the
-# upstream template (jpawlowski/hacs.integration_blueprint).
+# upstream template (jpawlowski/ha-integration-blueprint).
 #
 # Syntax follows .gitignore glob patterns.
 # See: https://github.com/AndreasAugustin/actions-template-sync

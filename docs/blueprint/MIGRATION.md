@@ -8,7 +8,7 @@ blueprint's project structure, DevContainer environment, and tooling.
 > `./initialize.sh`. That is deliberate — by that point the decisions below are made, and
 > the rest of the migration is driven by the `blueprint-import` agent skill, which stays.
 > The original lives at
-> [jpawlowski/hacs.integration_blueprint](https://github.com/jpawlowski/hacs.integration_blueprint/blob/main/docs/blueprint/MIGRATION.md).
+> [jpawlowski/ha-integration-blueprint](https://github.com/jpawlowski/ha-integration-blueprint/blob/main/docs/blueprint/MIGRATION.md).
 
 ## The Core Idea
 
