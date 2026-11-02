@@ -89,9 +89,8 @@ jobs:
         if: steps.tested.outputs.done != 'true'
         id: ha_version
         run: |
-          HA_VERSION=$(grep '"homeassistant"' hacs.json | head -1 | sed 's/.*"homeassistant"\s*:\s*"\([^"]*\)".*/\1/')
-          echo "HA_VERSION=${HA_VERSION}" >> $GITHUB_OUTPUT
-          echo "Home Assistant version: ${HA_VERSION}"
+          version=$(bash script/.lib/ha_version.sh)
+          echo "HA_VERSION=${version}" >>"$GITHUB_OUTPUT"
 
       - name: Cache Home Assistant installation
         if: steps.tested.outputs.done != 'true'

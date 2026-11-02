@@ -30,22 +30,11 @@ jobs:
         with:
           persist-credentials: false
 
-      # The version script/hassfest and the dev container use, so a rule newer than the minimum cannot fail it
-      - name: Resolve the Home Assistant version
-        id: version
-        run: |
-          set -a
-          source .devcontainer/.env
-          set +a
-          source script/.lib/output.sh
-          source script/.lib/ha_version.sh
-          target_ha_version version
-          echo "version=${version}" >>"$GITHUB_OUTPUT"
-
+      # The Home Assistant version the dev container installs, so a rule newer than that cannot fail it
       - name: Run hassfest validation
-        env:
-          HA_VERSION: ${{ steps.version.outputs.version }}
-        run: docker run --rm -v "${GITHUB_WORKSPACE}:/github/workspace" "ghcr.io/home-assistant/hassfest:${HA_VERSION}"
+        run: |
+          version=$(bash script/.lib/ha_version.sh)
+          docker run --rm -v "${GITHUB_WORKSPACE}:/github/workspace" "ghcr.io/home-assistant/hassfest:${version}"
 
   hassfest-dev:
     name: Hassfest with Home Assistant dev
