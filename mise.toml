@@ -17,7 +17,6 @@ jq = "1.8.2"
 yq = "4.54.1"
 ripgrep = "15.2.0"
 fd = "10.5.0"
-gron = "0.7.1"
 betterleaks = "1.9.0"
 
 # script/setup/bootstrap creates the venv and links it here in every environment; mise puts it ahead of its own Python.
