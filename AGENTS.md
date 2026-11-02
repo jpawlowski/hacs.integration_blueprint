@@ -257,13 +257,13 @@ Check `script/ha status` first, announce a restart, and announce **beforehand** 
 exclusively. Log reading, failure triage, and the rest of the run-loop rules:
 [`ha-coordinator-debug`](.agents/skills/ha-coordinator-debug/SKILL.md).
 
-**CLI tools everywhere:** `mise.toml` pins Python, `uv`, `fd`, `gron`, `jq`, `rg`, `shellcheck`, `shfmt` and `yq`
+**CLI tools everywhere:** `mise.toml` pins Python, `uv`, `fd`, `jq`, `rg`, `shellcheck`, `shfmt` and `yq`
 for the dev container, CI, a local machine and cloud sessions alike, and every `script/*` applies `mise env` itself —
 those tools and the Home Assistant venv, which `mise.toml` names, ahead of everything else on `PATH`. A tool the
 scripts need goes into `mise.toml` — this integration's own into `.config/mise/conf.d/project.toml`, which template
-sync leaves alone — not into the dev container's apt list. `yq` is the Mike Farah variant (`yq eval` syntax). `gron`
-flattens JSON into greppable assignments — `script/ha diagnostics | gron | rg <key>` gives the value and its path
-without pulling the whole document into context.
+sync leaves alone — not into the dev container's apt list. `yq` is the Mike Farah variant (`yq eval` syntax). `yq -p json -o props`
+flattens JSON into greppable `path = value` lines — `script/ha diagnostics | yq -p json -o props | rg <key>` gives
+the value and its path without pulling the whole document into context.
 
 **Only in the dev container:** `fzf`, `hyperfine` and `mlr` (from `mise.devcontainer.toml`), `http`, `ipython`,
 `jo`, `sponge` and `sqlite3` (from apt). The scripts take `yamllint` from the venv. `git-delta`, `httpie` and `miller`
