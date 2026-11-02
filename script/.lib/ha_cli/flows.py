@@ -154,7 +154,7 @@ async def cmd_flow_handlers(client: HaClient, args: argparse.Namespace) -> int:
 
 async def cmd_flow_start(client: HaClient, args: argparse.Namespace) -> int:
     """Start a config flow, or a reconfigure flow for an existing entry."""
-    payload: dict[str, Any] = {"handler": args.flow_handler or args.domain, "show_advanced_options": args.advanced}
+    payload: dict[str, Any] = {"handler": args.flow_handler or args.domain}
     if args.reconfigure:
         entry = await resolve_entry(client, args.domain, None if args.reconfigure == "auto" else args.reconfigure)
         payload["entry_id"] = entry["entry_id"]
@@ -172,7 +172,7 @@ async def cmd_flow_options(client: HaClient, args: argparse.Namespace) -> int:
     result = await client.rest(
         "POST",
         OPTIONS_FLOW,
-        payload={"handler": entry["entry_id"], "show_advanced_options": args.advanced},
+        payload={"handler": entry["entry_id"]},
     )
     return render_step(result, args)
 

@@ -773,14 +773,14 @@ check_domain_availability() {
         if [[ -n "$hacs_domains" ]]; then
             if echo "$hacs_domains" | grep -q "^${domain}$"; then
                 print_error "Domain '$domain' is already used by a HACS integration!"
-                echo "   Search HACS: https://hacs.xyz/search/?q=${domain}"
+                echo "   Look it up in Home Assistant: Settings > Marketplace (2026.11+) or the HACS panel"
                 found_conflicts=true
             else
                 print_success "Not in HACS Integrations"
             fi
         else
             print_warning "Could not fetch HACS data (API might be down)"
-            echo "   Manual check: https://hacs.xyz/search/?q=${domain}"
+            echo "   Manual check: search for it in Settings > Marketplace or the HACS panel"
         fi
     else
         # Fallback without jq: check repository list only
@@ -800,13 +800,13 @@ check_domain_availability() {
             # It might give false positives but better than nothing
             if echo "$repos" | grep -qi "$domain"; then
                 print_warning "Domain string found in HACS repository list (might be false positive)"
-                echo "   Manual verification recommended: https://hacs.xyz/search/?q=${domain}"
+                echo "   Manual verification recommended: search for it in Settings > Marketplace or the HACS panel"
             else
                 print_success "Not obviously in HACS (limited check without jq)"
             fi
         else
             print_warning "Could not fetch HACS repository list"
-            echo "   Manual check: https://hacs.xyz/search/?q=${domain}"
+            echo "   Manual check: search for it in Settings > Marketplace or the HACS panel"
         fi
     fi    # 3. Check GitHub Code Search (best effort - searches for manifest.json with this domain)
     print_color "$BLUE" "→ GitHub Code Search (manual verification recommended):"

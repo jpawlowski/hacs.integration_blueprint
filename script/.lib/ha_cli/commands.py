@@ -177,13 +177,13 @@ async def cmd_devices(client: HaClient, args: argparse.Namespace) -> int:
     devices = await client.ws("config/device_registry/list")
     if not args.all:
         entry_ids = {entry["entry_id"] for entry in await our_entries(client, args.domain)}
-        devices = [device for device in devices if entry_ids.intersection(device.get("config_entries", []))]
+        devices = [device for device in devices if device.get("config_entry_id") in entry_ids]
     if args.json:
         emit_json(devices)
         return 0
     emit_table(
         devices,
-        ["id", "name", "manufacturer", "model", "sw_version", "via_device_id", "disabled_by"],
+        ["id", "name", "manufacturer", "model", "sw_version", "via_device_id", "parent_device_id", "disabled_by"],
         empty=f"no devices for {args.domain}",
     )
     return 0
