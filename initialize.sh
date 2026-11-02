@@ -776,7 +776,7 @@ parse_gitignore_to_prune_paths() {
         # Handle negation patterns (!)
         if [[ "$line" =~ ^! ]]; then
             local neg_pattern="${line#!}"
-            negations+=("$neg_pattern")
+            negations+=("${neg_pattern#/}")
             continue
         fi
 
@@ -787,8 +787,12 @@ parse_gitignore_to_prune_paths() {
         fi
 
         # Convert gitignore patterns to find paths
+        # Anchored patterns (leading /) match at the repository root only
+        if [[ "$line" =~ ^/ ]]; then
+            line="${line#/}"
+            prune_paths+=("./${line%/}")
         # Directory patterns (ending with /)
-        if [[ "$line" =~ /$ ]]; then
+        elif [[ "$line" =~ /$ ]]; then
             local dir_pattern="${line%/}"
             # Remove leading ./ if present
             dir_pattern="${dir_pattern#./}"
