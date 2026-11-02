@@ -37,9 +37,16 @@ async def async_get_config_entry_diagnostics(
     return {
         "entry_data": async_redact_data(entry.data, TO_REDACT),
         "entry_options": async_redact_data(entry.options, TO_REDACT),
-        "coordinator_data": coordinator.data,
+        "coordinator_data": async_redact_data(coordinator.data, TO_REDACT),
     }
 ```
+
+**The coordinator data is redacted too.** An API payload usually holds more than the entities show — serials,
+coordinates, account names — and users post this file in public issues. Read the real output once, not just the code.
+
+A device or entity registry entry goes in through `device_entry_as_dict()` / `entity_entry_as_dict()` from
+`homeassistant.components.diagnostics`, which leave out the registry's internal fields. Where an identifier has to
+stay recognisable, `homeassistant.helpers.redact.partial_redact()` masks all but its first and last characters.
 
 ## Device-Level Diagnostics
 
@@ -68,6 +75,14 @@ The following must ALWAYS be redacted:
 - Personal information (email, phone, name)
 - Device serial numbers (if considered sensitive)
 - MAC addresses (use `format_mac` if needed for identification)
+
+## Testing
+
+Cover the output with a snapshot test, so every change to it shows up in review:
+`get_diagnostics_for_config_entry` / `get_diagnostics_for_device` from
+`pytest_homeassistant_custom_component.components.diagnostics` return exactly what a user downloads. Read the snapshot
+for anything that should have been redacted before committing it — procedure in
+[`ha-testing`](../skills/ha-testing/SKILL.md).
 
 ## When in Doubt
 

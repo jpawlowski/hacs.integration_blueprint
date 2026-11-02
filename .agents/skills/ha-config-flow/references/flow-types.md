@@ -8,7 +8,8 @@ automatically.
 ## User flow
 
 Nothing beyond the general rules: validate before creating, set the unique ID and abort on a duplicate, return errors
-by translation key, log unexpected exceptions.
+by translation key, log unexpected exceptions. With discovery in the manifest, see the `raise_on_progress` rule under
+step names in the instructions file.
 
 ## Discovery flow
 
@@ -19,6 +20,10 @@ by translation key, log unexpected exceptions.
 - Store placeholders for title: `self.context["title_placeholders"] = {"name": device_name}`
 - Forward to user step for confirmation
 - Update existing entries via `updates` parameter when device details change
+- Type the step's argument with the protocol's service info class from `homeassistant.helpers.service_info.<protocol>`
+  — `async_step_zeroconf(self, discovery_info: ZeroconfServiceInfo) -> ConfigFlowResult`. The old imports from
+  `homeassistant.components.<protocol>` are gone. Bluetooth is the exception: `BluetoothServiceInfoBleak` from
+  `homeassistant.components.bluetooth`; `integration_discovery` takes whatever the starting integration sends.
 
 **NEVER:**
 
@@ -45,16 +50,14 @@ The `manifest.json` side, and the rule per protocol that fails silently when gue
 - Skip unique ID verification
 - Skip confirmation step
 
-The flow starts with `source`, `entry_id` and `unique_id` already in `self.context`, and `title_placeholders` is set
-to `{"name": <entry title>}` for you.
-
 **Translation keys:**
 
-- `config.step.reauth_confirm.title` — write the text out, e.g. `"Re-authenticate {name}"`
+- `config.step.reauth_confirm.title` — Core's wording, `"Authentication expired for {name}"`
+  ([copy it out](../../../instructions/blueprint.translations.instructions.md#cores-shared-strings))
 - `config.step.reauth_confirm.description` — explain what expired
-- `config.abort.reauth_successful` — write the text out, e.g. `"Re-authentication was successful"`
 
-Core's `[%key:common::…%]` references do not resolve in a custom integration.
+Which abort reasons need no key of your own:
+[`ha-translations`](../../ha-translations/SKILL.md#abort-reasons-home-assistant-translates-itself).
 
 **From outside a flow** — a coordinator or an action handler that hits an auth error — call
 `entry.async_start_reauth(hass)`. `ConfigEntryAuthFailed` only starts the flow from `async_setup_entry` in
@@ -80,14 +83,20 @@ Core's `[%key:common::…%]` references do not resolve in a custom integration.
 
 ## Options flow
 
+Only for behaviour the user tunes after setup — never the polling interval
+([`blueprint.config_flow`](../../../instructions/blueprint.config_flow.instructions.md)). An integration with nothing
+to tune ships no options flow.
+
 **MUST:** Return via `async_get_options_flow()`, implement `async_step_init()`, pre-fill with existing options.
 
 The handler is constructed with **no arguments** (`return OptionsFlowHandler()`); the base class provides
 `self.config_entry`. Older examples that store it themselves are wrong.
 
 **Auto-reload:** subclass `OptionsFlowWithReload`. Every change has one reload owner: this class for options,
-`async_update_reload_and_abort` for reauth and reconfigure. An update listener that calls `async_reload()` reloads a
-second time after those flows, so it is a pattern to recognise and remove, not an alternative.
+`async_update_reload_and_abort` for reauth and reconfigure. **Do not add an update listener (`entry.add_update_listener`)
+next to them** — see [`deprecations.md`](../../ha-modern-apis/references/deprecations.md). Where one genuinely must
+stay, finish with `async_update_and_abort` and pass `reload_on_update=False`, and let the listener reload. Any other
+reload from code is `hass.config_entries.async_schedule_reload(entry.entry_id)`, not `async_reload`.
 
 ## Subentry flow
 
@@ -104,16 +113,17 @@ subentry being edited, and `async_update_and_abort()` to finish a reconfigure st
 
 **Translations:** subentry strings live under `config_subentries.<type>.…`, not under `config`.
 
-**Device ownership (Home Assistant 2026.8+):**
-
-- A device belongs to exactly one config entry and to at most one config subentry.
-- Create one device per subentry. Multiple subentries must never attach entities to a shared device.
-- Keep a hub/account device on the parent config entry without a subentry. Create separate devices for subentries and,
-  when a parent relationship is needed, link them with `via_device_id`.
-- Migrations that previously shared a device across subentries must create the per-subentry devices and relink their
-  entities. Do not rely on Home Assistant's temporary composite-device compatibility behavior.
+**Devices:** one per subentry, the hub or account device on the parent entry, related by `via_device_id` —
+[`device-registry.md`](../../ha-modern-apis/references/device-registry.md).
 
 ## Chaining flows
 
 `next_flow` and `async_on_create_entry()` continue into another flow once an entry exists. Subentry and options flows
 depend on the config entry already existing, so they **can only** be reached through `async_on_create_entry()`.
+
+## Fields that depend on another field (HA 2026.11+)
+
+`data_entry_flow.Required(..., visible={"field": …, "value": …})` hides a field until another one matches, and
+`UnitOfMeasurementSelector` narrows its units by a device-class field. Until the minimum version reaches 2026.11, keep
+an extra step or a re-shown form instead. A hidden field is absent from `user_input`; read it with `.get()` and a
+fallback.

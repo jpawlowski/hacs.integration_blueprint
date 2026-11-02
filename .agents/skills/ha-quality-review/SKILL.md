@@ -26,6 +26,11 @@ Ask, or infer from the request:
 
 For a diff review: `git diff main...HEAD --stat`, then read the changed files in full — not just the hunks.
 
+When the diff is an open pull request, read what others already said before adding to it:
+`gh pr view <number> --comments` and `gh api repos/{owner}/{repo}/pulls/<number>/comments` for the inline ones. Every
+earlier finding — a human's, a bot's, another agent's — is either fixed in the current head, answered in the thread,
+or still open; report the open ones instead of rediscovering them, and do not repeat what was already settled.
+
 ## 1. Automated gates (always first)
 
 ```bash
@@ -54,8 +59,8 @@ stated as decisions rather than silently passed over:
 - Core requires all device or service communication to be wrapped in a PyPI library. As a custom integration this
   project allows an in-repo client (`AGENTS.md` § Custom Integration Flexibility) — with the consequence that the
   client would have to be extracted before this could ever be submitted to Core.
-- `creating_component_code_review.md` still recommends `hass.data[DOMAIN]`. That page is out of date and is
-  contradicted by the Bronze `runtime-data` rule. Do not "correct" `entry.runtime_data` back to it.
+- Core wants the coordinator in `coordinator.py`, the base entity in `entity.py` and actions in `services.py`. This
+  project's `coordinator/`, `entity/` and `service_actions/` packages are the accepted equivalents.
 
 ## 3. Quality scale audit
 
@@ -66,10 +71,15 @@ stated as decisions rather than silently passed over:
 Walk the rules for the target tier and report each as **pass / fail / not applicable**. For every fail, name the file
 and the fix.
 
+Home Assistant reports every custom integration's tier as `custom`, whatever `quality_scale` in the manifest says, so
+the tier is a self-assessment, not something Home Assistant checks. A claimed Silver or above still needs at least one
+entry in `codeowners` (`integration-owner`).
+
 The rules most often missed in this codebase's shape:
 
 - `action-setup` — actions registered in `async_setup()`, not per entry.
-- `parallel-updates` — every platform module re-exports `PARALLEL_UPDATES`.
+- `parallel-updates` — every platform package's `__init__.py` defines `PARALLEL_UPDATES` at module level: `0` on a
+  read-only coordinator platform, a value the device can take on platforms that send commands.
 - `entity-translations` / `icon-translations` — no hardcoded `name=` or `icon=` in `EntityDescription`.
 - `exception-translations` — no English strings inside raised exceptions.
 - `log-when-unavailable` — the coordinator must not log on every failed poll.
@@ -94,21 +104,44 @@ Look for the failure modes linters miss:
 - **Constants** — no magic numbers or duplicated strings; reuse `homeassistant.const` names.
 - **Logging** — lazy `%s` formatting, `debug` for the normal path, no secrets in any log line at any level.
 
+Patterns Core reviewers catch that no tool does:
+
+- **Signs of unreviewed AI output** — fixes for problems that do not exist, defensive code for conditions that cannot
+  happen, test fixtures changed without a change in behaviour, or a polished description on top of code that shows a
+  basic misunderstanding. Agent-written code in this repository is held to the same test.
+- **Truthiness on device values** — `bool(value)` or `int(value)` on something that can be `None` or a string:
+  `bool(None)` turns a missing value into "off", and `bool("0")` is `True`. Convert explicitly (`value == "1"`).
+- **`entry.runtime_data` read where setup may have failed** — error paths, unload, and anything iterating
+  `async_entries()`. It is set only for a loaded entry; use `async_loaded_entries()` and handle none.
+- **Lifecycle boundaries** — every listener, timer and connection opened in setup or `async_added_to_hass` is released
+  through `entry.async_on_unload` / `self.async_on_remove`, and connections also close on Home Assistant stop. A
+  `try` that wraps everything is not a fix; small `try` blocks around the call that can raise are.
+
 ## 5. Security
 
-- Credentials only in `entry.data`, never in `entry.options`, the entry title, logs, or diagnostics. Separately from
-  that security rule, `config-flow` requires the whole split to be right: everything needed to establish the
-  connection belongs in `entry.data`, everything else in `entry.options`. A host stored in `options` passes the
-  credential check and still fails the rule.
-- `diagnostics.py` runs everything through `async_redact_data()` with a `TO_REDACT` set that actually covers the
-  payload — re-check it whenever the API response shape changes.
-- TLS verification is never disabled, and no secret has a default value in a schema.
-- Dependencies are pinned in both `manifest.json` and `requirements.txt`, and the two agree.
+Check each; the rule and how to comply live in the linked file.
+
+- **Credentials** only in `entry.data`, and the data/options split right for `config-flow` —
+  [`blueprint.config_flow`](../../instructions/blueprint.config_flow.instructions.md#data-vs-options).
+- **Diagnostics** redact the whole payload, and `TO_REDACT` still matches the API response —
+  [`blueprint.diagnostics`](../../instructions/blueprint.diagnostics.instructions.md).
+- **TLS verification** on by default; a `CONF_VERIFY_SSL` option defaults to `True`, and no secret has a schema
+  default.
+- **Log lines** mask keys and IDs with `partial_redact()` — [`blueprint.python`](../../instructions/blueprint.python.instructions.md).
+- **Admin-only actions**, and **caller-supplied paths** checked with `is_allowed_path()` —
+  [`blueprint.service_actions`](../../instructions/blueprint.service_actions.instructions.md).
+- **Webhooks** called from the LAN are `local_only` —
+  [`blueprint.coordinator`](../../instructions/blueprint.coordinator.instructions.md).
+- Data from a device or service never reaches `eval()`, `exec()` or a shell.
+- **Dependencies** pinned identically in `manifest.json` and `requirements.txt`, and reviewed for supply-chain risk —
+  [`blueprint-tooling`](../blueprint-tooling/SKILL.md).
 
 ## 6. Performance
 
 - One coordinator poll serves all entities; no per-entity API calls.
-- Interval appropriate for the source (local ~30 s, cloud ~5–15 min) and user-configurable.
+- Interval appropriate for the source ([`ha-coordinator-debug`](../ha-coordinator-debug/SKILL.md)), a constant —
+  a polling-interval field is a finding ([`blueprint.config_flow`](../../instructions/blueprint.config_flow.instructions.md)),
+  and removing one users already set goes through [`ha-breaking-changes`](../ha-breaking-changes/SKILL.md).
 - No unnecessary `async_write_ha_state()`; no work in `__init__`.
 - Data structures let entities read by key rather than scanning lists.
 
@@ -127,11 +160,11 @@ Look for the failure modes linters miss:
 ## 8. Documentation and release hygiene
 
 - `README.md`, `docs/user/` describe what actually exists — not the blueprint's placeholder text.
+- The `docs-*` rules are met by the integration's own documentation — which file covers which rule:
+  [`quality-scale-rules.md`](references/quality-scale-rules.md#where-the-docs--rules-are-met).
 - `manifest.json`: correct `integration_type`, `iot_class`, `documentation`, `issue_tracker`, `codeowners`, `version`.
-- Marketplace catalog readiness, when it is meant to be listed: a published release, a repository description and
-  topics, issues enabled, `brand/icon.png` that is not the blueprint's placeholder, `categories` in the manifest, and
-  hassfest plus the HACS action passing without `ignore`
-  ([Get into the catalog](https://contributors.home-assistant.io/marketplace/guides/catalog/)).
+- Publishing readiness, when it is meant to be listed — repository preconditions, brand images, the CI gates the
+  catalog requires: [`ha-marketplace`](../ha-marketplace/SKILL.md) has the checklist.
 - Architectural choices worth remembering are in `docs/development/DECISIONS.md`
   ([`ha-planning`](../ha-planning/SKILL.md)).
 - Breaking changes carry a migration path ([`ha-breaking-changes`](../ha-breaking-changes/SKILL.md)).
@@ -169,6 +202,10 @@ Rank by severity and be specific. A finding without a file path and a fix is noi
 
 Be honest in the last section. Do not describe checks you did not run, and do not imply real-device testing happened
 when it did not — that is an explicit rule of this project's [`AI_POLICY.md`](../../../AI_POLICY.md).
+
+Verify each finding by running something — a gate, a test, a grep of the installed Home Assistant source — rather than
+from memory or from how the code reads. A finding you could not verify that way stays in the report, marked
+**unverified**, with what would confirm it.
 
 ## After the review
 

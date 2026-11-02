@@ -123,9 +123,10 @@ For a feature request, "Fix" means "implement," and scope is more often unsettle
    worktree is not available. In a clean tree, create a short kebab-case branch; never commit the fix on `main` in
    this flow.
 4. **Implement.** If your agent runtime supports isolated sub-agent dispatch, use it; otherwise work directly on the
-   branch. Add proportionate tests per [`ha-testing`](../ha-testing/SKILL.md). If the fix turns out to need more
-   than ~10 files or an architectural change, stop and hand off to [`ha-planning`](../ha-planning/SKILL.md) instead
-   of continuing inline.
+   branch. For a bug, write the test that reproduces it first and watch it fail, then fix until it passes — a test
+   written after the fix may never have caught the bug. Other tests stay proportionate, per
+   [`ha-testing`](../ha-testing/SKILL.md). If the fix turns out to need more than ~10 files or an architectural
+   change, stop and hand off to [`ha-planning`](../ha-planning/SKILL.md) instead of continuing inline.
 5. **Gate once.** Run `script/check` (type-check + lint-check + spell-check) redirected to a log, judged by its exit
    code — see [`blueprint-tooling`](../blueprint-tooling/SKILL.md)'s token-discipline note. Read the log, and only
    the failing part, on a non-zero exit; iterate on just the failing piece, then re-run the full gate once more

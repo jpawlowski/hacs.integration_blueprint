@@ -153,6 +153,10 @@ Two debug modes catch what no log level shows: Home Assistant's own, and asyncio
 API from the wrong thread and blocking the event loop are reported the moment they happen, instead of surfacing later
 as an unexplained hang or a state that quietly went wrong.
 
+A `debug_console:` line in `config/configuration.yaml` (HA 2026.11+) adds a Python console under **Settings** >
+**Tools**, with `hass` in scope — quicker than a log line and a restart for inspecting live objects. It runs in the event
+loop, so never call anything blocking there.
+
 **A config flow missing after a restart is usually the frontend cache, not the code.** Hard-refresh the browser before
 debugging the flow.
 
@@ -198,6 +202,7 @@ coordinator against it and check for the four failures that table cannot express
 - **Signalling failure by returning** `None` or an empty dict instead of raising. Entities then show `unknown` forever
   instead of going unavailable, and nothing retries.
 - **A broad `except Exception`** that swallows the auth error, so reauth never triggers and the entry just looks broken.
+  The OAuth2 helper's token errors are the same trap — see the instructions file's Authentication rules.
 - **Logging on every failed poll.** The coordinator logs the first failure and then stays quiet by design
   (`log-when-unavailable`, Silver). Manual logging buries the real error in repetition.
 - **`ConfigEntryNotReady` raised outside setup**, or `async_config_entry_first_refresh()` called outside setup.
@@ -205,9 +210,10 @@ coordinator against it and check for the four failures that table cannot express
 ## 5. Common fixes
 
 **Update interval too aggressive** — the Bronze `appropriate-polling` rule. Local devices ~30 s, cloud services
-~5–15 min. Read it from `entry.options` so the user can tune it.
+~5–15 min, fixed in code — never a user option
+([`blueprint.config_flow`](../../instructions/blueprint.config_flow.instructions.md#data-vs-options)).
 
-**Timeouts** — every request needs one, and it must use `async_timeout`/`asyncio.timeout`, never a bare `await`:
+**Timeouts** — every request needs one, with `asyncio.timeout`, never a bare `await`:
 
 ```python
 async with asyncio.timeout(10):
@@ -221,6 +227,10 @@ update; only raise when the update is genuinely useless.
 
 **Setup ordering** — expensive one-off work (fetching device metadata, capabilities) belongs in `_async_setup()`, which
 runs once before the first refresh, not in `_async_update_data`.
+
+**A listener or reconnect loop that outlives an unload** — start it with
+`entry.async_create_background_task(hass, coro, name)`, which is cancelled when the entry unloads and does not hold up
+startup. `hass.async_create_task` survives the unload and keeps running against a dead entry.
 
 ## 6. Confirm the fix
 

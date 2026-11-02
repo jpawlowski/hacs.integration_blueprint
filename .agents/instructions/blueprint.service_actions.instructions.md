@@ -23,31 +23,42 @@ covers the `services.yaml` half of the change too.
 - ✅ Register service actions in `async_setup()` (component level)
 - ❌ Never register in `async_setup_entry()` (per config entry)
 - Check `hass.services.has_service(DOMAIN, "action_name")` before registering
-  **Service naming:**
+
+**Service naming:**
 
 - Format: `<integration_domain>.<action_name>`
 - Always use integration DOMAIN, never platform domain (e.g., `sensor`, `switch`)
 
 **Implementation structure:**
 
-- Call `await async_setup_services(hass)` from `async_setup()` in `__init__.py`
+- `async_setup_services(hass)` is a `@callback` (registration does no I/O), called without `await` from `async_setup()`
+  in `__init__.py`
+- An `async_setup()` makes hassfest require a `CONFIG_SCHEMA` in `__init__.py`. For a config-entry-only integration it
+  is `CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)`, which also tells a user who adds the domain to
+  `configuration.yaml` that it is not read
 - Register the actions in `service_actions/__init__.py`; put the handler bodies in a module per logical group
-- Resolve entries with `hass.config_entries.async_entries(DOMAIN)`, then reach state through `entry.runtime_data`.
-  **NEVER** use `hass.data[DOMAIN]` — this integration stores runtime state on the config entry.
-- When no entry is loaded, raise `ServiceValidationError` with a translation key rather than logging and returning —
-  the caller's automation must see the failure
+- Resolve the target with `homeassistant.helpers.service`: `service.async_get_config_entry(hass, DOMAIN, entry_id)`
+  for a `config_entry_id` field, `service.async_get_device_and_config_entry(hass, DOMAIN, device_id)` for a
+  `device_id` field. Both raise a translated `ServiceValidationError` when the entry or device is unknown, belongs to
+  another integration, or is not loaded — do not hand-write those checks or invent `entry_not_found`-style keys
+- An action that acts on every entry iterates `hass.config_entries.async_loaded_entries(DOMAIN)`, never
+  `async_entries()`, which also returns entries that are not loaded and have no `runtime_data`
+- Reach state through `entry.runtime_data`. **NEVER** use `hass.data[DOMAIN]` — this integration stores runtime
+  state on the config entry.
 
 ## Service Schema
 
-Use voluptuous with `homeassistant.helpers.config_validation` for parameter validation:
+Use `probatio` with `homeassistant.helpers.config_validation` for parameter validation. Home Assistant validates with
+`probatio`, and service registration is typed against `probatio.Schema` — a `voluptuous` schema fails type checking.
 
 ```python
-import voluptuous as vol
+import probatio
+
 from homeassistant.helpers import config_validation as cv
 
-SERVICE_SCHEMA = vol.Schema({
-    vol.Required("device_id"): cv.string,
-    vol.Optional("force", default=False): cv.boolean,
+SERVICE_SCHEMA = probatio.Schema({
+    probatio.Required("device_id"): cv.string,
+    probatio.Optional("force", default=False): cv.boolean,
 })
 ```
 
@@ -55,10 +66,12 @@ SERVICE_SCHEMA = vol.Schema({
 
 **Use appropriate exceptions:**
 
-- `ServiceValidationError` - User provided invalid data (no stack trace in logs except at debug level)
-- `HomeAssistantError` - Device/communication errors (full stack trace in logs)
+- `ServiceValidationError` - the caller provided invalid data
+- `HomeAssistantError` - anything else failed, such as the device not responding
 
-Both exceptions support translation keys for localization.
+Neither is logged with a stack trace at the default log level; the difference is what the caller gets back (a
+`service_validation_error` or `home_assistant_error` over WebSocket, status 400 or 500 over REST). Both take
+translation keys.
 
 **Authentication failures need `entry.async_start_reauth(hass)`.** `ConfigEntryAuthFailed` only triggers the reauth
 flow when it is raised from `async_setup_entry` in `__init__.py` or from the coordinator. Raised in an action handler
@@ -125,7 +138,7 @@ service.async_register_platform_entity_service(
     DOMAIN,  # Integration domain, NOT platform domain!
     "set_timer",
     entity_domain="media_player",
-    schema={vol.Required("sleep_time"): cv.time_period},
+    schema={probatio.Required("sleep_time"): cv.time_period},
     func="set_sleep_timer",  # Method name on entity class
 )
 ```
@@ -150,10 +163,31 @@ Define in `icons.json`:
 
 ## Permissions
 
-Verify authentication when required:
+**A call without `call.context.user_id` comes from Home Assistant itself** — an automation, a script, a time trigger.
+Never reject it for that reason; doing so breaks every automation that calls the action.
+
+- An action that changes configuration or has other security implications is registered with
+  `service.async_register_admin_service(hass, DOMAIN, name, handler, schema)` instead of
+  `hass.services.async_register`. It rejects non-admin users before the handler runs and lets system calls through.
+  Entity actions take `admin_only=True` on `async_register_platform_entity_service` instead.
+- A handler that acts on an entity ID it received outside `target:` checks the user's right to control it:
 
 ```python
-async def handle_service(call: ServiceCall) -> None:
-    if not call.context.user_id:
-        raise Unauthorized("Service requires authentication")
+from homeassistant.auth.permissions.const import POLICY_CONTROL
+from homeassistant.exceptions import Unauthorized, UnknownUser
+
+if call.context.user_id:
+    user = await hass.auth.async_get_user(call.context.user_id)
+    if user is None:
+        raise UnknownUser(context=call.context)
+    if not user.permissions.check_entity(entity_id, POLICY_CONTROL):
+        raise Unauthorized(context=call.context, entity_id=entity_id, permission=POLICY_CONTROL)
 ```
+
+## Security
+
+- A file path from the caller is checked with `hass.config.is_allowed_path(path)` before it is read or written. It
+  does blocking I/O, so run it through `hass.async_add_executor_job`.
+- A URL from the caller that Home Assistant will fetch is checked with `hass.config.is_allowed_external_url(url)`.
+- Data reported by the device or the cloud is untrusted too: validate it before it becomes part of a URL, a file path
+  or a command.

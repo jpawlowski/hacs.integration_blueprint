@@ -78,6 +78,9 @@ commits on main → release-please opens/updates "chore(main): release X.Y.Z"
 
 There is no automatic merge. The developer decides when to release.
 
+How a published release reaches users, and getting the repository into the catalog in the first place, is
+[`ha-marketplace`](../ha-marketplace/SKILL.md).
+
 ## Commands
 
 ```bash
@@ -121,7 +124,9 @@ Also confirm:
 - The changelog entries read as user-facing statements, not commit titles.
 - Every breaking change has a `BREAKING CHANGE:` footer and a migration note.
 - `docs/user/` and the README match the released behaviour.
-- The minimum Home Assistant version in `hacs.json` and `manifest.json` is still accurate.
+- `hacs.json` → `homeassistant` is still the minimum this release needs
+  ([`ha-marketplace`](../ha-marketplace/SKILL.md#2-hacsjson--when-to-touch-it)); raising it is a breaking change
+  ([`ha-breaking-changes`](../ha-breaking-changes/SKILL.md)).
 - `custom_components/<domain>/brand/icon.png` is the product's icon, not the blueprint's placeholder.
 
 ## Troubleshooting

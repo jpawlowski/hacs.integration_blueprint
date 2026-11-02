@@ -159,10 +159,20 @@ when the blueprint starts maintaining another excluded file.
 `script/ha-version-sync` changes the pinned version; several skills make version-specific claims that may now be
 stale. Re-verify against the newly installed source, not from memory:
 
-- `ha-modern-apis` — the whole deprecation table, plus `references/deprecations.md`
+- `ha-modern-apis` — `references/deprecations.md` and `references/device-registry.md`: move rows whose "Removed in"
+  version has arrived to "gone", and add new `breaks_in_ha_version` entries
 - `ha-quality-review` — `references/quality-scale-rules.md` against `script/hassfest/quality_scale.py` upstream
-- `ha-entity-platform`, `ha-config-flow` — any API named in a code sample
-- `ha-testing` — new `DeprecationWarning`s become test failures, because warnings are errors here
+- `ha-entity-platform`, `ha-config-flow`, `ha-service-action` — any API named in a code sample, including
+  `references/triggers-conditions.md`, which tracks a young API
+- `ha-testing` — Home Assistant's own deprecations are logged, not raised, so run the suite: the autouse
+  deprecation fixture in `tests/conftest.py` fails on them
+- Every `(HA YYYY.M+)` marker, across all skills and instructions files: once the **minimum** version in `hacs.json`
+  reaches it, the new API becomes the default and the marker and the old way go. Reaching it in the pinned version
+  only is not enough, since code still has to run on the minimum.
+
+The contributor documentation follows Home Assistant's development branch, so it describes upcoming APIs before any
+release ships them. Audit the skills against it per area — `https://contributors.home-assistant.io/<area>/llms-full.txt`
+holds an area's full text — and check each claim against the installed source before writing it down.
 
 ## Do not
 

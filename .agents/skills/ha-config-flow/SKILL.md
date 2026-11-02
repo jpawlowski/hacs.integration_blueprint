@@ -29,22 +29,23 @@ MUST/NEVER list for each individual flow is in the first reference below.
 | [`references/flow-types.md`](references/flow-types.md)                 | Implementing one flow — user, discovery, reauth, reconfigure, options, subentry |
 | [`references/discovery-matchers.md`](references/discovery-matchers.md) | Writing a `manifest.json` discovery matcher, or using a discovery helper API    |
 | [`references/oauth2.md`](references/oauth2.md)                         | The service authenticates with OAuth2 rather than an API key or a password      |
+| [`references/migration.md`](references/migration.md)                   | A config entry migration can fail, and the user needs a way to retry it         |
 
 ## Package layout
 
-Where each piece goes. Only the first four exist from the start; create the rest when something needs them, rather
-than leaving empty scaffolding behind.
+Where each piece goes. The example ships `__init__.py`, `config_flow.py`, `schemas/config.py` and
+`validators/credentials.py`; create the rest when something needs them, rather than leaving empty scaffolding behind.
 
 ```text
 config_flow_handler/
 ├── __init__.py          # exports
 ├── config_flow.py       # user, reauth, reauth_confirm, reconfigure, discovery steps
-├── options_flow.py      # post-setup options
+├── options_flow.py      # post-setup options, only when there is something to tune
 ├── handler.py           # logic shared between the flows above
 ├── subentry_flow.py     # multi-device / multi-account subentries
 ├── schemas/
-│   ├── config.py        # voluptuous schemas for setup steps
-│   └── options.py       # voluptuous schemas for the options flow
+│   ├── config.py        # probatio schemas for setup steps
+│   └── options.py       # probatio schemas for the options flow
 └── validators/
     ├── credentials.py   # "can we actually talk to it" checks
     └── sanitizers.py    # input normalisation (strip, lowercase host, …)
@@ -55,6 +56,8 @@ The top-level `config_flow.py` is a thin shim Home Assistant discovers — leave
 ## Adding a config option
 
 1. **Decide data or options** using the table in the instructions file. This is the one irreversible choice here.
+   A polling interval is neither — it is not a field at all. In an integration without options yet, the first real
+   option is when `options_flow.py` and `schemas/options.py` get created.
 2. Add the `CONF_*` key to `const.py`.
 3. Add the field to `schemas/config.py` or `schemas/options.py` with a selector and a default.
 4. Consume it: coordinator reads `entry.options`, client reads `entry.data`.
@@ -90,14 +93,15 @@ Implement `async_migrate_entry()` in `custom_components/<domain>/__init__.py`:
 ```python
 async def async_migrate_entry(hass: HomeAssistant, entry: {ClassPrefix}ConfigEntry) -> bool:
     """Migrate an old config entry."""
-    if entry.version > 1:
-        # Downgrade from a future version — refuse rather than corrupt data.
-        return False
     if entry.version == 1 and entry.minor_version < 2:
         data = {**entry.data, CONF_PORT: DEFAULT_PORT}
         hass.config_entries.async_update_entry(entry, data=data, minor_version=2)
     return True
 ```
+
+No downgrade branch and no `return False` — the contract is under
+[Version and Migration](../../instructions/blueprint.config_flow.instructions.md#version-and-migration); a migration
+that can fail needs [`references/migration.md`](references/migration.md).
 
 Migrations must be idempotent and must never delete a key they do not understand. Cover every migration with a test
 ([`ha-testing`](../ha-testing/SKILL.md)).
@@ -134,6 +138,6 @@ correctly, and that the form renders the way the selectors promise.
 
 - Do not do blocking I/O or long retries inside a flow step; validate with a short timeout.
 - Do not call the flow done before walking it end to end.
-- Do not give an optional free-text field `default=None` — voluptuous injects that default when the field is left
+- Do not give an optional free-text field `default=None` — probatio injects that default when the field is left
   empty and the selector then rejects it, making the form unsubmittable. Carry the current value in
   `description={"suggested_value": ...}` instead.
