@@ -45,6 +45,17 @@ jobs:
         with:
           persist-credentials: false
 
+      # The action reads the repository without a token and refuses a private one; the catalog only lists public ones
+      - name: Detect a private repository
+        id: repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "$(gh api "repos/${GITHUB_REPOSITORY}" --jq .private)" == "true" ]]; then
+            echo "::notice::Private repository - skipping HACS validation until it is made public"
+            echo "private=true" >>"$GITHUB_OUTPUT"
+          fi
+
       - name: Detect brand images
         id: brand
         run: |
@@ -56,6 +67,7 @@ jobs:
           fi
 
       - name: Run HACS validation
+        if: steps.repository.outputs.private != 'true'
         uses: hacs/action@d556e736723344f83838d08488c983a15381059a # 22.5.0
         with:
           category: integration
