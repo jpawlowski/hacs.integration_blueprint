@@ -53,11 +53,9 @@ run_hook "develop" "pre"
 # script/hooks/develop.pre.sh. Never fatal — Home Assistant must still start.
 "$SCRIPT_DIR/setup/seed-auth" || log_warning "Continuing without a development token"
 
-# Set the path to custom_components
-## This let's us have the structure we want <root>/custom_components/<domain>
-## while at the same time have Home Assistant configuration inside <root>/config
-## without resulting to symlinks.
-export PYTHONPATH="${PYTHONPATH:-}:${PWD}/custom_components"
+# The repository root on the path adds <root>/custom_components to the
+# custom_components namespace package, beside config/custom_components.
+export PYTHONPATH="${PWD}${PYTHONPATH:+:${PYTHONPATH}}"
 
 log_header "Starting Home Assistant in development mode"
 log_info "Config directory: ${PWD}/config"
